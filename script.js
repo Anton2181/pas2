@@ -22,7 +22,9 @@ const state = {
     availableTasks: [...TASKS],
     usedTasks: [], // Tasks that have been instantiated at least once
     canvasTasks: [], // Instances of tasks on the canvas
+    groups: [], // Group instances
     nextInstanceId: 1,
+    nextGroupId: 1,
     zoomLevel: 1
 };
 
@@ -35,7 +37,8 @@ const elements = {
     canvas: document.getElementById('canvas'),
     connectionsLayer: document.getElementById('connections-layer'),
     zoomIn: document.getElementById('zoom-in'),
-    zoomOut: document.getElementById('zoom-out')
+    zoomOut: document.getElementById('zoom-out'),
+    addGroupBtn: document.getElementById('add-group-btn')
 };
 
 // Initialization
@@ -44,6 +47,7 @@ function init() {
     renderSidebarLists();
     setupDragAndDrop();
     setupZoom();
+    setupGroups();
 }
 
 function setupZoom() {
@@ -74,6 +78,104 @@ function setupSidebar() {
         const icon = elements.toggleBtn.querySelector('.icon');
         icon.textContent = elements.sidebar.classList.contains('collapsed') ? '←' : '→';
     });
+}
+
+function setupGroups() {
+    if (elements.addGroupBtn) {
+        elements.addGroupBtn.addEventListener('click', createGroup);
+    }
+}
+
+function createGroup() {
+    const groupId = state.nextGroupId++;
+    const variant = Math.floor(Math.random() * 5) + 1;
+
+    // Center on canvas (approximate)
+    const canvasRect = elements.canvas.getBoundingClientRect();
+    const x = (canvasRect.width / 2 - 150) / state.zoomLevel;
+    const y = (canvasRect.height / 2 - 100) / state.zoomLevel;
+
+    const group = {
+        id: groupId,
+        title: 'New Group',
+        variant: variant,
+        x: x,
+        y: y
+    };
+
+    state.groups.push(group);
+    renderGroup(group);
+}
+
+function renderGroup(group) {
+    const el = document.createElement('div');
+    el.className = `component-group variant-${group.variant}`;
+    el.id = `group-${group.id}`;
+    el.style.left = `${group.x}px`;
+    el.style.top = `${group.y}px`;
+
+    // Delete Button
+    const deleteBtn = document.createElement('div');
+    deleteBtn.className = 'group-delete-btn';
+    deleteBtn.textContent = '×';
+    deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        // Release tasks
+        const content = el.querySelector('.group-content');
+        Array.from(content.children).forEach(child => {
+            if (child.classList.contains('task-card')) {
+                // Move back to canvas at current absolute position
+                const rect = child.getBoundingClientRect();
+                const canvasRect = elements.canvas.getBoundingClientRect();
+                child.style.position = 'absolute';
+                child.style.left = `${(rect.left - canvasRect.left) / state.zoomLevel}px`;
+                child.style.top = `${(rect.top - canvasRect.top) / state.zoomLevel}px`;
+                elements.canvas.appendChild(child);
+            }
+        });
+        el.remove();
+        state.groups = state.groups.filter(g => g.id !== group.id);
+    };
+    el.appendChild(deleteBtn);
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'group-header';
+    header.textContent = group.title;
+
+    // Editable Title
+    header.addEventListener('dblclick', () => {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = group.title;
+        input.style.width = '100%';
+        input.style.font = 'inherit';
+
+        input.onblur = () => {
+            group.title = input.value || 'Untitled Group';
+            header.textContent = group.title;
+        };
+
+        input.onkeydown = (e) => {
+            if (e.key === 'Enter') input.blur();
+        };
+
+        header.textContent = '';
+        header.appendChild(input);
+        input.focus();
+    });
+
+    el.appendChild(header);
+
+    // Content Area
+    const content = document.createElement('div');
+    content.className = 'group-content';
+    el.appendChild(content);
+
+    // Make Group Draggable
+    makeDraggable(el, group, true);
+
+    elements.canvas.appendChild(el);
 }
 
 function renderSidebarLists() {
@@ -155,7 +257,6 @@ function handleNewTaskDrop(data, x, y) {
     const canvasRect = elements.canvas.getBoundingClientRect();
 
     // Calculate position relative to canvas container
-    // We need to account for zoom/pan later, but for now simple offset
     const posX = (x - canvasRect.left) / state.zoomLevel;
     const posY = (y - canvasRect.top) / state.zoomLevel;
 
@@ -214,23 +315,27 @@ function renderTaskOnCanvas(instance) {
         color: var(--text-secondary);
         font-size: 12px;
     `;
-    candidatesToggle.innerHTML = '▼ Candidates';
+    candidatesToggle.innerHTML = '<span class="candidates-text">▼ Candidates</span><span class="candidates-icon" style="display:none">▼</span>';
 
     const candidatesList = document.createElement('div');
     candidatesList.className = 'candidates-list';
     candidatesList.style.display = 'none';
     candidatesList.style.marginTop = '8px';
+    candidatesList.style.padding = '4px';
+    candidatesList.style.fontSize = '12px';
+    candidatesList.style.color = 'var(--text-secondary)';
 
-    // Populate candidates
+    // Populate candidates as comma-separated text
     const suitableCandidates = CANDIDATES.filter(c => c.roles.includes(instance.type));
-    candidatesList.innerHTML = suitableCandidates.map(c =>
-        `<div style="padding: 4px; font-size: 12px;">${c.name}</div>`
-    ).join('');
+    candidatesList.textContent = suitableCandidates.map(c => c.name).join(', ');
 
     candidatesToggle.onclick = () => {
         const isHidden = candidatesList.style.display === 'none';
         candidatesList.style.display = isHidden ? 'block' : 'none';
-        candidatesToggle.innerHTML = isHidden ? '▲ Candidates' : '▼ Candidates';
+        const textSpan = candidatesToggle.querySelector('.candidates-text');
+        const iconSpan = candidatesToggle.querySelector('.candidates-icon');
+        if (textSpan) textSpan.textContent = isHidden ? '▲ Candidates' : '▼ Candidates';
+        if (iconSpan) iconSpan.textContent = isHidden ? '▲' : '▼';
     };
 
     el.appendChild(candidatesToggle);
@@ -248,20 +353,55 @@ function renderTaskOnCanvas(instance) {
     elements.canvas.appendChild(el);
 }
 
-function makeDraggable(el, instance) {
+function makeDraggable(el, instance, isGroup = false) {
     let isDragging = false;
     let startX, startY;
     let initialLeft, initialTop;
 
     el.addEventListener('mousedown', (e) => {
-        if (e.target.closest('.task-delete-btn') || e.target.closest('.candidates-toggle')) return;
+        if (e.target.closest('.task-delete-btn') ||
+            e.target.closest('.candidates-toggle') ||
+            e.target.closest('.group-delete-btn') ||
+            (e.target.tagName === 'INPUT')) return;
+
+        // Prevent group drag if clicking on a task inside it
+        if (isGroup && e.target.closest('.task-card')) return;
 
         isDragging = true;
         startX = e.clientX;
         startY = e.clientY;
+
+        // If element is in a group (static position), we need to detach it to drag
+        if (!isGroup && el.parentElement.classList.contains('group-content')) {
+            const canvasRect = elements.canvas.getBoundingClientRect();
+
+            // Reparent to canvas
+            elements.canvas.appendChild(el);
+            el.style.position = 'absolute';
+
+            // Center on mouse
+            // We need to wait for layout to update to get correct dimensions, but usually synchronous append works
+            const width = el.offsetWidth;
+            const height = el.offsetHeight;
+
+            el.style.left = `${(e.clientX - canvasRect.left) / state.zoomLevel - width / 2}px`;
+            el.style.top = `${(e.clientY - canvasRect.top) / state.zoomLevel - height / 2}px`;
+
+            // Update start coordinates to match the new position relative to mouse
+            // Since we centered it, startX/Y match the center, so dx/dy logic in mousemove needs to be consistent
+            // Actually, if we just set the position here, we need to update initialLeft/Top to this new position
+            // and keep startX/Y as the current mouse position.
+        }
+
         initialLeft = parseFloat(el.style.left);
         initialTop = parseFloat(el.style.top);
         el.style.zIndex = 1000;
+
+        // Add selected class
+        if (isGroup) {
+            document.querySelectorAll('.component-group').forEach(g => g.classList.remove('selected'));
+            el.classList.add('selected');
+        }
     });
 
     window.addEventListener('mousemove', (e) => {
@@ -273,14 +413,52 @@ function makeDraggable(el, instance) {
         el.style.left = `${initialLeft + dx}px`;
         el.style.top = `${initialTop + dy}px`;
 
-        instance.x = initialLeft + dx;
-        instance.y = initialTop + dy;
+        if (isGroup) {
+            instance.x = initialLeft + dx;
+            instance.y = initialTop + dy;
+        }
     });
 
-    window.addEventListener('mouseup', () => {
+    window.addEventListener('mouseup', (e) => {
         if (isDragging) {
             isDragging = false;
             el.style.zIndex = '';
+
+            if (!isGroup) {
+                // Check for drop on group
+                let droppedOnGroup = false;
+                const groups = document.querySelectorAll('.component-group');
+
+                // We need to check collision with the actual mouse position or element center
+                const elRect = el.getBoundingClientRect();
+                const centerX = elRect.left + elRect.width / 2;
+                const centerY = elRect.top + elRect.height / 2;
+
+                for (const groupEl of groups) {
+                    const groupRect = groupEl.getBoundingClientRect();
+                    if (centerX >= groupRect.left && centerX <= groupRect.right &&
+                        centerY >= groupRect.top && centerY <= groupRect.bottom) {
+
+                        const content = groupEl.querySelector('.group-content');
+                        content.appendChild(el);
+                        el.style.position = 'static'; // Let flexbox handle layout
+                        el.style.left = '';
+                        el.style.top = '';
+                        droppedOnGroup = true;
+                        break;
+                    }
+                }
+
+                if (!droppedOnGroup) {
+                    // Ensure it's on canvas and update coordinates
+                    if (el.parentElement !== elements.canvas) {
+                        elements.canvas.appendChild(el);
+                        el.style.position = 'absolute';
+                    }
+                    instance.x = parseFloat(el.style.left);
+                    instance.y = parseFloat(el.style.top);
+                }
+            }
         }
     });
 }
@@ -319,10 +497,6 @@ function updatePriorities(taskId) {
     const instances = state.canvasTasks.filter(t => t.id === taskId);
 
     // If multiple instances, show numbers
-    // "from there, you can bring it back out again, which will cause numbers to appear in the top right of the task tiles representing the priority"
-    // This implies if there is > 1 instance, or maybe even if it's just in "Used" list?
-    // Let's assume if there are multiple instances, we number them.
-
     instances.forEach((instance, index) => {
         const el = document.getElementById(`task-${instance.instanceId}`);
         if (!el) return;
