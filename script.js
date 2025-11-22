@@ -172,6 +172,95 @@ function renderGroup(group) {
     content.className = 'group-content';
     el.appendChild(content);
 
+    // Group Candidates Toggle
+    const groupCandidatesToggle = document.createElement('div');
+    groupCandidatesToggle.className = 'group-candidates-toggle';
+    groupCandidatesToggle.innerHTML = '<span class="candidates-text">▼ Candidates</span><span class="candidates-icon" style="display:none">▼</span>';
+    groupCandidatesToggle.style.cssText = `
+        margin-top: 8px;
+        text-align: center;
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-size: 12px;
+    `;
+
+    const groupCandidatesList = document.createElement('div');
+    groupCandidatesList.className = 'group-candidates-list';
+    groupCandidatesList.style.display = 'none';
+    groupCandidatesList.style.marginTop = '8px';
+    groupCandidatesList.style.padding = '4px';
+    groupCandidatesList.style.fontSize = '12px';
+    groupCandidatesList.style.color = 'var(--text-secondary)';
+    groupCandidatesList.style.position = 'relative';
+
+    // Function to update group candidates
+    const updateGroupCandidates = () => {
+        const taskCards = content.querySelectorAll('.task-card');
+        if (taskCards.length === 0) {
+            groupCandidatesList.innerHTML = 'No tasks in group';
+            groupCandidatesToggle.style.display = 'none';
+            return;
+        }
+
+        groupCandidatesToggle.style.display = 'block';
+
+        // Get all task types in the group
+        const taskTypes = [];
+        taskCards.forEach(card => {
+            const taskId = card.id.replace('task-', '');
+            const taskInstance = state.canvasTasks.find(t => t.instanceId == taskId);
+            if (taskInstance) {
+                taskTypes.push(taskInstance.type);
+            }
+        });
+
+        // Calculate intersection (candidates suitable for ALL tasks)
+        let intersection = [...CANDIDATES];
+        taskTypes.forEach(type => {
+            intersection = intersection.filter(c => c.roles.includes(type));
+        });
+
+        // Calculate union (candidates suitable for ANY task)
+        const union = CANDIDATES.filter(c => {
+            return taskTypes.some(type => c.roles.includes(type));
+        });
+
+        const intersectionNames = intersection.map(c => c.name).join(', ') || 'None';
+        groupCandidatesList.innerHTML = `<div>${intersectionNames}</div>`;
+
+        // Add counter
+        const counter = document.createElement('div');
+        counter.className = 'candidates-counter';
+        counter.textContent = `${intersection.length}/${union.length}`;
+        counter.style.cssText = `
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            color: ${intersection.length === 0 ? 'red' : 'var(--text-secondary)'};
+        `;
+        groupCandidatesList.appendChild(counter);
+    };
+
+    groupCandidatesToggle.onclick = () => {
+        const isHidden = groupCandidatesList.style.display === 'none';
+        if (isHidden) {
+            updateGroupCandidates();
+        }
+        groupCandidatesList.style.display = isHidden ? 'block' : 'none';
+        const textSpan = groupCandidatesToggle.querySelector('.candidates-text');
+        const iconSpan = groupCandidatesToggle.querySelector('.candidates-icon');
+        if (textSpan) textSpan.textContent = isHidden ? '▲ Candidates' : '▼ Candidates';
+        if (iconSpan) iconSpan.textContent = isHidden ? '▲' : '▼';
+    };
+
+    el.appendChild(groupCandidatesToggle);
+    el.appendChild(groupCandidatesList);
+
+    // Store update function for later use
+    el._updateGroupCandidates = updateGroupCandidates;
+
     // Make Group Draggable
     makeDraggable(el, group, true);
 
@@ -321,13 +410,29 @@ function renderTaskOnCanvas(instance) {
     candidatesList.className = 'candidates-list';
     candidatesList.style.display = 'none';
     candidatesList.style.marginTop = '8px';
-    candidatesList.style.padding = '4px';
     candidatesList.style.fontSize = '12px';
     candidatesList.style.color = 'var(--text-secondary)';
+    candidatesList.style.position = 'relative';
 
     // Populate candidates as comma-separated text
     const suitableCandidates = CANDIDATES.filter(c => c.roles.includes(instance.type));
-    candidatesList.textContent = suitableCandidates.map(c => c.name).join(', ');
+    const candidatesText = document.createElement('div');
+    candidatesText.textContent = suitableCandidates.map(c => c.name).join(', ');
+    candidatesList.appendChild(candidatesText);
+
+    // Add counter
+    const counter = document.createElement('div');
+    counter.className = 'candidates-counter';
+    counter.textContent = suitableCandidates.length.toString();
+    counter.style.cssText = `
+        position: absolute;
+        bottom: 2px;
+        right: 4px;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text-secondary);
+    `;
+    candidatesList.appendChild(counter);
 
     candidatesToggle.onclick = () => {
         const isHidden = candidatesList.style.display === 'none';
@@ -374,6 +479,7 @@ function makeDraggable(el, instance, isGroup = false) {
         // If element is in a group (static position), we need to detach it to drag
         if (!isGroup && el.parentElement.classList.contains('group-content')) {
             const canvasRect = elements.canvas.getBoundingClientRect();
+            const oldGroup = el.parentElement.parentElement; // Store old group reference
 
             // Reparent to canvas
             elements.canvas.appendChild(el);
@@ -386,6 +492,11 @@ function makeDraggable(el, instance, isGroup = false) {
 
             el.style.left = `${(e.clientX - canvasRect.left) / state.zoomLevel - width / 2}px`;
             el.style.top = `${(e.clientY - canvasRect.top) / state.zoomLevel - height / 2}px`;
+
+            // Update the old group's candidates
+            if (oldGroup && oldGroup._updateGroupCandidates) {
+                setTimeout(() => oldGroup._updateGroupCandidates(), 0);
+            }
 
             // Update start coordinates to match the new position relative to mouse
             // Since we centered it, startX/Y match the center, so dx/dy logic in mousemove needs to be consistent
@@ -445,6 +556,12 @@ function makeDraggable(el, instance, isGroup = false) {
                         el.style.left = '';
                         el.style.top = '';
                         droppedOnGroup = true;
+
+                        // Update group candidates display
+                        if (groupEl._updateGroupCandidates) {
+                            setTimeout(() => groupEl._updateGroupCandidates(), 0);
+                        }
+
                         break;
                     }
                 }
