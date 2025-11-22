@@ -2,6 +2,7 @@
 const state = {
     availableTasks: [],
     usedTasks: [],
+    skippedTasks: [],
     canvasTasks: [],
     groups: [],
     nextInstanceId: 1,
@@ -15,6 +16,8 @@ const elements = {
     toggleBtn: null,
     availableList: null,
     usedList: null,
+    skippedList: null,
+    searchInput: null,
     canvas: null,
     connectionsLayer: null,
     zoomIn: null,
@@ -28,6 +31,8 @@ function initElements() {
     elements.toggleBtn = document.getElementById('toggle-sidebar');
     elements.availableList = document.getElementById('available-tasks');
     elements.usedList = document.getElementById('used-tasks');
+    elements.skippedList = document.getElementById('skipped-tasks');
+    elements.searchInput = document.getElementById('task-search');
     elements.canvas = document.getElementById('canvas');
     elements.connectionsLayer = document.getElementById('connections-layer');
     elements.zoomIn = document.getElementById('zoom-in');

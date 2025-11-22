@@ -11,10 +11,13 @@ function setupDragAndDrop() {
         const dataString = e.dataTransfer.getData('application/json');
         if (!dataString) return;
 
+        // Check if dropped on a group
+        const targetGroup = e.target.closest('.component-group');
+
         try {
             const data = JSON.parse(dataString);
             if (data.type === 'new-task') {
-                handleNewTaskDrop(data, e.clientX, e.clientY);
+                handleNewTaskDrop(data, e.clientX, e.clientY, targetGroup);
             }
         } catch (err) {
             console.error('Drop error:', err);
@@ -22,12 +25,16 @@ function setupDragAndDrop() {
     });
 }
 
-function handleNewTaskDrop(data, x, y) {
+function handleNewTaskDrop(data, x, y, targetGroup = null) {
     const task = TASKS.find(t => t.id === data.taskId);
     if (!task) return;
 
     if (data.source === 'available') {
         state.availableTasks = state.availableTasks.filter(t => t.id !== task.id);
+        state.usedTasks.push(task);
+        renderSidebarLists();
+    } else if (data.source === 'skipped') {
+        state.skippedTasks = state.skippedTasks.filter(t => t.id !== task.id);
         state.usedTasks.push(task);
         renderSidebarLists();
     }
@@ -50,6 +57,32 @@ function handleNewTaskDrop(data, x, y) {
     state.canvasTasks.push(taskInstance);
     renderTaskOnCanvas(taskInstance);
     updatePriorities(task.id);
+
+    // If dropped on a group, move it there immediately
+    if (targetGroup) {
+        const el = document.getElementById(`task-${instanceId}`);
+        if (el) {
+            const content = targetGroup.querySelector('.group-content');
+            if (content) {
+                content.appendChild(el);
+                el.style.position = 'static';
+                el.style.left = '';
+                el.style.top = '';
+
+                // Hide candidates toggle when added to group
+                if (el._candidatesToggle) {
+                    el._candidatesToggle.style.display = 'none';
+                }
+                if (el._candidatesList) {
+                    el._candidatesList.style.display = 'none';
+                }
+
+                if (targetGroup._updateGroupCandidates) {
+                    setTimeout(() => targetGroup._updateGroupCandidates(), 0);
+                }
+            }
+        }
+    }
 }
 
 function makeDraggable(el, instance, isGroup = false) {
@@ -63,6 +96,7 @@ function makeDraggable(el, instance, isGroup = false) {
             e.target.closest('.group-delete-btn') ||
             e.target.closest('.group-candidates-toggle') ||
             e.target.closest('.resize-handle') ||
+            e.target.closest('.icon-btn') || // Skip/Restore buttons
             (e.target.tagName === 'INPUT')) return;
 
         if (isGroup && e.target.closest('.task-card')) return;

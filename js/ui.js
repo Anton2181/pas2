@@ -6,6 +6,12 @@ function setupSidebar() {
         const icon = elements.toggleBtn.querySelector('.icon');
         icon.textContent = elements.sidebar.classList.contains('collapsed') ? '←' : '→';
     });
+
+    if (elements.searchInput) {
+        elements.searchInput.addEventListener('input', () => {
+            renderSidebarLists();
+        });
+    }
 }
 
 function setupDataRefresh() {
@@ -22,6 +28,7 @@ function setupDataRefresh() {
 
         state.availableTasks = [...TASKS];
         state.usedTasks = [];
+        state.skippedTasks = [];
 
         renderSidebarLists();
 
@@ -42,17 +49,33 @@ function updateRefreshButtonText(btn) {
 }
 
 function renderSidebarLists() {
+    const filter = elements.searchInput ? elements.searchInput.value.toLowerCase() : '';
+
     elements.availableList.innerHTML = '';
     state.availableTasks.forEach(task => {
-        const el = createTaskListItem(task, 'available');
-        elements.availableList.appendChild(el);
+        if (task.name.toLowerCase().includes(filter)) {
+            const el = createTaskListItem(task, 'available');
+            elements.availableList.appendChild(el);
+        }
     });
 
     elements.usedList.innerHTML = '';
     state.usedTasks.forEach(task => {
-        const el = createTaskListItem(task, 'used');
-        elements.usedList.appendChild(el);
+        if (task.name.toLowerCase().includes(filter)) {
+            const el = createTaskListItem(task, 'used');
+            elements.usedList.appendChild(el);
+        }
     });
+
+    if (elements.skippedList) {
+        elements.skippedList.innerHTML = '';
+        state.skippedTasks.forEach(task => {
+            if (task.name.toLowerCase().includes(filter)) {
+                const el = createTaskListItem(task, 'skipped');
+                elements.skippedList.appendChild(el);
+            }
+        });
+    }
 }
 
 function createTaskListItem(task, source) {
@@ -62,10 +85,45 @@ function createTaskListItem(task, source) {
     div.dataset.taskId = task.id;
     div.dataset.source = source;
 
-    div.innerHTML = `
-        <span>${task.name}</span>
-        <span class="icon">⋮</span>
-    `;
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = task.name;
+    div.appendChild(nameSpan);
+
+    const controls = document.createElement('div');
+    controls.className = 'task-controls';
+    controls.style.display = 'flex';
+    controls.style.gap = '4px';
+
+    if (source === 'available') {
+        const skipBtn = document.createElement('span');
+        skipBtn.className = 'icon-btn';
+        skipBtn.innerHTML = '↷'; // Skip icon
+        skipBtn.title = 'Skip Task';
+        skipBtn.style.cursor = 'pointer';
+        skipBtn.onclick = (e) => {
+            e.stopPropagation();
+            skipTask(task);
+        };
+        controls.appendChild(skipBtn);
+    } else if (source === 'skipped') {
+        const restoreBtn = document.createElement('span');
+        restoreBtn.className = 'icon-btn';
+        restoreBtn.innerHTML = '↶'; // Restore icon
+        restoreBtn.title = 'Restore Task';
+        restoreBtn.style.cursor = 'pointer';
+        restoreBtn.onclick = (e) => {
+            e.stopPropagation();
+            restoreTask(task);
+        };
+        controls.appendChild(restoreBtn);
+    }
+
+    const menuBtn = document.createElement('span');
+    menuBtn.className = 'icon';
+    menuBtn.textContent = '⋮';
+    controls.appendChild(menuBtn);
+
+    div.appendChild(controls);
 
     div.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('application/json', JSON.stringify({
@@ -77,6 +135,18 @@ function createTaskListItem(task, source) {
     });
 
     return div;
+}
+
+function skipTask(task) {
+    state.availableTasks = state.availableTasks.filter(t => t.id !== task.id);
+    state.skippedTasks.push(task);
+    renderSidebarLists();
+}
+
+function restoreTask(task) {
+    state.skippedTasks = state.skippedTasks.filter(t => t.id !== task.id);
+    state.availableTasks.push(task);
+    renderSidebarLists();
 }
 
 function renderTaskOnCanvas(instance) {
