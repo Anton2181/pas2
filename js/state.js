@@ -19,9 +19,12 @@ const elements = {
     skippedList: null,
     searchInput: null,
     canvas: null,
+    canvasContainer: null,
+    canvasSizer: null,
     connectionsLayer: null,
     zoomIn: null,
     zoomOut: null,
+    fitBtn: null,
     addGroupBtn: null,
     refreshDataBtn: null
 };
@@ -34,8 +37,11 @@ function initElements() {
     elements.skippedList = document.getElementById('skipped-tasks');
     elements.searchInput = document.getElementById('task-search');
     elements.canvas = document.getElementById('canvas');
+    elements.canvasContainer = document.getElementById('canvas-container');
+    elements.canvasSizer = document.getElementById('canvas-sizer');
     elements.connectionsLayer = document.getElementById('connections-layer');
     elements.zoomIn = document.getElementById('zoom-in');
     elements.zoomOut = document.getElementById('zoom-out');
+    elements.fitBtn = document.getElementById('fit-btn');
     elements.addGroupBtn = document.getElementById('add-group-btn');
 }

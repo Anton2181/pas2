@@ -51,10 +51,15 @@
             </div>
         </aside>
 
-        <main class="canvas-container" id="canvas">
-            <svg id="connections-layer"></svg>
+        <main class="canvas-container" id="canvas-container">
+            <div id="canvas-sizer" class="canvas-sizer">
+                <div id="canvas" class="canvas-content">
+                    <svg id="connections-layer"></svg>
+                </div>
+            </div>
 
             <div class="zoom-controls">
+                <button class="zoom-btn" id="fit-btn" title="Fit to Content">⛶</button>
                 <button class="zoom-btn" id="reset-btn" title="Reset Workspace">⟲</button>
                 <button class="zoom-btn" id="undo-btn" title="Undo">↶</button>
                 <button class="zoom-btn" id="zoom-out">-</button>

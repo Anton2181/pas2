@@ -12,6 +12,12 @@ async function init() {
     setupZoom();
     setupGroups();
     setupDataRefresh();
+
+    // Start at top-left
+    if (elements.canvasContainer) {
+        elements.canvasContainer.scrollLeft = 0;
+        elements.canvasContainer.scrollTop = 0;
+    }
 }
 
 // Start the application

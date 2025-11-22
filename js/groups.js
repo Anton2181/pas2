@@ -10,10 +10,18 @@ function createGroup() {
     const groupId = state.nextGroupId++;
     const variant = Math.floor(Math.random() * 5) + 1;
 
-    const canvasRect = elements.canvas.getBoundingClientRect();
-    // Fix: Do not divide by zoomLevel for position
-    const x = (canvasRect.width / 2 - 150);
-    const y = (canvasRect.height / 2 - 100);
+    // Calculate position to center in current viewport
+    const container = elements.canvasContainer;
+    const zoom = state.zoomLevel;
+
+    // Center of viewport in SCROLLED pixels
+    const viewportCenterX = container.scrollLeft + container.clientWidth / 2;
+    const viewportCenterY = container.scrollTop + container.clientHeight / 2;
+
+    // Convert to UNSCALED coordinates
+    // We subtract half the group size (280x200) to center it
+    const x = (viewportCenterX / zoom) - 140;
+    const y = (viewportCenterY / zoom) - 100;
 
     const group = {
         id: groupId,
@@ -49,9 +57,15 @@ function renderGroup(group) {
                 const rect = child.getBoundingClientRect();
                 const canvasRect = elements.canvas.getBoundingClientRect();
                 child.style.position = 'absolute';
-                // Fix: Correct position calculation when releasing tasks
-                child.style.left = `${(rect.left - canvasRect.left)}px`;
-                child.style.top = `${(rect.top - canvasRect.top)}px`;
+
+                // When releasing, we need to convert screen coordinates back to canvas coordinates
+                // rect is screen coords. canvasRect is screen coords of the wrapper.
+                // The wrapper is scaled.
+                // So (rect.left - canvasRect.left) gives scaled pixels.
+                // We need unscaled pixels for style.left.
+                child.style.left = `${(rect.left - canvasRect.left) / state.zoomLevel}px`;
+                child.style.top = `${(rect.top - canvasRect.top) / state.zoomLevel}px`;
+
                 elements.canvas.appendChild(child);
 
                 // Show candidates toggle again
@@ -195,15 +209,11 @@ function renderGroup(group) {
         const startX = e.clientX;
         const startY = e.clientY;
 
-        // Fix: Use computed style to get the actual content width/height
-        // offsetWidth includes padding/border, which causes a jump when setting style.width
         const style = window.getComputedStyle(el);
         const startWidth = parseFloat(style.width);
         const startHeight = parseFloat(style.height);
 
         const onMouseMove = (moveEvent) => {
-            // Calculate delta. Since the group is scaled, we need to divide delta by scale
-            // to get the change in "unscaled" pixels (which is what width/height are).
             const dx = (moveEvent.clientX - startX) / state.zoomLevel;
             const dy = (moveEvent.clientY - startY) / state.zoomLevel;
 

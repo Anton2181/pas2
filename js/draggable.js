@@ -42,10 +42,9 @@ function handleNewTaskDrop(data, x, y, targetGroup = null) {
     const instanceId = state.nextInstanceId++;
     const canvasRect = elements.canvas.getBoundingClientRect();
 
-    // Fix: Do not divide by zoomLevel for position, as the container is not scaled.
-    // Only the items are scaled.
-    const posX = (x - canvasRect.left);
-    const posY = (y - canvasRect.top);
+    // Fix: Divide by zoomLevel for position because the container is scaled.
+    const posX = (x - canvasRect.left) / state.zoomLevel;
+    const posY = (y - canvasRect.top) / state.zoomLevel;
 
     const taskInstance = {
         ...task,
@@ -115,10 +114,11 @@ function makeDraggable(el, instance, isGroup = false) {
             const width = el.offsetWidth;
             const height = el.offsetHeight;
 
-            // Fix: Calculate position to center under mouse, accounting for item scale
-            // Position = Mouse - CanvasOffset - (ScaledSize / 2)
-            el.style.left = `${(e.clientX - canvasRect.left) - (width * state.zoomLevel / 2)}px`;
-            el.style.top = `${(e.clientY - canvasRect.top) - (height * state.zoomLevel / 2)}px`;
+            // Fix: Calculate position to center under mouse, accounting for container scale
+            // (e.clientX - canvasRect.left) is scaled pixels.
+            // We need unscaled pixels for style.left.
+            el.style.left = `${(e.clientX - canvasRect.left) / state.zoomLevel - (width / 2)}px`;
+            el.style.top = `${(e.clientY - canvasRect.top) / state.zoomLevel - (height / 2)}px`;
 
             // Show candidates toggle when removed from group
             if (el._candidatesToggle) {
@@ -142,8 +142,9 @@ function makeDraggable(el, instance, isGroup = false) {
 
     window.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
-        const dx = (e.clientX - startX);
-        const dy = (e.clientY - startY);
+        // Fix: Divide delta by zoomLevel to match mouse movement in scaled container
+        const dx = (e.clientX - startX) / state.zoomLevel;
+        const dy = (e.clientY - startY) / state.zoomLevel;
 
         el.style.left = `${initialLeft + dx}px`;
         el.style.top = `${initialTop + dy}px`;
