@@ -97,7 +97,7 @@ function createTaskListItem(task, source) {
     if (source === 'available') {
         const skipBtn = document.createElement('span');
         skipBtn.className = 'icon-btn';
-        skipBtn.innerHTML = '↷'; // Skip icon
+        skipBtn.innerHTML = '↷';
         skipBtn.title = 'Skip Task';
         skipBtn.style.cursor = 'pointer';
         skipBtn.onclick = (e) => {
@@ -108,7 +108,7 @@ function createTaskListItem(task, source) {
     } else if (source === 'skipped') {
         const restoreBtn = document.createElement('span');
         restoreBtn.className = 'icon-btn';
-        restoreBtn.innerHTML = '↶'; // Restore icon
+        restoreBtn.innerHTML = '↶';
         restoreBtn.title = 'Restore Task';
         restoreBtn.style.cursor = 'pointer';
         restoreBtn.onclick = (e) => {
@@ -127,23 +127,23 @@ function createTaskListItem(task, source) {
 
     // Click to spawn task at viewport center
     div.addEventListener('click', (e) => {
-        // Don't spawn if clicking on control buttons
         if (e.target.closest('.icon-btn') || e.target.closest('.icon')) {
             return;
         }
 
-        // Calculate center of visible viewport in canvas coordinates
         const container = elements.canvasContainer;
         const scrollLeft = container.scrollLeft;
         const scrollTop = container.scrollTop;
         const viewportCenterX = scrollLeft + (container.clientWidth / 2);
         const viewportCenterY = scrollTop + (container.clientHeight / 2);
 
-        // Convert to unscaled canvas coordinates
-        const x = viewportCenterX / state.zoomLevel;
-        const y = viewportCenterY / state.zoomLevel;
+        // Add random nudge
+        const nudgeX = (Math.random() - 0.5) * 40;
+        const nudgeY = (Math.random() - 0.5) * 40;
 
-        // Spawn the task
+        const x = (viewportCenterX / state.zoomLevel) + nudgeX;
+        const y = (viewportCenterY / state.zoomLevel) + nudgeY;
+
         const data = {
             taskId: task.id,
             source: source,
@@ -204,7 +204,6 @@ function renderTaskOnCanvas(instance) {
     `;
     el.appendChild(content);
 
-    // Candidates Toggle (only show on canvas, not in groups)
     const candidatesToggle = document.createElement('div');
     candidatesToggle.className = 'candidates-toggle';
     candidatesToggle.style.cssText = `
@@ -254,7 +253,6 @@ function renderTaskOnCanvas(instance) {
     el.appendChild(candidatesToggle);
     el.appendChild(candidatesList);
 
-    // Store reference for hiding/showing toggle
     el._candidatesToggle = candidatesToggle;
     el._candidatesList = candidatesList;
 
@@ -293,6 +291,10 @@ function removeTaskInstance(instanceId) {
 
         const el = document.getElementById(`task-${instanceId}`);
         if (el) el.remove();
+
+        if (typeof removeConnectionsFor === 'function') {
+            removeConnectionsFor(`task-${instanceId}`);
+        }
 
         state.canvasTasks.splice(index, 1);
 

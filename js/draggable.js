@@ -98,6 +98,14 @@ function makeDraggable(el, instance, isGroup = false) {
             e.target.closest('.icon-btn') || // Skip/Restore buttons
             (e.target.tagName === 'INPUT')) return;
 
+        // Check for Shift key for connections
+        if (e.shiftKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            startConnectionDrag(e, el, instance, isGroup);
+            return;
+        }
+
         if (isGroup && e.target.closest('.task-card')) return;
 
         isDragging = true;
@@ -153,6 +161,11 @@ function makeDraggable(el, instance, isGroup = false) {
             instance.x = initialLeft + dx;
             instance.y = initialTop + dy;
         }
+
+        // Update connections
+        if (typeof renderConnections === 'function') {
+            renderConnections();
+        }
     });
 
     window.addEventListener('mouseup', (e) => {
@@ -173,12 +186,29 @@ function makeDraggable(el, instance, isGroup = false) {
                     if (centerX >= groupRect.left && centerX <= groupRect.right &&
                         centerY >= groupRect.top && centerY <= groupRect.bottom) {
 
+                        // Check Exclusion Constraint
+                        const taskInstanceId = el.id.replace('task-', '');
+                        const targetGroupId = groupEl.id.replace('group-', '');
+
+                        if (typeof checkExclusionConstraint === 'function' &&
+                            checkExclusionConstraint(taskInstanceId, targetGroupId)) {
+                            // Constraint violated
+                            // Ideally show a toast or shake
+                            console.log('Exclusion constraint violated');
+                            continue; // Try other groups or fail
+                        }
+
                         const content = groupEl.querySelector('.group-content');
                         content.appendChild(el);
                         el.style.position = 'static';
                         el.style.left = '';
                         el.style.top = '';
                         droppedOnGroup = true;
+
+                        // Update connections immediately
+                        if (typeof renderConnections === 'function') {
+                            renderConnections();
+                        }
 
                         // Hide candidates toggle when added to group
                         if (el._candidatesToggle) {

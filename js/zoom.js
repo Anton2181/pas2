@@ -21,9 +21,27 @@ function setupZoom() {
 }
 
 function updateZoom(change) {
+    const container = elements.canvasContainer;
+    const oldZoom = state.zoomLevel;
+
+    // 1. Get center point relative to content (unscaled)
+    const viewCenterX = container.scrollLeft + container.clientWidth / 2;
+    const viewCenterY = container.scrollTop + container.clientHeight / 2;
+
+    const contentCenterX = viewCenterX / oldZoom;
+    const contentCenterY = viewCenterY / oldZoom;
+
+    // 2. Update Zoom
     const newLevel = Math.max(0.2, Math.min(3, state.zoomLevel + change));
     state.zoomLevel = newLevel;
     applyZoom();
+
+    // 3. Calculate new scroll positions to keep content center at view center
+    const newViewCenterX = contentCenterX * newLevel;
+    const newViewCenterY = contentCenterY * newLevel;
+
+    container.scrollLeft = newViewCenterX - container.clientWidth / 2;
+    container.scrollTop = newViewCenterY - container.clientHeight / 2;
 }
 
 function applyZoom() {

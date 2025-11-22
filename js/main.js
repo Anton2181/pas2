@@ -8,10 +8,11 @@ async function init() {
 
     setupSidebar();
     renderSidebarLists();
-    setupDragAndDrop();
     setupZoom();
     setupGroups();
     setupDataRefresh();
+    setupDragAndDrop();
+    initConnections();
 
     // Start at top-left
     if (elements.canvasContainer) {

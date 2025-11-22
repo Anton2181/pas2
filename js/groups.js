@@ -74,6 +74,12 @@ function renderGroup(group) {
                 }
             }
         });
+
+        // Remove connections
+        if (typeof removeConnectionsFor === 'function') {
+            removeConnectionsFor(`group-${group.id}`);
+        }
+
         el.remove();
         state.groups = state.groups.filter(g => g.id !== group.id);
     };
@@ -225,6 +231,10 @@ function renderGroup(group) {
 
             group.width = newWidth;
             group.height = newHeight;
+
+            if (typeof renderConnections === 'function') {
+                renderConnections();
+            }
         };
 
         const onMouseUp = () => {

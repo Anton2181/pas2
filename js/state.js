@@ -5,6 +5,7 @@ const state = {
     skippedTasks: [],
     canvasTasks: [],
     groups: [],
+    connections: [], // { id, fromId, toId, type: 'obligatory'|'exclusion'|'equivalent' }
     nextInstanceId: 1,
     nextGroupId: 1,
     zoomLevel: 1
