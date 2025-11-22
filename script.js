@@ -1,6 +1,18 @@
 
-// Data Models
-const TASKS = [
+// Google Sheets Configuration
+const SPREADSHEET_CONFIG = {
+    id: '1s1hdDGjMQTjT1P5zO3xMX__hM1V-5Y9rEGt8uUg5_B0',
+    gid: '342418684',
+    get csvUrl() {
+        const googleUrl = `https://docs.google.com/spreadsheets/d/${this.id}/export?format=csv&gid=${this.gid}`;
+        // Use CORS proxy to allow fetching from local files (file:// protocol)
+        // When deployed to a web server, you can remove the proxy by returning googleUrl directly
+        return `https://corsproxy.io/?${encodeURIComponent(googleUrl)}`;
+    }
+};
+
+// Data Models - will be populated from Google Sheets or use defaults
+let TASKS = [
     { id: 't1', name: 'Group Lesson', duration: 60, type: 'teaching' },
     { id: 't2', name: 'Private Lesson', duration: 45, type: 'teaching' },
     { id: 't3', name: 'Practica Supervision', duration: 120, type: 'supervision' },
@@ -9,7 +21,7 @@ const TASKS = [
     { id: 't6', name: 'Cleaning', duration: 60, type: 'maintenance' }
 ];
 
-const CANDIDATES = [
+let CANDIDATES = [
     { id: 'c1', name: 'Maria', roles: ['teaching', 'supervision'] },
     { id: 'c2', name: 'Juan', roles: ['teaching', 'music'] },
     { id: 'c3', name: 'Sofia', roles: ['service', 'maintenance'] },
@@ -38,16 +50,123 @@ const elements = {
     connectionsLayer: document.getElementById('connections-layer'),
     zoomIn: document.getElementById('zoom-in'),
     zoomOut: document.getElementById('zoom-out'),
-    addGroupBtn: document.getElementById('add-group-btn')
+    addGroupBtn: document.getElementById('add-group-btn'),
+    refreshDataBtn: null // Will be created dynamically
 };
 
+// Google Sheets Data Import
+async function fetchSheetData() {
+    try {
+        const response = await fetch(SPREADSHEET_CONFIG.csvUrl);
+        if (!response.ok) throw new Error('Failed to fetch spreadsheet data');
+        const csv = await response.text();
+        return parseCSV(csv);
+    } catch (error) {
+        console.error('Error fetching sheet data:', error);
+        return null;
+    }
+}
+
+function parseCSV(csv) {
+    const lines = csv.split('\n').filter(line => line.trim());
+    if (lines.length < 2) return null;
+
+    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    const taskNames = headers.slice(2); // Skip "Name" and "Role" columns
+
+    const candidates = [];
+    const taskTypes = {}; // Map task names to types
+
+    for (let i = 1; i < lines.length; i++) {
+        const cells = lines[i].split(',').map(c => c.trim().replace(/"/g, ''));
+        if (cells.length < 3) continue;
+
+        const name = cells[0];
+        const role = cells[1].toLowerCase();
+        const availabilities = cells.slice(2);
+
+        // Determine which tasks this candidate can do (cells with "Yes")
+        const roles = [];
+        availabilities.forEach((avail, idx) => {
+            if (avail.toLowerCase() === 'yes' && taskNames[idx]) {
+                const taskName = taskNames[idx];
+                if (!taskTypes[taskName]) {
+                    taskTypes[taskName] = taskName.toLowerCase(); // Use task name as type
+                }
+                if (!roles.includes(taskNames[idx])) {
+                    roles.push(taskNames[idx]);
+                }
+            }
+        });
+
+        if (name) {
+            candidates.push({
+                id: `c${i}`,
+                name: name,
+                role: role,
+                roles: roles
+            });
+        }
+    }
+
+    // Create tasks array
+    const tasks = taskNames.map((taskName, idx) => ({
+        id: `t${idx + 1}`,
+        name: taskName,
+        duration: 60, // Default duration
+        type: taskName.toLowerCase()
+    }));
+
+    return { tasks, candidates };
+}
+
+async function loadData(forceRefresh = false) {
+    // Check if data exists in localStorage
+    const stored = localStorage.getItem('spreadsheetData');
+
+    if (!forceRefresh && stored) {
+        try {
+            const data = JSON.parse(stored);
+            TASKS.length = 0;
+            TASKS.push(...data.tasks);
+            CANDIDATES.length = 0;
+            CANDIDATES.push(...data.candidates);
+            console.log('Loaded data from localStorage');
+            return true;
+        } catch (e) {
+            console.error('Error parsing stored data:', e);
+        }
+    }
+
+    // Fetch from Google Sheets
+    console.log('Fetching data from Google Sheets...');
+    const data = await fetchSheetData();
+
+    if (data) {
+        TASKS.length = 0;
+        TASKS.push(...data.tasks);
+        CANDIDATES.length = 0;
+        CANDIDATES.push(...data.candidates);
+
+        // Save to localStorage
+        localStorage.setItem('spreadsheetData', JSON.stringify(data));
+        console.log('Data loaded from Google Sheets');
+        return true;
+    }
+
+    console.log('Using default data');
+    return false;
+}
+
 // Initialization
-function init() {
+async function init() {
+    await loadData(); // Load data first
     setupSidebar();
     renderSidebarLists();
     setupDragAndDrop();
     setupZoom();
     setupGroups();
+    setupDataRefresh(); // Add refresh button
 }
 
 function setupZoom() {
@@ -78,6 +197,38 @@ function setupSidebar() {
         const icon = elements.toggleBtn.querySelector('.icon');
         icon.textContent = elements.sidebar.classList.contains('collapsed') ? '←' : '→';
     });
+}
+
+function setupDataRefresh() {
+    // Create refresh button
+    const refreshBtn = document.createElement('button');
+    refreshBtn.className = 'tool-btn';
+    refreshBtn.innerHTML = '<span class="icon">↻</span> Refresh Data';
+    refreshBtn.style.marginTop = '8px';
+
+    refreshBtn.onclick = async () => {
+        refreshBtn.disabled = true;
+        refreshBtn.innerHTML = '<span class="icon">↻</span> Loading...';
+
+        await loadData(true); // Force refresh
+
+        // Reset state
+        state.availableTasks = [...TASKS];
+        state.usedTasks = [];
+
+        // Re-render sidebar
+        renderSidebarLists();
+
+        refreshBtn.disabled = false;
+        refreshBtn.innerHTML = '<span class="icon">↻</span> Refresh Data';
+    };
+
+    // Find the right sidebar and add button at the top
+    const rightSidebar = document.querySelector('.right-sidebar .sidebar-content');
+    if (rightSidebar) {
+        rightSidebar.insertBefore(refreshBtn, rightSidebar.firstChild);
+        elements.refreshDataBtn = refreshBtn;
+    }
 }
 
 function setupGroups() {
@@ -415,7 +566,7 @@ function renderTaskOnCanvas(instance) {
     candidatesList.style.position = 'relative';
 
     // Populate candidates as comma-separated text
-    const suitableCandidates = CANDIDATES.filter(c => c.roles.includes(instance.type));
+    const suitableCandidates = CANDIDATES.filter(c => c.roles.includes(instance.name));
     const candidatesText = document.createElement('div');
     candidatesText.textContent = suitableCandidates.map(c => c.name).join(', ');
     candidatesList.appendChild(candidatesText);
