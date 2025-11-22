@@ -125,6 +125,33 @@ function createTaskListItem(task, source) {
 
     div.appendChild(controls);
 
+    // Click to spawn task at viewport center
+    div.addEventListener('click', (e) => {
+        // Don't spawn if clicking on control buttons
+        if (e.target.closest('.icon-btn') || e.target.closest('.icon')) {
+            return;
+        }
+
+        // Calculate center of visible viewport in canvas coordinates
+        const container = elements.canvasContainer;
+        const scrollLeft = container.scrollLeft;
+        const scrollTop = container.scrollTop;
+        const viewportCenterX = scrollLeft + (container.clientWidth / 2);
+        const viewportCenterY = scrollTop + (container.clientHeight / 2);
+
+        // Convert to unscaled canvas coordinates
+        const x = viewportCenterX / state.zoomLevel;
+        const y = viewportCenterY / state.zoomLevel;
+
+        // Spawn the task
+        const data = {
+            taskId: task.id,
+            source: source,
+            type: 'new-task'
+        };
+        handleNewTaskDrop(data, x, y);
+    });
+
     div.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('application/json', JSON.stringify({
             taskId: task.id,

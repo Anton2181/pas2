@@ -453,12 +453,41 @@ input:checked+.mode-chip.equivalent {
     display: flex;
     flex-direction: column;
     padding: 4px;
+    gap: 4px;
     border-radius: var(--radius-md);
     background: rgba(255, 255, 255, 0.3);
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.group-candidates-toggle {
+    margin-top: 8px;
+    text-align: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 12px;
+    padding: 4px;
+}
+
+.group-candidates-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+.group-candidates-list {
+    margin-top: 4px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    position: relative;
+    max-height: 80px;
+    overflow-y: auto;
 }
 
 .right-sidebar {
-    width: 420px;
+    width: 300px;
     background: var(--surface-color);
     border-left: 1px solid var(--border-color);
     box-shadow: -4px 0 20px rgba(0, 0, 0, 0.05);
@@ -515,7 +544,7 @@ input:checked+.mode-chip.equivalent {
     background: var(--surface-color);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    cursor: grab;
+    cursor: pointer;
     transition: all 0.2s;
     display: flex;
     justify-content: space-between;
