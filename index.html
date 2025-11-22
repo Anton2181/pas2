@@ -3,112 +3,13 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tango Scheduler - Component Builder</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <meta http-equiv="refresh" content="0;url=task-groups.html">
+    <title>Redirecting...</title>
 </head>
 
 <body>
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="logo">TangoPlan</div>
-            <div class="tool-section">
-                <h3>Create</h3>
-                <button id="add-group-btn" class="tool-btn">
-                    <span class="icon">□</span> New Group
-                </button>
-            </div>
-            <div class="tool-section">
-                <h3>Connect</h3>
-                <div class="mode-switch">
-                    <label>
-                        <input type="radio" name="conn-mode" value="obligatory" checked>
-                        <span class="mode-chip obligatory">Obligatory</span>
-                    </label>
-                    <label>
-                        <input type="radio" name="conn-mode" value="exclusion">
-                        <span class="mode-chip exclusion">Exclusion</span>
-                    </label>
-                    <label>
-                        <input type="radio" name="conn-mode" value="equivalent">
-                        <span class="mode-chip equivalent">Equivalent</span>
-                    </label>
-                </div>
-                <p class="hint">Hold Shift + Drag between items to connect</p>
-            </div>
-            <div class="tool-section">
-                <h3>File</h3>
-                <button id="save-file-btn" class="tool-btn">
-                    <span class="icon">💾</span> Save to File
-                </button>
-                <button id="load-file-btn" class="tool-btn">
-                    <span class="icon">📂</span> Load from File
-                </button>
-                <input type="file" id="file-input" accept=".json" style="display: none;">
-            </div>
-        </aside>
-
-        <main class="canvas-container" id="canvas-container">
-            <div id="canvas-sizer" class="canvas-sizer">
-                <div id="canvas" class="canvas-content">
-                    <svg id="connections-layer"></svg>
-                </div>
-            </div>
-
-            <div class="zoom-controls">
-                <button class="zoom-btn" id="fit-btn" title="Fit to Content">⛶</button>
-                <button class="zoom-btn" id="reset-btn" title="Reset Workspace">⟲</button>
-                <button class="zoom-btn" id="undo-btn" title="Undo">↶</button>
-                <button class="zoom-btn" id="zoom-out">-</button>
-                <button class="zoom-btn" id="zoom-in">+</button>
-            </div>
-        </main>
-
-        <aside class="right-sidebar" id="task-sidebar">
-            <button class="toggle-btn" id="toggle-sidebar">
-                <span class="icon">→</span>
-            </button>
-            <div class="sidebar-content">
-                <!-- Refresh Button is inserted here by JS -->
-
-                <div class="search-container" style="margin-top: 8px; margin-bottom: 16px;">
-                    <input type="text" id="task-search" placeholder="Search tasks..."
-                        style="width: 341px; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--background-color); color: var(--text-primary);">
-                </div>
-
-                <h3>Available Tasks</h3>
-                <div class="task-list" id="available-tasks">
-                    <!-- Populated by JS -->
-                </div>
-
-                <div class="divider"></div>
-
-                <h3>Used Tasks</h3>
-                <div class="task-list" id="used-tasks">
-                    <!-- Populated by JS -->
-                </div>
-
-                <div class="divider"></div>
-
-                <h3>Skipped Tasks</h3>
-                <div class="task-list" id="skipped-tasks">
-                    <!-- Populated by JS -->
-                </div>
-            </div>
-        </aside>
-    </div>
-
-    <!-- Load scripts in correct order -->
-    <script src="js/state.js"></script>
-    <script src="js/data.js"></script>
-    <script src="js/zoom.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/groups.js"></script>
-    <script src="js/draggable.js"></script>
-    <script src="js/main.js"></script>
+    <p>Redirecting to <a href="task-groups.html">task-groups.html</a>...</p>
+    <script>window.location.href = "task-groups.html";</script>
 </body>
 
 </html>
