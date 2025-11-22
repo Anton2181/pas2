@@ -35,8 +35,10 @@ function handleNewTaskDrop(data, x, y) {
     const instanceId = state.nextInstanceId++;
     const canvasRect = elements.canvas.getBoundingClientRect();
 
-    const posX = (x - canvasRect.left) / state.zoomLevel;
-    const posY = (y - canvasRect.top) / state.zoomLevel;
+    // Fix: Do not divide by zoomLevel for position, as the container is not scaled.
+    // Only the items are scaled.
+    const posX = (x - canvasRect.left);
+    const posY = (y - canvasRect.top);
 
     const taskInstance = {
         ...task,
@@ -60,6 +62,7 @@ function makeDraggable(el, instance, isGroup = false) {
             e.target.closest('.candidates-toggle') ||
             e.target.closest('.group-delete-btn') ||
             e.target.closest('.group-candidates-toggle') ||
+            e.target.closest('.resize-handle') ||
             (e.target.tagName === 'INPUT')) return;
 
         if (isGroup && e.target.closest('.task-card')) return;
@@ -78,8 +81,10 @@ function makeDraggable(el, instance, isGroup = false) {
             const width = el.offsetWidth;
             const height = el.offsetHeight;
 
-            el.style.left = `${(e.clientX - canvasRect.left) / state.zoomLevel - width / 2}px`;
-            el.style.top = `${(e.clientY - canvasRect.top) / state.zoomLevel - height / 2}px`;
+            // Fix: Calculate position to center under mouse, accounting for item scale
+            // Position = Mouse - CanvasOffset - (ScaledSize / 2)
+            el.style.left = `${(e.clientX - canvasRect.left) - (width * state.zoomLevel / 2)}px`;
+            el.style.top = `${(e.clientY - canvasRect.top) - (height * state.zoomLevel / 2)}px`;
 
             // Show candidates toggle when removed from group
             if (el._candidatesToggle) {

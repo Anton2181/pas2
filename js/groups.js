@@ -11,15 +11,18 @@ function createGroup() {
     const variant = Math.floor(Math.random() * 5) + 1;
 
     const canvasRect = elements.canvas.getBoundingClientRect();
-    const x = (canvasRect.width / 2 - 150) / state.zoomLevel;
-    const y = (canvasRect.height / 2 - 100) / state.zoomLevel;
+    // Fix: Do not divide by zoomLevel for position
+    const x = (canvasRect.width / 2 - 150);
+    const y = (canvasRect.height / 2 - 100);
 
     const group = {
         id: groupId,
         title: 'New Group',
         variant: variant,
         x: x,
-        y: y
+        y: y,
+        width: 280, // Default width
+        height: 200 // Default height
     };
 
     state.groups.push(group);
@@ -32,6 +35,8 @@ function renderGroup(group) {
     el.id = `group-${group.id}`;
     el.style.left = `${group.x}px`;
     el.style.top = `${group.y}px`;
+    if (group.width) el.style.width = `${group.width}px`;
+    if (group.height) el.style.height = `${group.height}px`;
 
     const deleteBtn = document.createElement('div');
     deleteBtn.className = 'group-delete-btn';
@@ -44,8 +49,9 @@ function renderGroup(group) {
                 const rect = child.getBoundingClientRect();
                 const canvasRect = elements.canvas.getBoundingClientRect();
                 child.style.position = 'absolute';
-                child.style.left = `${(rect.left - canvasRect.left) / state.zoomLevel}px`;
-                child.style.top = `${(rect.top - canvasRect.top) / state.zoomLevel}px`;
+                // Fix: Correct position calculation when releasing tasks
+                child.style.left = `${(rect.left - canvasRect.left)}px`;
+                child.style.top = `${(rect.top - canvasRect.top)}px`;
                 elements.canvas.appendChild(child);
 
                 // Show candidates toggle again
@@ -175,6 +181,50 @@ function renderGroup(group) {
     el.appendChild(groupCandidatesList);
 
     el._updateGroupCandidates = updateGroupCandidates;
+
+    // Resize Handle
+    const resizeHandle = document.createElement('div');
+    resizeHandle.className = 'resize-handle';
+    el.appendChild(resizeHandle);
+
+    // Resize Logic
+    resizeHandle.addEventListener('mousedown', (e) => {
+        e.stopPropagation(); // Prevent drag
+        e.preventDefault();
+
+        const startX = e.clientX;
+        const startY = e.clientY;
+
+        // Fix: Use computed style to get the actual content width/height
+        // offsetWidth includes padding/border, which causes a jump when setting style.width
+        const style = window.getComputedStyle(el);
+        const startWidth = parseFloat(style.width);
+        const startHeight = parseFloat(style.height);
+
+        const onMouseMove = (moveEvent) => {
+            // Calculate delta. Since the group is scaled, we need to divide delta by scale
+            // to get the change in "unscaled" pixels (which is what width/height are).
+            const dx = (moveEvent.clientX - startX) / state.zoomLevel;
+            const dy = (moveEvent.clientY - startY) / state.zoomLevel;
+
+            const newWidth = Math.max(200, startWidth + dx);
+            const newHeight = Math.max(150, startHeight + dy);
+
+            el.style.width = `${newWidth}px`;
+            el.style.height = `${newHeight}px`;
+
+            group.width = newWidth;
+            group.height = newHeight;
+        };
+
+        const onMouseUp = () => {
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', onMouseUp);
+        };
+
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+    });
 
     makeDraggable(el, group, true);
 

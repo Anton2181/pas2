@@ -618,3 +618,18 @@ path.connection:hover {
     font-weight: 600;
     color: var(--text-secondary);
 }
+.resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 16px;
+    height: 16px;
+    cursor: se-resize;
+    background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.2) 50%);
+    border-radius: 0 0 var(--radius-lg) 0;
+    z-index: 20;
+}
+
+.resize-handle:hover {
+    background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.4) 50%);
+}
