@@ -91,9 +91,81 @@ function renderGroup(group) {
 
     const header = document.createElement('div');
     header.className = 'group-header';
-    header.textContent = group.title;
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
 
-    header.addEventListener('dblclick', () => {
+    const titleContainer = document.createElement('div');
+    titleContainer.textContent = group.title;
+    titleContainer.style.flex = '1';
+    header.appendChild(titleContainer);
+
+    const metricsContainer = document.createElement('div');
+    metricsContainer.className = 'group-metrics';
+    metricsContainer.style.fontSize = '12px';
+    metricsContainer.style.color = 'var(--text-secondary)';
+    metricsContainer.style.display = 'flex';
+    metricsContainer.style.gap = '16px';
+    header.appendChild(metricsContainer);
+
+    const updateGroupMetrics = () => {
+        const taskCards = content.querySelectorAll('.task-card');
+        let totalEffort = 0;
+        let timeSlots = [];
+        let hasAll = false;
+
+        taskCards.forEach(card => {
+            const taskId = card.id.replace('task-', '');
+            const taskInstance = state.canvasTasks.find(t => t.instanceId == taskId);
+            if (taskInstance) {
+                if (taskInstance.effort) totalEffort += parseFloat(taskInstance.effort);
+                if (taskInstance.time) {
+                    if (taskInstance.time.toLowerCase() === 'all') {
+                        hasAll = true;
+                    } else {
+                        timeSlots.push(taskInstance.time);
+                    }
+                }
+            }
+        });
+
+        let timeDisplay = '';
+        if (hasAll) {
+            timeDisplay = 'All';
+        } else if (timeSlots.length > 0) {
+            // Parse time slots to find earliest and latest
+            const parsedSlots = timeSlots.map(slot => {
+                const parts = slot.split('-');
+                if (parts.length === 2) {
+                    return {
+                        start: parseInt(parts[0]),
+                        end: parseInt(parts[1])
+                    };
+                }
+                return null;
+            }).filter(s => s !== null);
+
+            if (parsedSlots.length > 0) {
+                const earliest = Math.min(...parsedSlots.map(s => s.start));
+                const latest = Math.max(...parsedSlots.map(s => s.end));
+                timeDisplay = `${earliest}-${latest}`;
+            } else {
+                // Fallback if times aren't in XX-YY format
+                timeDisplay = timeSlots.join(', ');
+            }
+        }
+
+        const effortDisplay = totalEffort > 0 ? `${totalEffort} Effort` : '';
+        metricsContainer.innerHTML = `
+            <span>${timeDisplay}</span>
+            <span>${effortDisplay}</span>
+        `;
+    };
+
+    // Store update function on element
+    el._updateGroupMetrics = updateGroupMetrics;
+
+    titleContainer.addEventListener('dblclick', () => {
         const input = document.createElement('input');
         input.type = 'text';
         input.value = group.title;
@@ -102,7 +174,7 @@ function renderGroup(group) {
 
         input.onblur = () => {
             group.title = input.value || 'Untitled Group';
-            header.textContent = group.title;
+            titleContainer.textContent = group.title;
             if (typeof pushState === 'function') pushState();
         };
 
@@ -110,8 +182,8 @@ function renderGroup(group) {
             if (e.key === 'Enter') input.blur();
         };
 
-        header.textContent = '';
-        header.appendChild(input);
+        titleContainer.textContent = '';
+        titleContainer.appendChild(input);
         input.focus();
     });
 
@@ -188,6 +260,17 @@ function renderGroup(group) {
             color: ${intersection.length === 0 ? 'red' : 'var(--text-secondary)'};
         `;
         groupCandidatesList.appendChild(counter);
+
+        // Update toggle button to show count
+        const countColor = intersection.length === 0 ? 'red' : 'var(--text-secondary)';
+        const textSpan = groupCandidatesToggle.querySelector('.candidates-text');
+        const isHidden = groupCandidatesList.style.display === 'none';
+        if (textSpan) {
+            textSpan.innerHTML = `${isHidden ? '▼' : '▲'} Candidates <span style="color: ${countColor};">(${intersection.length}/${union.length})</span>`;
+        }
+
+        // Update metrics
+        if (el._updateGroupMetrics) el._updateGroupMetrics();
     };
 
     groupCandidatesToggle.onclick = () => {

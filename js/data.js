@@ -8,48 +8,145 @@ const SPREADSHEET_CONFIG = {
     }
 };
 
-// Data Models
-let TASKS = [
-    { id: 't1', name: 'Group Lesson', duration: 60, type: 'teaching' },
-    { id: 't2', name: 'Private Lesson', duration: 45, type: 'teaching' },
-    { id: 't3', name: 'Practica Supervision', duration: 120, type: 'supervision' },
-    { id: 't4', name: 'Milonga DJ', duration: 240, type: 'music' },
-    { id: 't5', name: 'Bar Shift', duration: 180, type: 'service' },
-    { id: 't6', name: 'Cleaning', duration: 60, type: 'maintenance' }
-];
+// Data Models  
+let TASKS = [];
+let METRICS_DATA = [];
+let CANDIDATES = [];
 
-let CANDIDATES = [
-    { id: 'c1', name: 'Maria', roles: ['teaching', 'supervision'] },
-    { id: 'c2', name: 'Juan', roles: ['teaching', 'music'] },
-    { id: 'c3', name: 'Sofia', roles: ['service', 'maintenance'] },
-    { id: 'c4', name: 'Carlos', roles: ['teaching', 'service'] },
-    { id: 'c5', name: 'Elena', roles: ['supervision', 'music'] }
-];
+// Proper CSV parsing function that handles quoted fields
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
 
-// Google Sheets Data Import
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+
+        if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+                current += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === ',' && !inQuotes) {
+            result.push(current.trim());
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+
+    result.push(current.trim());
+    return result;
+}
+
 async function fetchSheetData() {
     try {
-        const response = await fetch(SPREADSHEET_CONFIG.csvUrl);
-        if (!response.ok) throw new Error('Failed to fetch spreadsheet data');
-        const csv = await response.text();
-        return parseCSV(csv);
+        const tasksUrl = 'https://corsproxy.io/?' + encodeURIComponent(
+            `https://docs.google.com/spreadsheets/d/${SPREADSHEET_CONFIG.id}/export?format=csv&gid=342418684`
+        );
+
+        const metricsUrl = 'https://corsproxy.io/?' + encodeURIComponent(
+            `https://docs.google.com/spreadsheets/d/${SPREADSHEET_CONFIG.id}/export?format=csv&gid=592403055`
+        );
+
+        const [tasksResponse, metricsResponse] = await Promise.all([
+            fetch(tasksUrl),
+            fetch(metricsUrl)
+        ]);
+
+        if (!tasksResponse.ok || !metricsResponse.ok) {
+            throw new Error('Failed to fetch spreadsheet data');
+        }
+
+        const tasksCsv = await tasksResponse.text();
+        const metricsCsv = await metricsResponse.text();
+
+        const tasksData = parseTasksCSV(tasksCsv);
+        const metricsData = parseMetricsCSV(metricsCsv);
+
+        if (!tasksData) {
+            throw new Error('Failed to parse task data');
+        }
+
+        console.log('Tasks from Task Availability:', tasksData.tasks);
+        console.log('Metrics from Template:', metricsData);
+
+        // Get task names that have metrics in the Template
+        const tasksWithMetrics = new Set(metricsData.map(m => m.name));
+
+        // Filter to only include tasks that appear in both sheets (intersection)
+        const intersectedTasks = tasksData.tasks.filter(task => tasksWithMetrics.has(task.name));
+
+        console.log('Tasks in both sheets (intersection):', intersectedTasks);
+        console.log(`Filtered from ${tasksData.tasks.length} to ${intersectedTasks.length} tasks`);
+
+        return {
+            tasks: intersectedTasks,
+            candidates: tasksData.candidates,
+            metrics: metricsData
+        };
     } catch (error) {
         console.error('Error fetching sheet data:', error);
         return null;
     }
 }
 
-function parseCSV(csv) {
+function parseMetricsCSV(csv) {
+    const lines = csv.split('\n').filter(line => line.trim());
+    if (lines.length < 2) return [];
+
+    const headers = parseCSVLine(lines[0]);
+    console.log('Metrics sheet headers:', headers);
+
+    const todoIdx = headers.findIndex(h => h.toLowerCase().includes('todo'));
+    const timeIdx = headers.findIndex(h => h.toLowerCase().includes('time'));
+    const effortIdx = headers.findIndex(h => h.toLowerCase().includes('effort'));
+
+    console.log('Column indices - TODO:', todoIdx, 'Time:', timeIdx, 'Effort:', effortIdx);
+
+    const metrics = [];
+    const seenTasks = new Set();
+
+    for (let i = 1; i < lines.length; i++) {
+        const cells = parseCSVLine(lines[i]);
+
+        const taskName = todoIdx >= 0 ? cells[todoIdx] : '';
+        if (!taskName || seenTasks.has(taskName)) continue;
+
+        seenTasks.add(taskName);
+
+        const time = timeIdx >= 0 && cells[timeIdx] ? cells[timeIdx] : '';
+        // Check bounds before accessing effortIdx
+        const effortStr = effortIdx >= 0 && effortIdx < cells.length && cells[effortIdx] ? cells[effortIdx] : '';
+        // Handle European number format (comma instead of dot)
+        const effort = effortStr ? parseFloat(effortStr.replace(',', '.')) : '';
+
+        console.log(`Task: "${taskName}", Time: "${time}", Effort: "${effort}"`);
+
+        metrics.push({
+            name: taskName,
+            time: time,
+            effort: effort
+        });
+    }
+
+    return metrics;
+}
+
+function parseTasksCSV(csv) {
     const lines = csv.split('\n').filter(line => line.trim());
     if (lines.length < 2) return null;
 
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    const headers = parseCSVLine(lines[0]);
     const taskNames = headers.slice(2);
 
     const candidates = [];
 
     for (let i = 1; i < lines.length; i++) {
-        const cells = lines[i].split(',').map(c => c.trim().replace(/"/g, ''));
+        const cells = parseCSVLine(lines[i]);
         if (cells.length < 3) continue;
 
         const name = cells[0];
@@ -96,7 +193,13 @@ async function loadData(forceRefresh = false) {
             TASKS.push(...data.tasks);
             CANDIDATES.length = 0;
             CANDIDATES.push(...data.candidates);
+            if (data.metrics) {
+                METRICS_DATA.length = 0;
+                METRICS_DATA.push(...data.metrics);
+            }
             console.log('Loaded data from localStorage');
+            highlightRemovedTasks();
+            rebuildTaskLists();
             return { success: true, timestamp: lastRefresh };
         } catch (e) {
             console.error('Error parsing stored data:', e);
@@ -111,16 +214,63 @@ async function loadData(forceRefresh = false) {
         TASKS.push(...data.tasks);
         CANDIDATES.length = 0;
         CANDIDATES.push(...data.candidates);
+        if (data.metrics) {
+            METRICS_DATA.length = 0;
+            METRICS_DATA.push(...data.metrics);
+        }
 
         const timestamp = new Date().toISOString();
         localStorage.setItem('spreadsheetData', JSON.stringify(data));
         localStorage.setItem('lastDataRefresh', timestamp);
         console.log('Data loaded from Google Sheets');
+        highlightRemovedTasks();
+        rebuildTaskLists();
         return { success: true, timestamp: timestamp };
     }
 
     console.log('Using default data');
     return { success: false, timestamp: null };
+}
+
+function highlightRemovedTasks() {
+    // Get current valid task IDs
+    const validTaskIds = new Set(TASKS.map(t => t.id));
+
+    // Check all canvas tasks
+    state.canvasTasks.forEach(instance => {
+        const el = document.getElementById(`task-${instance.instanceId}`);
+        if (el) {
+            if (!validTaskIds.has(instance.id)) {
+                // Task no longer in the list - highlight in red
+                el.style.border = '2px solid red';
+                el.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+                console.log(`Task "${instance.name}" (${instance.id}) is no longer in the task list`);
+            } else {
+                // Task is still valid - remove any red highlighting
+                el.style.border = '';
+                el.style.backgroundColor = '';
+            }
+        }
+    });
+}
+
+function rebuildTaskLists() {
+    // Get unique task IDs currently on the canvas
+    const usedTaskIds = new Set(state.canvasTasks.map(t => t.id));
+
+    // Rebuild used and available tasks
+    state.usedTasks = [];
+    state.availableTasks = [];
+
+    TASKS.forEach(task => {
+        if (usedTaskIds.has(task.id)) {
+            state.usedTasks.push(task);
+        } else {
+            state.availableTasks.push(task);
+        }
+    });
+
+    console.log(`Rebuilt task lists: ${state.usedTasks.length} used, ${state.availableTasks.length} available`);
 }
 
 function getLastRefreshDisplay() {

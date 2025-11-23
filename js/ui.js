@@ -26,10 +26,7 @@ function setupDataRefresh() {
 
         const result = await loadData(true);
 
-        state.availableTasks = [...TASKS];
-        state.usedTasks = [];
-        state.skippedTasks = [];
-
+        // rebuildTaskLists() in data.js now handles repopulating based on canvas state
         renderSidebarLists();
 
         refreshBtn.disabled = false;
@@ -91,6 +88,21 @@ function createTaskListItem(task, source) {
     nameSpan.textContent = task.name;
     div.appendChild(nameSpan);
 
+    const meta = document.createElement('div');
+    meta.className = 'task-meta';
+    meta.style.display = 'flex';
+    meta.style.justifyContent = 'space-between';
+
+    const timeSpan = document.createElement('span');
+    timeSpan.textContent = task.time || '';
+
+    const effortSpan = document.createElement('span');
+    effortSpan.textContent = task.effort ? `${task.effort}` : '';
+
+    meta.appendChild(timeSpan);
+    meta.appendChild(effortSpan);
+    div.appendChild(meta);
+
     const controls = document.createElement('div');
     controls.className = 'task-controls';
     controls.style.display = 'flex';
@@ -136,6 +148,7 @@ function createTaskListItem(task, source) {
         const container = elements.canvasContainer;
         const containerRect = container.getBoundingClientRect();
 
+        // Spawn at the center of the visible viewport
         const centerX = containerRect.left + containerRect.width / 2;
         const centerY = containerRect.top + containerRect.height / 2;
 
@@ -202,10 +215,32 @@ function renderTaskOnCanvas(instance) {
     el.appendChild(deleteBtn);
 
     const content = document.createElement('div');
-    content.innerHTML = `
-        <div class="task-header">${instance.name}</div>
-        <div class="task-meta">${instance.duration} min</div>
-    `;
+    content.innerHTML = `<div class="task-header">${instance.name}</div>`;
+
+    // Lookup metrics by task name
+    const metrics = METRICS_DATA.find(m => m.name === instance.name) || {};
+    const time = metrics.time || instance.time || '';
+    const effort = metrics.effort || instance.effort || '';
+
+    // Store metrics on instance for group aggregation
+    instance.time = time;
+    instance.effort = effort;
+
+    const meta = document.createElement('div');
+    meta.className = 'task-meta';
+    meta.style.display = 'flex';
+    meta.style.justifyContent = 'space-between';
+    meta.style.marginTop = '8px';
+
+    const timeSpan = document.createElement('span');
+    timeSpan.textContent = time;
+
+    const effortSpan = document.createElement('span');
+    effortSpan.textContent = effort ? `${effort}` : '';
+
+    meta.appendChild(timeSpan);
+    meta.appendChild(effortSpan);
+    content.appendChild(meta);
     el.appendChild(content);
 
     const candidatesToggle = document.createElement('div');
@@ -217,7 +252,9 @@ function renderTaskOnCanvas(instance) {
         color: var(--text-secondary);
         font-size: 12px;
     `;
-    candidatesToggle.innerHTML = '<span class="candidates-text">▼ Candidates</span><span class="candidates-icon" style="display:none">▼</span>';
+
+    const suitableCandidates = CANDIDATES.filter(c => c.roles.includes(instance.name));
+    candidatesToggle.innerHTML = `<span class="candidates-text">▼ Candidates (${suitableCandidates.length})</span><span class="candidates-icon" style="display:none">▼</span>`;
 
     const candidatesList = document.createElement('div');
     candidatesList.className = 'candidates-list';
@@ -227,7 +264,6 @@ function renderTaskOnCanvas(instance) {
     candidatesList.style.color = 'var(--text-secondary)';
     candidatesList.style.position = 'relative';
 
-    const suitableCandidates = CANDIDATES.filter(c => c.roles.includes(instance.name));
     const candidatesText = document.createElement('div');
     candidatesText.textContent = suitableCandidates.map(c => c.name).join(', ');
     candidatesList.appendChild(candidatesText);
@@ -250,7 +286,7 @@ function renderTaskOnCanvas(instance) {
         candidatesList.style.display = isHidden ? 'block' : 'none';
         const textSpan = candidatesToggle.querySelector('.candidates-text');
         const iconSpan = candidatesToggle.querySelector('.candidates-icon');
-        if (textSpan) textSpan.textContent = isHidden ? '▲ Candidates' : '▼ Candidates';
+        if (textSpan) textSpan.textContent = isHidden ? `▲ Candidates (${suitableCandidates.length})` : `▼ Candidates (${suitableCandidates.length})`;
         if (iconSpan) iconSpan.textContent = isHidden ? '▲' : '▼';
     };
 
@@ -343,6 +379,15 @@ function removeTaskInstance(instanceId) {
                 state.availableTasks.push(taskDef);
             }
             renderSidebarLists();
+        }
+
+        const groupId = task.groupId;
+        if (groupId) {
+            const groupEl = document.getElementById(`group-${groupId}`);
+            if (groupEl && groupEl._updateGroupCandidates) {
+                // Use timeout to ensure DOM is updated (element removed)
+                setTimeout(() => groupEl._updateGroupCandidates(), 0);
+            }
         }
 
         updatePriorities(taskId);

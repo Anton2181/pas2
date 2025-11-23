@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --bg-color: #FDFCF8;
     --surface-color: #FFFFFF;
     --surface-hover: #FAFAFA;
@@ -327,7 +327,7 @@ input:checked+.mode-chip.equivalent {
 
 .task-delete-btn {
     position: absolute;
-    top: 4px;
+    top: 0px;
     left: 4px;
     background: transparent;
     border: none;
