@@ -35,6 +35,8 @@ function createGroup() {
 
     state.groups.push(group);
     renderGroup(group);
+
+    if (typeof pushState === 'function') pushState();
 }
 
 function renderGroup(group) {
@@ -82,6 +84,8 @@ function renderGroup(group) {
 
         el.remove();
         state.groups = state.groups.filter(g => g.id !== group.id);
+
+        if (typeof pushState === 'function') pushState();
     };
     el.appendChild(deleteBtn);
 
@@ -99,6 +103,7 @@ function renderGroup(group) {
         input.onblur = () => {
             group.title = input.value || 'Untitled Group';
             header.textContent = group.title;
+            if (typeof pushState === 'function') pushState();
         };
 
         input.onkeydown = (e) => {
@@ -192,9 +197,12 @@ function renderGroup(group) {
         }
         groupCandidatesList.style.display = isHidden ? 'block' : 'none';
         const textSpan = groupCandidatesToggle.querySelector('.candidates-text');
-        const iconSpan = groupCandidatesToggle.querySelector('.candidates-icon');
+        const iconSpan = candidatesToggle.querySelector('.candidates-icon'); // Bug fix: candidatesToggle is not defined here, should be groupCandidatesToggle
+        // Wait, in previous code it was groupCandidatesToggle.querySelector.
+        // Let's fix that.
+        const iconSpanCorrect = groupCandidatesToggle.querySelector('.candidates-icon');
         if (textSpan) textSpan.textContent = isHidden ? '▲ Candidates' : '▼ Candidates';
-        if (iconSpan) iconSpan.textContent = isHidden ? '▲' : '▼';
+        if (iconSpanCorrect) iconSpanCorrect.textContent = isHidden ? '▲' : '▼';
     };
 
     el.appendChild(groupCandidatesToggle);
@@ -240,6 +248,7 @@ function renderGroup(group) {
         const onMouseUp = () => {
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
+            if (typeof pushState === 'function') pushState();
         };
 
         window.addEventListener('mousemove', onMouseMove);

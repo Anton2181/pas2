@@ -34,6 +34,8 @@ function setupDataRefresh() {
 
         refreshBtn.disabled = false;
         updateRefreshButtonText(refreshBtn);
+
+        if (typeof pushState === 'function') pushState();
     };
 
     const rightSidebar = document.querySelector('.right-sidebar .sidebar-content');
@@ -132,17 +134,17 @@ function createTaskListItem(task, source) {
         }
 
         const container = elements.canvasContainer;
-        const scrollLeft = container.scrollLeft;
-        const scrollTop = container.scrollTop;
-        const viewportCenterX = scrollLeft + (container.clientWidth / 2);
-        const viewportCenterY = scrollTop + (container.clientHeight / 2);
+        const containerRect = container.getBoundingClientRect();
 
-        // Add random nudge
+        const centerX = containerRect.left + containerRect.width / 2;
+        const centerY = containerRect.top + containerRect.height / 2;
+
+        // Add random nudge (in screen pixels)
         const nudgeX = (Math.random() - 0.5) * 40;
         const nudgeY = (Math.random() - 0.5) * 40;
 
-        const x = (viewportCenterX / state.zoomLevel) + nudgeX;
-        const y = (viewportCenterY / state.zoomLevel) + nudgeY;
+        const x = centerX + nudgeX;
+        const y = centerY + nudgeY;
 
         const data = {
             taskId: task.id,
@@ -168,12 +170,14 @@ function skipTask(task) {
     state.availableTasks = state.availableTasks.filter(t => t.id !== task.id);
     state.skippedTasks.push(task);
     renderSidebarLists();
+    if (typeof pushState === 'function') pushState();
 }
 
 function restoreTask(task) {
     state.skippedTasks = state.skippedTasks.filter(t => t.id !== task.id);
     state.availableTasks.push(task);
     renderSidebarLists();
+    if (typeof pushState === 'function') pushState();
 }
 
 function renderTaskOnCanvas(instance) {
@@ -263,20 +267,53 @@ function renderTaskOnCanvas(instance) {
         el.classList.add('selected');
     });
 
-    elements.canvas.appendChild(el);
+    let parent = elements.canvas;
+    if (instance.groupId) {
+        const groupEl = document.getElementById(`group-${instance.groupId}`);
+        if (groupEl) {
+            const content = groupEl.querySelector('.group-content');
+            if (content) {
+                parent = content;
+                el.style.position = 'relative';
+                el.style.left = '';
+                el.style.top = '';
+
+                // Hide candidates toggle when in group
+                if (candidatesToggle) candidatesToggle.style.display = 'none';
+                if (candidatesList) candidatesList.style.display = 'none';
+            }
+        }
+    }
+
+    parent.appendChild(el);
+
+    // Update group candidates if needed
+    if (instance.groupId) {
+        const groupEl = document.getElementById(`group-${instance.groupId}`);
+        if (groupEl && groupEl._updateGroupCandidates) {
+            setTimeout(() => groupEl._updateGroupCandidates(), 0);
+        }
+    }
 }
 
 function updatePriorities(taskId) {
     const instances = state.canvasTasks.filter(t => t.id === taskId);
 
+    // Sort by priority to maintain order
+    instances.sort((a, b) => (a.priority || 0) - (b.priority || 0));
+
+    // Renumber priorities to fill gaps (1, 2, 3... with no skips)
     instances.forEach((instance, index) => {
+        const newPriority = index + 1;
+        instance.priority = newPriority;
+
         const el = document.getElementById(`task-${instance.instanceId}`);
         if (!el) return;
 
         const badge = el.querySelector('.priority-badge');
         if (instances.length > 1) {
             badge.style.display = 'flex';
-            badge.textContent = index + 1;
+            badge.textContent = newPriority;
         } else {
             badge.style.display = 'none';
         }
@@ -309,5 +346,7 @@ function removeTaskInstance(instanceId) {
         }
 
         updatePriorities(taskId);
+
+        if (typeof pushState === 'function') pushState();
     }
 }

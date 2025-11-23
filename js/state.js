@@ -27,7 +27,11 @@ const elements = {
     zoomOut: null,
     fitBtn: null,
     addGroupBtn: null,
-    refreshDataBtn: null
+    refreshDataBtn: null,
+    undoBtn: null,
+    saveFileBtn: null,
+    loadFileBtn: null,
+    resetBtn: null
 };
 
 function initElements() {
@@ -45,4 +49,8 @@ function initElements() {
     elements.zoomOut = document.getElementById('zoom-out');
     elements.fitBtn = document.getElementById('fit-btn');
     elements.addGroupBtn = document.getElementById('add-group-btn');
+    elements.undoBtn = document.getElementById('undo-btn');
+    elements.saveFileBtn = document.getElementById('save-file-btn');
+    elements.loadFileBtn = document.getElementById('load-file-btn');
+    elements.resetBtn = document.getElementById('reset-btn');
 }

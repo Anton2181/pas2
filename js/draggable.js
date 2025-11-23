@@ -1,12 +1,12 @@
 // Drag and Drop Logic
 
 function setupDragAndDrop() {
-    elements.canvas.addEventListener('dragover', (e) => {
+    elements.canvasContainer.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'copy';
     });
 
-    elements.canvas.addEventListener('drop', (e) => {
+    elements.canvasContainer.addEventListener('drop', (e) => {
         e.preventDefault();
         const dataString = e.dataTransfer.getData('application/json');
         if (!dataString) return;
@@ -46,12 +46,21 @@ function handleNewTaskDrop(data, x, y, targetGroup = null) {
     const posX = (x - canvasRect.left) / state.zoomLevel;
     const posY = (y - canvasRect.top) / state.zoomLevel;
 
+    // Calculate priority for this task instance
+    const existingInstances = state.canvasTasks.filter(t => t.id === task.id);
+    const priority = existingInstances.length + 1;
+
     const taskInstance = {
         ...task,
         instanceId: instanceId,
         x: posX,
-        y: posY
+        y: posY,
+        priority: priority
     };
+
+    if (targetGroup) {
+        taskInstance.groupId = targetGroup.id.replace('group-', '');
+    }
 
     state.canvasTasks.push(taskInstance);
     renderTaskOnCanvas(taskInstance);
@@ -64,7 +73,7 @@ function handleNewTaskDrop(data, x, y, targetGroup = null) {
             const content = targetGroup.querySelector('.group-content');
             if (content) {
                 content.appendChild(el);
-                el.style.position = 'static';
+                el.style.position = 'relative';
                 el.style.left = '';
                 el.style.top = '';
 
@@ -82,12 +91,15 @@ function handleNewTaskDrop(data, x, y, targetGroup = null) {
             }
         }
     }
+
+    if (typeof pushState === 'function') pushState();
 }
 
 function makeDraggable(el, instance, isGroup = false) {
     let isDragging = false;
     let startX, startY;
     let initialLeft, initialTop;
+    let hasMoved = false;
 
     el.addEventListener('mousedown', (e) => {
         if (e.target.closest('.task-delete-btn') ||
@@ -109,6 +121,7 @@ function makeDraggable(el, instance, isGroup = false) {
         if (isGroup && e.target.closest('.task-card')) return;
 
         isDragging = true;
+        hasMoved = false;
         startX = e.clientX;
         startY = e.clientY;
 
@@ -136,6 +149,8 @@ function makeDraggable(el, instance, isGroup = false) {
             if (oldGroup && oldGroup._updateGroupCandidates) {
                 setTimeout(() => oldGroup._updateGroupCandidates(), 0);
             }
+
+            hasMoved = true; // Removing from group counts as a move
         }
 
         initialLeft = parseFloat(el.style.left);
@@ -150,9 +165,14 @@ function makeDraggable(el, instance, isGroup = false) {
 
     window.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
+
         // Fix: Divide delta by zoomLevel to match mouse movement in scaled container
         const dx = (e.clientX - startX) / state.zoomLevel;
         const dy = (e.clientY - startY) / state.zoomLevel;
+
+        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+            hasMoved = true;
+        }
 
         el.style.left = `${initialLeft + dx}px`;
         el.style.top = `${initialTop + dy}px`;
@@ -200,10 +220,15 @@ function makeDraggable(el, instance, isGroup = false) {
 
                         const content = groupEl.querySelector('.group-content');
                         content.appendChild(el);
-                        el.style.position = 'static';
+                        el.style.position = 'relative';
                         el.style.left = '';
                         el.style.top = '';
+
+                        // Update State
+                        instance.groupId = groupEl.id.replace('group-', '');
+
                         droppedOnGroup = true;
+                        hasMoved = true;
 
                         // Update connections immediately
                         if (typeof renderConnections === 'function') {
@@ -234,7 +259,14 @@ function makeDraggable(el, instance, isGroup = false) {
                     }
                     instance.x = parseFloat(el.style.left);
                     instance.y = parseFloat(el.style.top);
+
+                    // Clear Group ID
+                    delete instance.groupId;
                 }
+            }
+
+            if (hasMoved && typeof pushState === 'function') {
+                pushState();
             }
         }
     });

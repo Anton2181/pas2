@@ -17,6 +17,17 @@ function setupZoom() {
         elements.fitBtn.addEventListener('click', fitToContent);
     }
 
+    // Ctrl+Scroll to zoom
+    elements.canvasContainer.addEventListener('wheel', (e) => {
+        if (e.ctrlKey) {
+            e.preventDefault();
+
+            // Zoom delta (negative deltaY = zoom in)
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            updateZoom(delta);
+        }
+    }, { passive: false });
+
     setupPanning();
 }
 

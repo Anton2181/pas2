@@ -134,6 +134,7 @@ function createConnectionObject(sourceId, targetId, type) {
         type: type
     });
     renderConnections();
+    if (typeof pushState === 'function') pushState();
 }
 
 function handleObligatoryConnection(sourceId, targetId) {
@@ -173,20 +174,6 @@ function handleExclusionConnection(sourceId, targetId) {
 function getGroupIdForElement(elementId) {
     if (elementId.startsWith('group-')) return elementId.replace('group-', '');
 
-    // Check if task is in a group
-    // We need to check the DOM or state. 
-    // In this app, tasks in groups are children of the group element in DOM?
-    // Or just visually inside?
-    // Based on groups.js, tasks are appended to elements.canvas (absolute pos) 
-    // BUT `renderGroup` logic suggests they might be logically grouped.
-    // Wait, `groups.js` says: "When releasing... child.style.left... elements.canvas.appendChild(child)".
-    // So tasks are ALWAYS direct children of canvas.
-    // Group membership is likely spatial or stored in state?
-    // Let's check `groups.js` again.
-    // `updateGroupCandidates` finds tasks by `content.querySelectorAll('.task-card')`.
-    // Wait, `deleteBtn.onclick` in `groups.js`: "Array.from(content.children).forEach..."
-    // This implies tasks ARE children of the group element when inside!
-
     const el = document.getElementById(elementId);
     if (el && el.parentElement && el.parentElement.classList.contains('group-content')) {
         const groupEl = el.closest('.component-group');
@@ -196,12 +183,8 @@ function getGroupIdForElement(elementId) {
 }
 
 function createGroupFromTasks(task1Id, task2Id) {
-    // Logic to create a new group and move tasks into it
-    // We can reuse `createGroup` from groups.js but we need to pass tasks
-    // Or manually create.
-
     // 1. Create Group
-    createGroup(); // This creates a group at center. We need to move it or create it at specific loc.
+    createGroup();
     const group = state.groups[state.groups.length - 1];
     const groupEl = document.getElementById(`group-${group.id}`);
 
@@ -212,15 +195,18 @@ function createGroupFromTasks(task1Id, task2Id) {
     moveTaskToGroup(task1, groupEl);
     moveTaskToGroup(task2, groupEl);
 
-    // Create connection? 
-    // "Drawing a line between tasks will create a new group...". 
-    // The connection is the group. We don't need an extra line.
+    renderConnections();
+
+    // pushState is called by createGroup, but we modified tasks after.
+    // We should pushState again.
+    if (typeof pushState === 'function') pushState();
 }
 
 function addTaskToGroup(taskId, groupId) {
     const task = document.getElementById(taskId);
     const group = document.getElementById(groupId);
     moveTaskToGroup(task, group);
+    if (typeof pushState === 'function') pushState();
 }
 
 function mergeGroups(sourceId, targetId) {
@@ -283,21 +269,15 @@ function mergeGroups(sourceId, targetId) {
     }
 
     renderConnections();
+    if (typeof pushState === 'function') pushState();
 }
 
 function moveTaskToGroup(taskEl, groupEl) {
-    // Logic to visually move task into group content
     const content = groupEl.querySelector('.group-content');
-
-    // We need to handle the DOM move
-    // And update coordinates to be relative? 
-    // `groups.js` handles dropping.
-
-    // Let's simulate a drop or just append
     taskEl.style.position = 'relative';
     taskEl.style.left = '';
     taskEl.style.top = '';
-    taskEl.style.transform = ''; // Remove any transform
+    taskEl.style.transform = '';
 
     content.appendChild(taskEl);
 
@@ -309,9 +289,6 @@ function moveTaskToGroup(taskEl, groupEl) {
 
 function renderConnections() {
     const layer = elements.connectionsLayer;
-    // Clear existing lines (or better, update them using D3-like join, but simple clear is fine for now)
-    // We need to preserve the temp line if it exists? No, render is called on update.
-
     // Remove all paths except tempLine
     Array.from(layer.children).forEach(child => {
         if (child !== tempLine) child.remove();
@@ -323,12 +300,10 @@ function renderConnections() {
 }
 
 function drawConnection(conn) {
-    // Resolve endpoints
-    // If a task is in a group, use the group as endpoint
     let fromId = resolveEndpoint(conn.fromId);
     let toId = resolveEndpoint(conn.toId);
 
-    if (fromId === toId) return; // Don't draw self-loops (e.g. task inside group connected to that group?)
+    if (fromId === toId) return;
 
     const fromEl = document.getElementById(fromId);
     const toEl = document.getElementById(toId);
@@ -338,7 +313,6 @@ function drawConnection(conn) {
     const fromRect = getScaledRect(fromEl);
     const toRect = getScaledRect(toEl);
 
-    // Calculate best connection points
     const points = getBestConnectionPoints(fromRect, toRect);
 
     const d = getBezierPath(points.p1, points.p2);
@@ -364,7 +338,6 @@ function drawConnection(conn) {
 }
 
 function resolveEndpoint(id) {
-    // If id is a task, and it's inside a group, return the group's ID
     if (id.startsWith('task-')) {
         const groupId = getGroupIdForElement(id);
         if (groupId) return `group-${groupId}`;
@@ -388,7 +361,6 @@ function getScaledRect(el) {
 }
 
 function getBestConnectionPoints(r1, r2) {
-    // Define centers of edges
     const edges1 = [
         { x: r1.centerX, y: r1.top, side: 'top' },
         { x: r1.centerX, y: r1.bottom, side: 'bottom' },
@@ -469,20 +441,16 @@ function showDeleteButton(e, conn) {
 
     // Style
     const color = getColorForType(conn.type);
-    btn.style.backgroundColor = color; // Fill with line color
-    btn.style.color = 'white'; // White cross
-    btn.style.border = '2px solid white'; // White outline
-    btn.style.boxShadow = '0 0 0 1px ' + color; // Optional: outer ring of color for contrast against white bg?
-    // User asked for "white outline circle". If the background is white, white outline is invisible.
-    // But the button is on top of the canvas.
-    // Let's stick to user request: white outline, fill color.
-    // Maybe add a slight shadow to make the white outline visible if on white bg.
+    btn.style.backgroundColor = color;
+    btn.style.color = 'white';
+    btn.style.border = '2px solid white';
     btn.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
 
     btn.onclick = () => {
         state.connections = state.connections.filter(c => c.id !== conn.id);
         renderConnections();
         btn.remove();
+        if (typeof pushState === 'function') pushState();
     };
 
     elements.canvas.appendChild(btn);
