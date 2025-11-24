@@ -302,6 +302,14 @@ function moveTaskToGroup(taskEl, groupEl) {
 
     content.appendChild(taskEl);
 
+    // Update the task instance's groupId in state
+    const taskInstanceId = taskEl.id.replace('task-', '');
+    const taskInstance = state.canvasTasks.find(t => t.instanceId == taskInstanceId);
+    if (taskInstance) {
+        const groupId = groupEl.id.replace('group-', '');
+        taskInstance.groupId = groupId;
+    }
+
     // Hide candidates toggle when added to group
     const toggle = taskEl.querySelector('.candidates-toggle') || taskEl._candidatesToggle;
     if (toggle) {

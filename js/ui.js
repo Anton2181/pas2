@@ -315,7 +315,11 @@ function renderTaskOnCanvas(instance) {
 
     makeDraggable(el, instance);
 
-    el.addEventListener('mousedown', () => {
+    el.addEventListener('mousedown', (e) => {
+        // Bring to front when clicking anywhere on the task
+        if (typeof bringToFront === 'function') {
+            bringToFront(el);
+        }
         document.querySelectorAll('.task-card').forEach(c => c.classList.remove('selected'));
         el.classList.add('selected');
     });

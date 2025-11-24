@@ -1,5 +1,13 @@
 // Drag and Drop Logic
 
+// Z-index management
+let maxZIndex = 1;
+
+function bringToFront(el) {
+    maxZIndex++;
+    el.style.zIndex = maxZIndex;
+}
+
 function setupDragAndDrop() {
     elements.canvasContainer.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -130,6 +138,9 @@ function makeDraggable(el, instance, isGroup = false) {
 
         if (isGroup && e.target.closest('.task-card')) return;
 
+        // Bring to front on click
+        bringToFront(el);
+
         isDragging = true;
         hasMoved = false;
         startX = e.clientX;
@@ -159,13 +170,15 @@ function makeDraggable(el, instance, isGroup = false) {
             if (oldGroup && oldGroup._updateGroupCandidates) {
                 setTimeout(() => oldGroup._updateGroupCandidates(), 0);
             }
+            if (oldGroup && oldGroup._updateGroupMetrics) {
+                setTimeout(() => oldGroup._updateGroupMetrics(), 0);
+            }
 
             hasMoved = true; // Removing from group counts as a move
         }
 
         initialLeft = parseFloat(el.style.left);
         initialTop = parseFloat(el.style.top);
-        el.style.zIndex = 1000;
 
         if (isGroup) {
             document.querySelectorAll('.component-group').forEach(g => g.classList.remove('selected'));
@@ -201,7 +214,7 @@ function makeDraggable(el, instance, isGroup = false) {
     window.addEventListener('mouseup', (e) => {
         if (isDragging) {
             isDragging = false;
-            el.style.zIndex = '';
+            // Don't reset z-index - keep element at front
 
             if (!isGroup) {
                 let droppedOnGroup = false;

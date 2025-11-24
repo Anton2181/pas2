@@ -151,6 +151,7 @@
     z-index: 10;
 }
 
+.component-group:hover .group-delete-btn,
 .component-group.selected .group-delete-btn {
     opacity: 1;
 }
@@ -346,6 +347,7 @@
     z-index: 10;
 }
 
+.component-group:hover .group-delete-btn,
 .component-group.selected .group-delete-btn {
     opacity: 1;
 }

@@ -77,6 +77,13 @@ function renderGroup(group) {
 
                 elements.canvas.appendChild(child);
 
+                // Remove groupId from task instance
+                const taskInstanceId = child.id.replace('task-', '');
+                const taskInstance = state.canvasTasks.find(t => t.instanceId == taskInstanceId);
+                if (taskInstance) {
+                    delete taskInstance.groupId;
+                }
+
                 // Show candidates toggle again
                 if (child._candidatesToggle) {
                     child._candidatesToggle.style.display = 'block';
@@ -117,6 +124,13 @@ function renderGroup(group) {
 
     const updateGroupMetrics = () => {
         const taskCards = content.querySelectorAll('.task-card');
+
+        // If no tasks, clear metrics
+        if (taskCards.length === 0) {
+            metricsContainer.innerHTML = '';
+            return;
+        }
+
         let totalEffort = 0;
         let timeSlots = [];
         let hasAll = false;
@@ -159,8 +173,6 @@ function renderGroup(group) {
             if (parsedSlots.length > 0) {
                 const earliest = Math.min(...parsedSlots.map(s => s.start));
                 let latest = Math.max(...parsedSlots.map(s => s.end));
-
-                console.log('Time Calc:', { timeSlots, parsedSlots, earliest, latest });
 
                 if (earliest === 20 && latest === 24) {
                     timeDisplay = 'All';
@@ -241,6 +253,8 @@ function renderGroup(group) {
         if (taskCards.length === 0) {
             groupCandidatesList.innerHTML = 'No tasks in group';
             groupCandidatesToggle.style.display = 'none';
+            // Update metrics to clear them when group is empty
+            if (el._updateGroupMetrics) el._updateGroupMetrics();
             return;
         }
 
@@ -352,6 +366,13 @@ function renderGroup(group) {
     });
 
     makeDraggable(el, group, true);
+
+    // Bring group to front when clicking anywhere on it (including child tasks)
+    el.addEventListener('mousedown', (e) => {
+        if (typeof bringToFront === 'function') {
+            bringToFront(el);
+        }
+    });
 
     elements.canvas.appendChild(el);
 }
