@@ -391,6 +391,11 @@ function removeTaskInstance(instanceId) {
         const el = document.getElementById(`task-${instanceId}`);
         if (el) el.remove();
 
+        // Force cleanup hover state to prevent hover bug on deleted elements
+        if (typeof forceCleanupHover === 'function') {
+            forceCleanupHover();
+        }
+
         if (typeof removeConnectionsFor === 'function') {
             removeConnectionsFor(`task-${instanceId}`);
         }

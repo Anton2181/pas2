@@ -47,6 +47,7 @@ async function init() {
     setupDataRefresh();
     setupDragAndDrop();
     initConnections();
+    initCanvasSearch();
     initHistory();
     initStorage();
     // setupReset(); // Removed to avoid conflict with zoom.js

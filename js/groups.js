@@ -99,6 +99,11 @@ function renderGroup(group) {
         el.remove();
         state.groups = state.groups.filter(g => g.id !== group.id);
 
+        // Force cleanup hover state to prevent hover bug on deleted elements
+        if (typeof forceCleanupHover === 'function') {
+            forceCleanupHover();
+        }
+
         if (typeof pushState === 'function') pushState();
     };
     el.appendChild(deleteBtn);

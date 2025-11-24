@@ -70,6 +70,11 @@
             </div>
 
             <div class="zoom-controls">
+                <button class="zoom-btn" id="canvas-search-btn" title="Search Canvas">🔍</button>
+                <div class="canvas-search-container" id="canvas-search-container">
+                    <input type="text" id="canvas-search-input" placeholder="Search tasks and groups..." />
+                    <div class="canvas-search-results" id="canvas-search-results"></div>
+                </div>
                 <button class="zoom-btn" id="reset-btn" title="Reset Workspace">⟲</button>
                 <button class="zoom-btn" id="undo-btn" title="Undo">↶</button>
                 <button class="zoom-btn" id="fit-btn" title="Fit to Content">⛶</button>
@@ -121,6 +126,7 @@
     <script src="js/draggable.js"></script>
     <script src="js/connections.js"></script>
     <script src="js/hover-highlight.js"></script>
+    <script src="js/canvas-search.js"></script>
     <script src="js/history.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/main.js"></script>

@@ -59,7 +59,21 @@ function attachHoverListeners(element) {
 }
 
 function highlightConnections(element) {
+    // Check if element still exists in the DOM
+    if (!element || !document.body.contains(element)) {
+        clearHighlight();
+        currentHoveredElement = null;
+        return;
+    }
+
     const elementId = element.id;
+
+    // Verify the element has a valid ID
+    if (!elementId) {
+        clearHighlight();
+        currentHoveredElement = null;
+        return;
+    }
 
     // Find all connections involving this element
     const connectedIds = getConnectedElementIds(elementId);
@@ -247,4 +261,19 @@ function clearHighlight() {
 
     // Re-render connections normally
     renderConnections();
+}
+
+// Force cleanup hover state - call this when deleting elements
+function forceCleanupHover() {
+    // Clear any pending timeout
+    if (hoverTimeout) {
+        clearTimeout(hoverTimeout);
+        hoverTimeout = null;
+    }
+
+    // Clear current hovered element reference
+    currentHoveredElement = null;
+
+    // Clear any active highlights
+    clearHighlight();
 }
