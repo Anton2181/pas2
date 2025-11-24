@@ -13,6 +13,12 @@ function attachHoverListeners(element) {
     if (!element) return;
 
     element.addEventListener('mouseenter', (e) => {
+        // Check if dragging or connecting - if so, don't highlight
+        if (document.body.classList.contains('is-dragging') ||
+            document.body.classList.contains('is-connecting')) {
+            return;
+        }
+
         // Find the actual target - if hovering over a task inside a group, use the group
         let target = e.currentTarget;
 
@@ -32,6 +38,11 @@ function attachHoverListeners(element) {
 
         // Set a new timeout
         hoverTimeout = setTimeout(() => {
+            // Re-check drag state before activating (in case drag started during delay)
+            if (document.body.classList.contains('is-dragging') ||
+                document.body.classList.contains('is-connecting')) {
+                return;
+            }
             highlightConnections(target);
             currentHoveredElement = target;
         }, HOVER_DELAY);
@@ -187,7 +198,13 @@ function drawConnectionWithHighlight(conn, isHighlighted, hoveredId) {
     const toRect = getScaledRect(toEl);
 
     const points = getBestConnectionPoints(fromRect, toRect);
-    const d = getBezierPath(points.p1, points.p2);
+
+    let offset = 0;
+    if (conn.type === 'equivalent') {
+        offset = 20;
+    }
+
+    const d = getBezierPath(points.p1, points.p2, offset);
 
     // Visible path
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');

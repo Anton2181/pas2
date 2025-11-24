@@ -9,6 +9,13 @@ function initConnections() {
     if (!elements.connectionsLayer) {
         elements.connectionsLayer = document.getElementById('connections-layer');
     }
+
+    // Add listeners for mode switches to re-render connections
+    document.querySelectorAll('input[name="conn-mode"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            renderConnections();
+        });
+    });
 }
 
 function startConnectionDrag(e, sourceEl, sourceInstance, isGroup = false) {
@@ -27,6 +34,7 @@ function startConnectionDrag(e, sourceEl, sourceInstance, isGroup = false) {
     }
 
     isConnecting = true;
+    document.body.classList.add('is-connecting'); // Add class for hover check
 
     const rect = sourceEl.getBoundingClientRect();
     const canvasRect = elements.canvas.getBoundingClientRect();
@@ -80,6 +88,8 @@ function onConnectionUp(e) {
     if (!isConnecting) return;
 
     isConnecting = false;
+    document.body.classList.remove('is-connecting'); // Remove class
+
     if (tempLine) {
         tempLine.remove();
         tempLine = null;
@@ -109,12 +119,20 @@ function onConnectionUp(e) {
 function handleConnection(sourceId, targetId) {
     const mode = document.querySelector('input[name="conn-mode"]:checked').value;
 
-    // Prevent duplicate connections
-    const exists = state.connections.some(c =>
-        (c.fromId === sourceId && c.toId === targetId) ||
-        (c.fromId === targetId && c.toId === sourceId)
+    // Check if EXACT same connection exists (same nodes AND same type)
+    // We allow different types between same nodes now (e.g. Exclusion + Equivalence)
+    const exactExists = state.connections.some(c =>
+        c.type === mode &&
+        ((c.fromId === sourceId && c.toId === targetId) ||
+            (c.fromId === targetId && c.toId === sourceId))
     );
-    if (exists) return;
+
+    if (exactExists) return;
+
+    // Special check: Don't allow Exclusion if Obligatory exists (logic conflict?) 
+    // User asked for "both an equivalence and an exclusion", didn't mention obligatory.
+    // Usually Obligatory means they are in the same group, which precludes exclusion.
+    // But here we are just handling the connection creation.
 
     if (mode === 'obligatory') {
         handleObligatoryConnection(sourceId, targetId);
@@ -335,7 +353,18 @@ function renderConnections() {
         if (child !== tempLine) child.remove();
     });
 
+    const mode = document.querySelector('input[name="conn-mode"]:checked').value;
+
     state.connections.forEach(conn => {
+        // Filter visibility based on mode
+        if (mode === 'exclusion') {
+            if (conn.type !== 'exclusion') return;
+        } else if (mode === 'equivalent') {
+            if (conn.type !== 'equivalent') return;
+        }
+        // If mode is 'obligatory' (or default), show all connections
+        // User said: "with obligatory, show me all lines"
+
         drawConnection(conn);
     });
 }
@@ -356,7 +385,13 @@ function drawConnection(conn) {
 
     const points = getBestConnectionPoints(fromRect, toRect);
 
-    const d = getBezierPath(points.p1, points.p2);
+    let offset = 0;
+    // Apply offset for equivalent connections to distinguish them from others
+    if (conn.type === 'equivalent') {
+        offset = 20; // 20px offset for the curve
+    }
+
+    const d = getBezierPath(points.p1, points.p2, offset);
 
     // Visible path
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -434,22 +469,35 @@ function getBestConnectionPoints(r1, r2) {
     return { p1: bestP1, p2: bestP2 };
 }
 
-function getBezierPath(p1, p2) {
+function getBezierPath(p1, p2, offset = 0) {
     const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
     const controlDist = Math.min(dist * 0.5, 150);
 
-    const getControlPoint = (p, dist) => {
+    const getControlPoint = (p, dist, offset) => {
+        let cp = { x: p.x, y: p.y };
+
+        // Apply main direction
         switch (p.side) {
-            case 'top': return { x: p.x, y: p.y - dist };
-            case 'bottom': return { x: p.x, y: p.y + dist };
-            case 'left': return { x: p.x - dist, y: p.y };
-            case 'right': return { x: p.x + dist, y: p.y };
-            default: return { x: p.x, y: p.y };
+            case 'top': cp.y -= dist; break;
+            case 'bottom': cp.y += dist; break;
+            case 'left': cp.x -= dist; break;
+            case 'right': cp.x += dist; break;
         }
+
+        // Apply offset to control point perpendicular to connection side
+        if (offset !== 0) {
+            if (p.side === 'top' || p.side === 'bottom') {
+                cp.x += offset;
+            } else {
+                cp.y += offset;
+            }
+        }
+
+        return cp;
     };
 
-    const cp1 = getControlPoint(p1, controlDist);
-    const cp2 = getControlPoint(p2, controlDist);
+    const cp1 = getControlPoint(p1, controlDist, offset);
+    const cp2 = getControlPoint(p2, controlDist, offset);
 
     return `M ${p1.x} ${p1.y} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${p2.x} ${p2.y}`;
 }

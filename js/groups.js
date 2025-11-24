@@ -30,9 +30,11 @@ function createGroup() {
         y = (viewportCenterY / zoom) - 100;
     }
 
+    const title = getUniqueGroupTitle('New Group');
+
     const group = {
         id: groupId,
-        title: 'New Group',
+        title: title,
         variant: variant,
         x: x,
         y: y,
@@ -212,9 +214,28 @@ function renderGroup(group) {
         input.style.font = 'inherit';
 
         input.onblur = () => {
-            group.title = input.value || 'Untitled Group';
-            titleContainer.textContent = group.title;
-            if (typeof pushState === 'function') pushState();
+            const newTitle = (input.value || 'Untitled Group').trim();
+
+            // Validation: Check if name exists as another group
+            const groupExists = state.groups.some(g => g.id !== group.id && g.title.toLowerCase() === newTitle.toLowerCase());
+
+            // Validation: Check if name exists as a task
+            // We check against TASKS (all known tasks)
+            const taskExists = TASKS.some(t => t.name.toLowerCase() === newTitle.toLowerCase());
+
+            if (groupExists || taskExists) {
+                // Revert to old title
+                if (typeof showToast === 'function') {
+                    showToast(`Cannot rename to "${newTitle}" - name already exists`);
+                } else {
+                    alert(`Cannot rename to "${newTitle}" - name already exists`);
+                }
+                titleContainer.textContent = group.title;
+            } else {
+                group.title = newTitle;
+                titleContainer.textContent = group.title;
+                if (typeof pushState === 'function') pushState();
+            }
         };
 
         input.onkeydown = (e) => {
@@ -385,4 +406,36 @@ function renderGroup(group) {
     if (typeof attachHoverListeners === 'function') {
         attachHoverListeners(el);
     }
+}
+
+function getUniqueGroupTitle(baseTitle) {
+    let title = baseTitle;
+    let counter = 1;
+
+    const isTitleTaken = (t) => {
+        const lowerT = t.toLowerCase();
+        // Check groups
+        if (state.groups.some(g => g.title.toLowerCase() === lowerT)) return true;
+        // Check tasks
+        if (TASKS.some(task => task.name.toLowerCase() === lowerT)) return true;
+        return false;
+    };
+
+    // Special case for "New Group" to start with "New Group 1"
+    if (baseTitle === 'New Group') {
+        while (isTitleTaken(`${baseTitle} ${counter}`)) {
+            counter++;
+        }
+        return `${baseTitle} ${counter}`;
+    }
+
+    // If base title is taken, start incrementing
+    if (isTitleTaken(title)) {
+        while (isTitleTaken(`${baseTitle} ${counter}`)) {
+            counter++;
+        }
+        title = `${baseTitle} ${counter}`;
+    }
+
+    return title;
 }

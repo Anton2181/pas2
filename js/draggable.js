@@ -142,6 +142,7 @@ function makeDraggable(el, instance, isGroup = false) {
         bringToFront(el);
 
         isDragging = true;
+        document.body.classList.add('is-dragging'); // Add class for hover check
         hasMoved = false;
         startX = e.clientX;
         startY = e.clientY;
@@ -214,6 +215,7 @@ function makeDraggable(el, instance, isGroup = false) {
     window.addEventListener('mouseup', (e) => {
         if (isDragging) {
             isDragging = false;
+            document.body.classList.remove('is-dragging'); // Remove class
             // Don't reset z-index - keep element at front
 
             if (!isGroup) {
