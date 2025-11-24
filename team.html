@@ -637,37 +637,37 @@
                     // Get skipped task IDs
                     const skippedTaskIds = new Set(workspaceState.skippedTasks?.map(t => t.id) || []);
 
-                    // Get task instance IDs that are in groups (by checking groupId)
-                    const groupedInstanceIds = new Set();
-                    (workspaceState.canvasTasks || []).forEach(taskInstance => {
-                        if (taskInstance.groupId !== undefined && taskInstance.groupId !== null) {
-                            groupedInstanceIds.add(taskInstance.instanceId);
-                        }
-                    });
-
-                    // Get canvas task IDs (those already moved to canvas)
-                    const canvasTaskInstanceIds = new Set((workspaceState.canvasTasks || []).map(t => t.instanceId));
-
                     // Get all tasks from TASKS (includes those not moved to canvas)
                     let filteredTasks = TASKS.filter(task => {
                         // Skip if task is skipped
                         if (skippedTaskIds.has(task.id)) return false;
 
-                        // Check if this task is on canvas
-                        const taskOnCanvas = (workspaceState.canvasTasks || []).find(ct => ct.id === task.id && !groupedInstanceIds.has(ct.instanceId));
+                        // Find ALL instances of this task on the canvas
+                        const taskInstances = (workspaceState.canvasTasks || []).filter(ct => ct.id === task.id);
 
-                        // If "All Members" selected, show all non-grouped tasks
+                        // Check if any instance is NOT in a group (free-floating)
+                        const hasFreeFloatingInstance = taskInstances.some(instance =>
+                            instance.groupId === undefined || instance.groupId === null
+                        );
+
+                        // Only show task if:
+                        // 1. It has no instances on canvas (never been used), OR
+                        // 2. It has at least one free-floating instance (not in a group)
+                        const shouldShow = taskInstances.length === 0 || hasFreeFloatingInstance;
+
+                        if (!shouldShow) return false;
+
+                        // If "All Members" selected, show all tasks that pass the above filter
                         if (selectedMemberId === null) {
-                            // Show if not grouped (either not on canvas, or on canvas but not in a group)
-                            return !taskOnCanvas || !taskOnCanvas.groupId;
+                            return true;
                         }
 
                         // Check if selected member is a candidate for this task
                         const member = CANDIDATES.find(c => c.id === selectedMemberId);
                         if (!member) return false;
 
-                        // Only show if member is a candidate AND task is not in a group
-                        return member.roles.includes(task.name) && (!taskOnCanvas || !taskOnCanvas.groupId);
+                        // Only show if member is a candidate
+                        return member.roles.includes(task.name);
                     });
 
                     return filteredTasks;
@@ -777,7 +777,13 @@
                         }
                     }
 
-                    // Do NOT call renderAvailableTasks() to preserve scroll position
+                    // Re-render to trigger sorting, but preserve scroll position
+                    const grid = document.getElementById('available-tasks-grid');
+                    const scrollTop = grid ? grid.parentElement.scrollTop : 0;
+                    renderAvailableTasks();
+                    if (grid && grid.parentElement) {
+                        grid.parentElement.scrollTop = scrollTop;
+                    }
                 }
 
                 // Helper to clear all stars in a task or group
@@ -871,7 +877,13 @@
                         // So we might not need to do anything here.
                     }
 
-                    // Do NOT call renderAvailableTasks() to preserve scroll position
+                    // Re-render to trigger sorting, but preserve scroll position
+                    const grid = document.getElementById('available-tasks-grid');
+                    const scrollTop = grid ? grid.parentElement.scrollTop : 0;
+                    renderAvailableTasks();
+                    if (grid && grid.parentElement) {
+                        grid.parentElement.scrollTop = scrollTop;
+                    }
                 }
 
                 // Check if task is starred
@@ -904,9 +916,9 @@
                         }
                     }
 
-                    // Fallback to checking the star itself (though logic above should cover most cases if data is consistent)
-                    const key = `task_star_${isGroup ? 'group_' : ''}${taskId}`;
-                    return localStorage.getItem(key) === 'true';
+                    // Return false if no candidates are starred
+                    // (Removed fallback localStorage check to ensure proper clearing)
+                    return false;
                 }
 
                 // Check if candidate is starred for task
@@ -922,16 +934,36 @@
 
                     grid.innerHTML = '';
 
-                    // Render groups first
+                    // Get groups and tasks
                     const groups = getFilteredGroups();
-                    groups.forEach(group => {
+                    const tasks = getFilteredTasks();
+
+                    // Sort groups: starred first, then unstarred (create copy to avoid mutation)
+                    const sortedGroups = [...groups].sort((a, b) => {
+                        const aStarred = isTaskStarred(a.id, true);
+                        const bStarred = isTaskStarred(b.id, true);
+                        if (aStarred && !bStarred) return -1;
+                        if (!aStarred && bStarred) return 1;
+                        return 0; // Maintain original order within each category
+                    });
+
+                    // Sort tasks: starred first, then unstarred (create copy to avoid mutation)
+                    const sortedTasks = [...tasks].sort((a, b) => {
+                        const aStarred = isTaskStarred(a.id, false);
+                        const bStarred = isTaskStarred(b.id, false);
+                        if (aStarred && !bStarred) return -1;
+                        if (!aStarred && bStarred) return 1;
+                        return 0; // Maintain original order within each category
+                    });
+
+                    // Render sorted groups first
+                    sortedGroups.forEach(group => {
                         const card = createGroupCard(group);
                         grid.appendChild(card);
                     });
 
-                    // Render individual tasks
-                    const tasks = getFilteredTasks();
-                    tasks.forEach(task => {
+                    // Render sorted individual tasks
+                    sortedTasks.forEach(task => {
                         const card = createTaskCard(task);
                         grid.appendChild(card);
                     });
@@ -1016,12 +1048,20 @@
                     // Check if star should be disabled (All Members mode + not starred)
                     const starDisabled = selectedMemberId === null && !starred;
 
-                    // Get all unique candidates from all tasks in the group
-                    const allCandidates = new Set();
-                    groupTasks.forEach(task => {
-                        getCandidatesForTask(task.name).forEach(c => allCandidates.add(JSON.stringify(c)));
-                    });
-                    const candidates = Array.from(allCandidates).map(s => JSON.parse(s));
+                    // Get candidates that can do ALL tasks in the group (intersection)
+                    let candidates = [];
+                    if (groupTasks.length > 0) {
+                        // Start with candidates from the first task
+                        const firstTaskCandidates = getCandidatesForTask(groupTasks[0].name);
+
+                        // Filter to only those who can do ALL tasks in the group
+                        candidates = firstTaskCandidates.filter(candidate => {
+                            return groupTasks.every(task => {
+                                const taskCandidates = getCandidatesForTask(task.name);
+                                return taskCandidates.some(c => c.id === candidate.id);
+                            });
+                        });
+                    }
 
                     // Calculate total time and effort
                     let totalEffort = 0;
@@ -1101,7 +1141,7 @@
 
                     if (candidates.length > 0) {
                         html += '<div class="candidates-list">';
-                        html += '<div class="candidates-label">Candidates (from all tasks)</div>';
+                        html += '<div class="candidates-label">Candidates (can do all tasks)</div>';
                         candidates.forEach(candidate => {
                             const candidateStarred = isCandidateStarred(group.id, candidate.id);
                             html += `
