@@ -29,6 +29,7 @@
                     .team-container {
                         display: flex;
                         height: calc(100vh - 48px);
+                        padding-top: 0;
                     }
 
                     .team-sidebar {
@@ -62,7 +63,7 @@
                     .sidebar-header.selected {
                         background: var(--surface-hover);
                         color: var(--accent-primary);
-                        border-left: 3px solid var(--accent-primary);
+                        border-left: 5px solid var(--accent-primary);
                     }
 
                     .member-item {
@@ -82,7 +83,8 @@
 
                     .member-item.selected {
                         background: var(--surface-hover);
-                        border-left: 3px solid var(--accent-primary);
+                        border-left: 5px solid var(--accent-primary);
+                        --text-primary: #E2B49A;
                     }
 
                     .member-header {
@@ -169,9 +171,267 @@
                         flex: 1;
                         background: var(--bg-color);
                         display: flex;
+                        gap: 16px;
+                        padding: 16px;
+                        overflow: hidden;
+                    }
+
+                    .content-panel {
+                        background: var(--surface-color);
+                        border-radius: 12px;
+                        padding: 16px;
+                        overflow-y: auto;
+                        border: 1px solid var(--border-color);
+                    }
+
+                    .content-panel:first-child {
+                        width: auto;
+                        flex-shrink: 0;
+                    }
+
+                    .content-panel:last-child {
+                        flex: 1;
+                    }
+
+                    .panel-header {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: var(--text-primary);
+                        margin-bottom: 16px;
+                        padding-bottom: 12px;
+                        border-bottom: 1px solid var(--border-color);
+                        top: 0;
+                        background: var(--surface-color);
+                        z-index: 10;
+                        margin-top: -16px;
+                        padding-top: 16px;
+                        margin-left: -16px;
+                        margin-right: -16px;
+                        padding-left: 16px;
+                        padding-right: 16px;
+                    }
+
+                    .tasks-grid {
+                        display: grid;
+                        grid-template-columns: 288px 288px;
+                        gap: 16px;
+                        justify-content: start;
+                    }
+
+                    .task-card {
+                        background: rgba(0, 0, 0, 0.02);
+                        border: 1px solid var(--border-color);
+                        border-radius: 8px;
+                        padding: 12px;
+                        position: relative;
+                        transition: all 0.2s;
+                    }
+
+                    .task-card:hover {
+                        background: rgba(0, 0, 0, 0.04);
+                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    }
+
+                    .task-card.group-card {
+                        background: linear-gradient(135deg, rgba(100, 160, 220, 0.3), rgba(80, 140, 200, 0.4));
+                        border: 1px solid rgba(80, 140, 200, 0.5);
+                    }
+
+                    .task-card.group-card:hover {
+                        background: linear-gradient(135deg, rgba(100, 160, 220, 0.4), rgba(80, 140, 200, 0.5));
+                        box-shadow: 0 2px 12px rgba(80, 140, 200, 0.3);
+                    }
+
+                    .task-card-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-start;
+                        margin-bottom: 8px;
+                    }
+
+                    .task-name {
+                        font-size: 14px;
+                        font-weight: 500;
+                        color: var(--text-primary);
+                        flex: 1;
+                    }
+
+                    .task-star {
+                        width: 30px;
+                        height: 30px;
+                        cursor: pointer;
+                        font-size: 20px;
+                        font-weight: bold;
+                        color: #ddd;
+                        transition: all 0.2s;
+                        opacity: 0;
+                        position: absolute;
+                        top: -10px;
+                        right: -10px;
+                        display: flex;
                         align-items: center;
                         justify-content: center;
+                        background: var(--surface-color);
+                        border-radius: 50%;
+                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+                        border: 1px solid var(--border-color);
+                    }
+
+                    .task-star.disabled {
+                        opacity: 0 !important;
+                        pointer-events: none;
+                        cursor: default;
+                    }
+
+                    .group-card .task-star {
+                        background: linear-gradient(135deg, rgba(100, 160, 220, 0.3), rgba(80, 140, 200, 0.4));
+                        border: 1px solid rgba(80, 140, 200, 0.5);
+                    }
+
+                    /* Group Variants matching canvas.css */
+                    .task-card.group-card.variant-1 {
+                        background: linear-gradient(135deg, #FFF5F5 0%, #FFE3E3 100%);
+                        border-color: #FFC9C9;
+                    }
+
+                    .task-card.group-card.variant-1 .task-star {
+                        background: linear-gradient(135deg, #FFF5F5 0%, #FFE3E3 100%);
+                        border-color: #FFC9C9;
+                    }
+
+                    .task-card.group-card.variant-2 {
+                        background: linear-gradient(135deg, #F0FFF4 0%, #C6F6D5 100%);
+                        border-color: #9AE6B4;
+                    }
+
+                    .task-card.group-card.variant-2 .task-star {
+                        background: linear-gradient(135deg, #F0FFF4 0%, #C6F6D5 100%);
+                        border-color: #9AE6B4;
+                    }
+
+                    .task-card.group-card.variant-3 {
+                        background: linear-gradient(135deg, #EBF8FF 0%, #BEE3F8 100%);
+                        border-color: #90CDF4;
+                    }
+
+                    .task-card.group-card.variant-3 .task-star {
+                        background: linear-gradient(135deg, #EBF8FF 0%, #BEE3F8 100%);
+                        border-color: #90CDF4;
+                    }
+
+                    .task-card.group-card.variant-4 {
+                        background: linear-gradient(135deg, #FAF5FF 0%, #E9D8FD 100%);
+                        border-color: #D6BCFA;
+                    }
+
+                    .task-card.group-card.variant-4 .task-star {
+                        background: linear-gradient(135deg, #FAF5FF 0%, #E9D8FD 100%);
+                        border-color: #D6BCFA;
+                    }
+
+                    .task-card.group-card.variant-5 {
+                        background: linear-gradient(135deg, #FFFFF0 0%, #FEFCBF 100%);
+                        border-color: #FAF089;
+                    }
+
+                    .task-card.group-card.variant-5 .task-star {
+                        background: linear-gradient(135deg, #FFFFF0 0%, #FEFCBF 100%);
+                        border-color: #FAF089;
+                    }
+
+                    .task-card:hover .task-star {
+                        opacity: 1;
+                    }
+
+                    .task-card.prevent-star-hover .task-star:not(.starred) {
+                        opacity: 1 !important;
+                        color: #ddd !important;
+                    }
+
+                    .task-star.starred {
+                        color: #ffc515;
+                        opacity: 1 !important;
+                    }
+
+                    .task-star:not(.starred):hover {
+                        color: #ffc515;
+                    }
+
+                    .task-meta {
+                        display: flex;
+                        gap: 12px;
+                        margin-bottom: 12px;
+                        font-size: 12px;
                         color: var(--text-secondary);
+                    }
+
+                    .meta-item {
+                        display: flex;
+                        align-items: center;
+                        gap: 4px;
+                    }
+
+                    .meta-label {
+                        font-weight: 500;
+                    }
+
+                    .candidates-list {
+                        border-top: 1px solid var(--border-color);
+                        padding-top: 8px;
+                        margin-top: 8px;
+                    }
+
+                    .candidates-label {
+                        font-size: 11px;
+                        color: var(--text-secondary);
+                        margin-bottom: 6px;
+                        font-weight: 500;
+                        text-transform: uppercase;
+                    }
+
+                    .candidate-row {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 4px 0;
+                        font-size: 13px;
+                        color: var(--text-primary);
+                    }
+
+                    .candidate-star {
+                        cursor: pointer;
+                        font-size: 18px;
+                        font-weight: bold;
+                        color: #ddd;
+                        transition: color 0.2s;
+                    }
+
+                    .candidate-star.starred {
+                        color: #FFD700;
+                    }
+
+                    .candidate-star:hover {
+                        color: #FFD700;
+                    }
+
+                    .team-member-item.active {
+                        background: var(--accent-primary);
+                        color: white;
+                    }
+
+                    .team-member-item.active .member-name {
+                        color: #ffc515 !important;
+                        font-weight: 600;
+                    }
+
+                    .group-badge {
+                        display: inline-block;
+                        background: var(--accent-primary);
+                        color: white;
+                        font-size: 10px;
+                        padding: 2px 6px;
+                        border-radius: 4px;
+                        margin-left: 6px;
                     }
                 </style>
             </head>
@@ -183,8 +443,9 @@
                     <div id="project-date" class="project-date" title="Double-click to edit">December 2025</div>
                 </div>
                 <div class="nav-links">
-                    <a href="task-groups.html" class="nav-link">Schedule</a>
+                    <a href="schedule.html" class="nav-link">Schedule</a>
                     <a href="team.html" class="nav-link active">Team Members</a>
+                    <a href="task-groups.html" class="nav-link">Task Groups</a>
                 </div>
             </div>
 
@@ -194,9 +455,16 @@
                 </aside>
 
                 <main class="team-content">
-                    <div style="text-align: center;">
-                        <h3>Team Configuration</h3>
-                        <p>Manage team roles in the sidebar.</p>
+                    <div class="content-panel">
+                        <div class="panel-header">Available Tasks & Groups</div>
+                        <div class="tasks-grid" id="available-tasks-grid">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="content-panel">
+                        <div class="panel-header">Second Panel (Coming Soon)</div>
+                        <p style="color: var(--text-secondary);">Future content will appear here.</p>
                     </div>
                 </main>
             </div>
@@ -244,12 +512,20 @@
                         if (stored) {
                             const data = JSON.parse(stored);
                             CANDIDATES.push(...data.candidates);
+                            TASKS.push(...data.tasks);
+                            if (data.metrics) {
+                                METRICS_DATA.push(...data.metrics);
+                            }
                         } else {
                             await fetchSheetData();
                         }
                     }
 
+                    // Load workspace state
+                    loadWorkspaceState();
+
                     renderTeamList();
+                    renderAvailableTasks();
                 }
 
                 function renderTeamList() {
@@ -312,7 +588,547 @@
                 function selectMember(id) {
                     selectedMemberId = id;
                     renderTeamList();
-                    // Here you could also update the main content area to show details for the selected member
+                    renderAvailableTasks();
+                }
+
+                // Load workspace state
+                let workspaceState = null;
+
+                // Track cards that should prevent star hover (persists across re-renders)
+                const cardsPreventingHover = new Set();
+
+                function loadWorkspaceState() {
+                    const stored = localStorage.getItem('workspace_autosave');
+                    if (stored) {
+                        try {
+                            const data = JSON.parse(stored);
+                            workspaceState = data.state;
+
+                            // Check if any tasks have groupId
+                            if (workspaceState.canvasTasks) {
+                                const tasksWithGroups = workspaceState.canvasTasks.filter(t => t.groupId !== undefined);
+                            }
+                        } catch (e) {
+                            console.error('Failed to load workspace state:', e);
+                        }
+                    }
+                }
+
+                // Get tasks that belong to a specific group
+                function getTasksInGroup(groupId) {
+                    if (!workspaceState || !workspaceState.canvasTasks) return [];
+
+                    // Find all task instances that have this group as parent
+                    const tasksInGroup = workspaceState.canvasTasks.filter(taskInstance => {
+                        return taskInstance.groupId == groupId;
+                    });
+
+                    // Map to full task objects
+                    return tasksInGroup.map(instance => {
+                        const task = TASKS.find(t => t.id === instance.id);
+                        return task || instance; // Fallback to instance if task not found in TASKS
+                    });
+                }
+
+                // Get tasks that are candidates for the selected member
+                function getFilteredTasks() {
+                    if (!workspaceState) return [];
+
+                    // Get skipped task IDs
+                    const skippedTaskIds = new Set(workspaceState.skippedTasks?.map(t => t.id) || []);
+
+                    // Get task instance IDs that are in groups (by checking groupId)
+                    const groupedInstanceIds = new Set();
+                    (workspaceState.canvasTasks || []).forEach(taskInstance => {
+                        if (taskInstance.groupId !== undefined && taskInstance.groupId !== null) {
+                            groupedInstanceIds.add(taskInstance.instanceId);
+                        }
+                    });
+
+                    // Get canvas task IDs (those already moved to canvas)
+                    const canvasTaskInstanceIds = new Set((workspaceState.canvasTasks || []).map(t => t.instanceId));
+
+                    // Get all tasks from TASKS (includes those not moved to canvas)
+                    let filteredTasks = TASKS.filter(task => {
+                        // Skip if task is skipped
+                        if (skippedTaskIds.has(task.id)) return false;
+
+                        // Check if this task is on canvas
+                        const taskOnCanvas = (workspaceState.canvasTasks || []).find(ct => ct.id === task.id && !groupedInstanceIds.has(ct.instanceId));
+
+                        // If "All Members" selected, show all non-grouped tasks
+                        if (selectedMemberId === null) {
+                            // Show if not grouped (either not on canvas, or on canvas but not in a group)
+                            return !taskOnCanvas || !taskOnCanvas.groupId;
+                        }
+
+                        // Check if selected member is a candidate for this task
+                        const member = CANDIDATES.find(c => c.id === selectedMemberId);
+                        if (!member) return false;
+
+                        // Only show if member is a candidate AND task is not in a group
+                        return member.roles.includes(task.name) && (!taskOnCanvas || !taskOnCanvas.groupId);
+                    });
+
+                    return filteredTasks;
+                }
+
+                // Get groups that have at least one task matching the filter
+                function getFilteredGroups() {
+                    if (!workspaceState || !workspaceState.groups) return [];
+
+                    return workspaceState.groups.filter(group => {
+                        // If "All Members" selected, show all groups
+                        if (selectedMemberId === null) return true;
+
+                        // Check if any task in the group matches the selected member
+                        const member = CANDIDATES.find(c => c.id === selectedMemberId);
+                        if (!member) return false;
+
+                        const groupTasks = getTasksInGroup(group.id);
+                        return groupTasks.some(task => member.roles.includes(task.name));
+                    });
+                }
+
+                // Get candidates for a task
+                function getCandidatesForTask(taskName) {
+                    return CANDIDATES.filter(candidate => candidate.roles.includes(taskName));
+                }
+
+                // Get metrics for a task
+                function getMetricsForTask(taskName) {
+                    if (!METRICS_DATA || METRICS_DATA.length === 0) return null;
+                    return METRICS_DATA.find(m => m.name === taskName);
+                }
+
+                // Toggle star on task
+                function toggleTaskStar(taskId, isGroup = false, event) {
+                    const currentlyStarred = isTaskStarred(taskId, isGroup);
+                    const starEl = event ? event.currentTarget : document.querySelector(`.task-star[onclick*="toggleTaskStar('${taskId}'"]`);
+
+                    // If "All Members" mode
+                    if (selectedMemberId === null) {
+                        // Can only toggle OFF (which clears all)
+                        if (!currentlyStarred) {
+                            return; // Cannot toggle ON directly in All Members mode
+                        }
+
+                        // Clear all candidate stars for this task/group
+                        clearAllStars(taskId, isGroup);
+
+                        // Update UI directly
+                        if (starEl) {
+                            starEl.classList.remove('starred');
+                            // In All Members mode, unstarred groups/tasks are disabled
+                            starEl.classList.add('disabled');
+                        }
+                    }
+                    // If specific member selected
+                    else {
+                        if (currentlyStarred) {
+                            // If ON, clicking it turns it OFF (Clears All)
+                            clearAllStars(taskId, isGroup);
+
+                            // Update UI directly
+                            if (starEl) {
+                                starEl.classList.remove('starred');
+                            }
+                        } else {
+                            // If OFF, clicking it Stars the Selected Member
+                            const candidateKey = `candidate_star_${taskId}_${selectedMemberId}`;
+                            localStorage.setItem(candidateKey, 'true');
+
+                            // And turns the task/group ON
+                            const starKey = `task_star_${isGroup ? 'group_' : ''}${taskId}`;
+                            localStorage.setItem(starKey, 'true');
+
+                            // Update UI directly
+                            if (starEl) {
+                                starEl.classList.add('starred');
+                                starEl.classList.remove('disabled');
+                            }
+
+                            // Also update the specific candidate star in the DOM if visible
+                            const candidateStarEl = document.querySelector(`.candidate-star[onclick*="toggleCandidateStar('${taskId}', '${selectedMemberId}')"]`);
+                            if (candidateStarEl) {
+                                candidateStarEl.classList.add('starred');
+                            }
+                        }
+                    }
+
+                    // Determine if we are turning it off (for hover prevention)
+                    // We need to re-check the new state
+                    const newStarredState = isTaskStarred(taskId, isGroup);
+
+                    // If toggling off, prevent hover from immediately showing it again
+                    if (!newStarredState && event) {
+                        const cardKey = `${isGroup ? 'group' : 'task'}-${taskId}`;
+                        cardsPreventingHover.add(cardKey);
+
+                        // Apply prevent-hover class directly
+                        const card = starEl.closest('.task-card');
+                        if (card) {
+                            card.classList.add('prevent-star-hover');
+                            card.addEventListener('mouseleave', function removePrevent() {
+                                card.classList.remove('prevent-star-hover');
+                                cardsPreventingHover.delete(cardKey);
+                                card.removeEventListener('mouseleave', removePrevent);
+                            });
+                        }
+                    }
+
+                    // Do NOT call renderAvailableTasks() to preserve scroll position
+                }
+
+                // Helper to clear all stars in a task or group
+                function clearAllStars(id, isGroup) {
+                    let tasksToClear = [];
+
+                    if (isGroup) {
+                        const group = workspaceState.groups.find(g => g.id == id);
+                        if (group) {
+                            tasksToClear = getTasksInGroup(group.id);
+                        }
+                    } else {
+                        // For single task, we need to find the task object
+                        const task = TASKS.find(t => t.id == id);
+                        if (task) {
+                            tasksToClear = [task];
+                        }
+                    }
+
+                    tasksToClear.forEach(task => {
+                        getCandidatesForTask(task.name).forEach(candidate => {
+                            const contextId = isGroup ? id : task.id;
+                            const key = `candidate_star_${contextId}_${candidate.id}`;
+                            localStorage.setItem(key, 'false');
+
+                            // Update DOM directly for this candidate star
+                            const candidateStarEl = document.querySelector(`.candidate-star[onclick*="toggleCandidateStar('${contextId}', '${candidate.id}')"]`);
+                            if (candidateStarEl) {
+                                candidateStarEl.classList.remove('starred');
+                            }
+                        });
+                    });
+
+                    // Also clear the main star itself
+                    const key = `task_star_${isGroup ? 'group_' : ''}${id}`;
+                    localStorage.setItem(key, 'false');
+                }
+
+                // Toggle star on candidate for task
+                function toggleCandidateStar(taskId, candidateId) {
+                    const key = `candidate_star_${taskId}_${candidateId}`;
+                    const current = localStorage.getItem(key) === 'true';
+                    const newValue = !current;
+                    localStorage.setItem(key, newValue);
+
+                    // Update the candidate star in the DOM directly to avoid re-render (preserves scroll)
+                    const starEl = document.querySelector(`.candidate-star[onclick*="toggleCandidateStar('${taskId}', '${candidateId}')"]`);
+                    if (starEl) {
+                        if (newValue) {
+                            starEl.classList.add('starred');
+                        } else {
+                            starEl.classList.remove('starred');
+                        }
+                    }
+
+                    // Check if taskId corresponds to a group or a task
+                    const isGroup = workspaceState.groups.some(g => g.id == taskId);
+
+                    // If turning ON, ensure parent task/group star is ON
+                    if (newValue) {
+                        const starKey = `task_star_${isGroup ? 'group_' : ''}${taskId}`;
+                        localStorage.setItem(starKey, 'true');
+
+                        // Update parent star DOM
+                        const parentStar = document.querySelector(`.task-star[onclick*="toggleTaskStar('${taskId}'"]`);
+                        if (parentStar) {
+                            parentStar.classList.add('starred');
+                            parentStar.classList.remove('disabled'); // Enable if it was disabled
+                        }
+                    } else {
+                        // If turning OFF, check if we should turn off the parent star
+                        // We check isTaskStarred which now checks all candidates
+                        if (!isTaskStarred(taskId, isGroup)) {
+                            const starKey = `task_star_${isGroup ? 'group_' : ''}${taskId}`;
+                            localStorage.setItem(starKey, 'false');
+
+                            const parentStar = document.querySelector(`.task-star[onclick*="toggleTaskStar('${taskId}'"]`);
+                            if (parentStar) {
+                                parentStar.classList.remove('starred');
+                                // Re-apply disabled state if in All Members mode and it's a group
+                                if (selectedMemberId === null && isGroup) {
+                                    parentStar.classList.add('disabled');
+                                }
+                            }
+                        }
+                    }
+
+                    // Update sidebar if this is the selected member (style update only)
+                    if (selectedMemberId === candidateId) {
+                        // Currently sidebar style depends on selection, not star status directly in the list
+                        // So we might not need to do anything here.
+                    }
+
+                    // Do NOT call renderAvailableTasks() to preserve scroll position
+                }
+
+                // Check if task is starred
+                function isTaskStarred(taskId, isGroup = false) {
+                    // Check if ANY candidate in the task/group is starred
+                    let tasksToCheck = [];
+
+                    if (isGroup) {
+                        const group = workspaceState && workspaceState.groups ? workspaceState.groups.find(g => g.id == taskId) : null;
+                        if (group) {
+                            tasksToCheck = getTasksInGroup(group.id);
+                        }
+                    } else {
+                        const task = TASKS.find(t => t.id == taskId); // Use TASKS global array for full task object
+                        if (task) {
+                            tasksToCheck = [task];
+                        }
+                    }
+
+                    if (tasksToCheck.length > 0) {
+                        // Check if any candidate is starred
+                        for (const task of tasksToCheck) {
+                            const candidates = getCandidatesForTask(task.name);
+                            for (const candidate of candidates) {
+                                // The context ID for isCandidateStarred is the taskId passed in (group ID or task ID)
+                                if (isCandidateStarred(taskId, candidate.id)) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+
+                    // Fallback to checking the star itself (though logic above should cover most cases if data is consistent)
+                    const key = `task_star_${isGroup ? 'group_' : ''}${taskId}`;
+                    return localStorage.getItem(key) === 'true';
+                }
+
+                // Check if candidate is starred for task
+                function isCandidateStarred(taskId, candidateId) {
+                    const key = `candidate_star_${taskId}_${candidateId}`;
+                    return localStorage.getItem(key) === 'true';
+                }
+
+                // Render available tasks
+                function renderAvailableTasks() {
+                    const grid = document.getElementById('available-tasks-grid');
+                    if (!grid) return;
+
+                    grid.innerHTML = '';
+
+                    // Render groups first
+                    const groups = getFilteredGroups();
+                    groups.forEach(group => {
+                        const card = createGroupCard(group);
+                        grid.appendChild(card);
+                    });
+
+                    // Render individual tasks
+                    const tasks = getFilteredTasks();
+                    tasks.forEach(task => {
+                        const card = createTaskCard(task);
+                        grid.appendChild(card);
+                    });
+
+                    if (groups.length === 0 && tasks.length === 0) {
+                        grid.innerHTML = '<p style="color: var(--text-secondary); padding: 20px; text-align: center;">No tasks available for the selected member.</p>';
+                    }
+                }
+
+                // Create task card element
+                function createTaskCard(task) {
+                    const card = document.createElement('div');
+                    card.className = 'task-card';
+
+                    const metrics = getMetricsForTask(task.name);
+                    const candidates = getCandidatesForTask(task.name);
+                    const starred = isTaskStarred(task.id);
+
+                    // Check if star should be disabled (All Members mode + not starred)
+                    const starDisabled = selectedMemberId === null && !starred;
+
+                    let html = `
+                        <div class="task-card-header">
+                            <div class="task-name">${task.name}</div>
+                            <div class="task-star ${starred ? 'starred' : ''} ${starDisabled ? 'disabled' : ''}" 
+                                 onclick="event.stopPropagation(); toggleTaskStar('${task.id}', false, event)">★</div>
+                        </div>
+                    `;
+
+                    if (metrics) {
+                        html += `
+                            <div class="task-meta">
+                                ${metrics.time ? `<div class="meta-item"><span class="meta-label">Time:</span> ${metrics.time}</div>` : ''}
+                                ${metrics.effort ? `<div class="meta-item"><span class="meta-label">Effort:</span> ${metrics.effort}</div>` : ''}
+                            </div>
+                        `;
+                    }
+
+                    if (candidates.length > 0) {
+                        html += '<div class="candidates-list">';
+                        html += '<div class="candidates-label">Candidates</div>';
+                        candidates.forEach(candidate => {
+                            const candidateStarred = isCandidateStarred(task.id, candidate.id);
+                            html += `
+                                <div class="candidate-row">
+                                    <span>${candidate.name}</span>
+                                    <span class="candidate-star ${candidateStarred ? 'starred' : ''}" 
+                                          onclick="event.stopPropagation(); toggleCandidateStar('${task.id}', '${candidate.id}')">★</span>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                    }
+
+                    card.innerHTML = html;
+
+                    // Check if this card should prevent hover
+                    const cardKey = `task-${task.id}`;
+                    if (cardsPreventingHover.has(cardKey)) {
+                        card.classList.add('prevent-star-hover');
+                        card.addEventListener('mouseleave', function removePrevent() {
+                            card.classList.remove('prevent-star-hover');
+                            cardsPreventingHover.delete(cardKey);
+                            card.removeEventListener('mouseleave', removePrevent);
+                        });
+                    }
+
+                    return card;
+                }
+
+                // Create group card element
+                function createGroupCard(group) {
+                    const card = document.createElement('div');
+                    // Add variant class (default to 1 if not set)
+                    const variant = group.variant || 1;
+                    card.className = `task-card group-card variant-${variant}`;
+
+                    // Get tasks in this group
+                    const groupTasks = getTasksInGroup(group.id);
+                    const starred = isTaskStarred(group.id, true);
+
+                    // Check if star should be disabled (All Members mode + not starred)
+                    const starDisabled = selectedMemberId === null && !starred;
+
+                    // Get all unique candidates from all tasks in the group
+                    const allCandidates = new Set();
+                    groupTasks.forEach(task => {
+                        getCandidatesForTask(task.name).forEach(c => allCandidates.add(JSON.stringify(c)));
+                    });
+                    const candidates = Array.from(allCandidates).map(s => JSON.parse(s));
+
+                    // Calculate total time and effort
+                    let totalEffort = 0;
+                    let hasEffort = false;
+                    let timeSlots = [];
+                    let hasAllTime = false;
+
+                    groupTasks.forEach(task => {
+                        const metrics = getMetricsForTask(task.name);
+                        if (metrics) {
+                            if (metrics.effort) {
+                                totalEffort += parseFloat(metrics.effort) || 0;
+                                hasEffort = true;
+                            }
+                            if (metrics.time) {
+                                if (metrics.time.toLowerCase() === 'all') {
+                                    hasAllTime = true;
+                                } else {
+                                    timeSlots.push(metrics.time);
+                                }
+                            }
+                        }
+                    });
+
+                    // Calculate time display
+                    let timeDisplay = '';
+                    if (hasAllTime) {
+                        timeDisplay = 'All';
+                    } else if (timeSlots.length > 0) {
+                        const parsedSlots = timeSlots.map(slot => {
+                            const parts = slot.split('-');
+                            if (parts.length === 2) {
+                                let start = parseInt(parts[0]);
+                                let end = parseInt(parts[1]);
+                                if (end === 0) end = 24;
+                                if (start === 0) start = 24;
+                                return { start, end };
+                            }
+                            return null;
+                        }).filter(s => s !== null);
+
+                        if (parsedSlots.length > 0) {
+                            const earliest = Math.min(...parsedSlots.map(s => s.start));
+                            const latest = Math.max(...parsedSlots.map(s => s.end));
+
+                            if (earliest === 20 && latest === 24) {
+                                timeDisplay = 'All';
+                            } else {
+                                const latestStr = latest === 24 ? '00' : latest.toString();
+                                const earliestStr = earliest === 24 ? '00' : earliest.toString();
+                                timeDisplay = `${earliestStr}-${latestStr}`;
+                            }
+                        } else {
+                            timeDisplay = timeSlots.join(', ');
+                        }
+                    }
+
+                    let html = `
+                        <div class="task-card-header">
+                            <div class="task-name">
+                                ${group.title || 'Unnamed Group'}
+                                <span class="group-badge">GROUP</span>
+                            </div>
+                            <div class="task-star ${starred ? 'starred' : ''} ${starDisabled ? 'disabled' : ''}" 
+                                 onclick="event.stopPropagation(); toggleTaskStar('${group.id}', true, event)"
+                                 style="${starDisabled ? 'cursor: not-allowed; opacity: 0.3;' : ''}">★</div>
+                        </div>
+                    `;
+
+                    html += `
+                        <div class="task-meta">
+                            <div class="meta-item"><span class="meta-label">Tasks:</span> ${groupTasks.length}</div>
+                            ${timeDisplay ? `<div class="meta-item"><span class="meta-label">Time:</span> ${timeDisplay}</div>` : ''}
+                            ${hasEffort ? `<div class="meta-item"><span class="meta-label">Effort:</span> ${totalEffort.toFixed(1)}</div>` : ''}
+                        </div>
+                    `;
+
+                    if (candidates.length > 0) {
+                        html += '<div class="candidates-list">';
+                        html += '<div class="candidates-label">Candidates (from all tasks)</div>';
+                        candidates.forEach(candidate => {
+                            const candidateStarred = isCandidateStarred(group.id, candidate.id);
+                            html += `
+                                <div class="candidate-row">
+                                    <span>${candidate.name}</span>
+                                    <span class="candidate-star ${candidateStarred ? 'starred' : ''}" 
+                                          onclick="event.stopPropagation(); toggleCandidateStar('${group.id}', '${candidate.id}')">★</span>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                    }
+
+                    card.innerHTML = html;
+
+                    // Check if this card should prevent hover
+                    const cardKey = `group-${group.id}`;
+                    if (cardsPreventingHover.has(cardKey)) {
+                        card.classList.add('prevent-star-hover');
+                        card.addEventListener('mouseleave', function removePrevent() {
+                            card.classList.remove('prevent-star-hover');
+                            cardsPreventingHover.delete(cardKey);
+                            card.removeEventListener('mouseleave', removePrevent);
+                        });
+                    }
+
+                    return card;
                 }
 
                 window.toggleRole = function (memberId, role) {

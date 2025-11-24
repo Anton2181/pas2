@@ -33,7 +33,7 @@
 .sidebar-header.selected {
     background: var(--surface-hover);
     color: var(--accent-primary);
-    border-left: 3px solid var(--accent-primary);
+    border-left: 5px solid var(--accent-primary);
 }
 
 .member-item {
@@ -140,7 +140,6 @@
     flex: 1;
     background: var(--bg-color);
     display: flex;
-    align-items: center;
     justify-content: center;
     color: var(--text-secondary);
 }

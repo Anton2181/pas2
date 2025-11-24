@@ -270,18 +270,6 @@ function renderGroup(group) {
         const intersectionNames = intersection.map(c => c.name).join(', ') || 'None';
         groupCandidatesList.innerHTML = `<div>${intersectionNames}</div>`;
 
-        const counter = document.createElement('div');
-        counter.className = 'candidates-counter';
-        counter.textContent = `${intersection.length}/${union.length}`;
-        counter.style.cssText = `
-            position: absolute;
-            bottom: 2px;
-            right: 4px;
-            font-size: 10px;
-            font-weight: 600;
-            color: ${intersection.length === 0 ? 'red' : 'var(--text-secondary)'};
-        `;
-        groupCandidatesList.appendChild(counter);
 
         // Update toggle button to show count
         const countColor = intersection.length === 0 ? 'red' : 'var(--text-secondary)';
