@@ -375,4 +375,9 @@ function renderGroup(group) {
     });
 
     elements.canvas.appendChild(el);
+
+    // Attach hover highlight listeners
+    if (typeof attachHoverListeners === 'function') {
+        attachHoverListeners(el);
+    }
 }

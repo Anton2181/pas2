@@ -344,6 +344,11 @@ function renderTaskOnCanvas(instance) {
 
     parent.appendChild(el);
 
+    // Attach hover highlight listeners
+    if (typeof attachHoverListeners === 'function') {
+        attachHoverListeners(el);
+    }
+
     // Update group candidates if needed
     if (instance.groupId) {
         const groupEl = document.getElementById(`group-${instance.groupId}`);
