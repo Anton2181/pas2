@@ -49,12 +49,10 @@ function renderSchedulePreview() {
 
                 taskSquare.dataset.taskId = task.id;
                 taskSquare.dataset.taskName = task.name;
-
-                // Custom Tooltip
-                const tooltip = document.createElement('div');
-                tooltip.className = 'schedule-tooltip';
-                tooltip.textContent = task.name;
-                taskSquare.appendChild(tooltip);
+                taskSquare.dataset.isGroup = task.isGroup ? 'true' : 'false';
+                taskSquare.dataset.taskId = task.id;
+                taskSquare.dataset.taskName = task.name;
+                taskSquare.dataset.isGroup = task.isGroup ? 'true' : 'false';
 
                 // Click event
                 taskSquare.addEventListener('click', (e) => {
@@ -62,18 +60,26 @@ function renderSchedulePreview() {
                     toggleTaskDetail(task, weekIndex, dayIndex, dayRow);
                 });
 
-                // Smart tooltip positioning on hover
+                // Smart tooltip positioning on hover using GLOBAL tooltip
                 taskSquare.addEventListener('mouseenter', (e) => {
+                    const tooltip = getGlobalTooltip();
+                    tooltip.textContent = task.name;
+
                     const rect = taskSquare.getBoundingClientRect();
-                    const tooltipEl = tooltip;
 
                     // Position below the square by default
                     let top = rect.bottom + 8;
                     let left = rect.left + (rect.width / 2);
 
-                    tooltipEl.style.top = `${top}px`;
-                    tooltipEl.style.left = `${left}px`;
-                    tooltipEl.style.transform = 'translateX(-50%)';
+                    tooltip.style.top = `${top}px`;
+                    tooltip.style.left = `${left}px`;
+                    tooltip.style.transform = 'translateX(-50%)';
+                    tooltip.style.opacity = '1';
+                });
+
+                taskSquare.addEventListener('mouseleave', () => {
+                    const tooltip = getGlobalTooltip();
+                    tooltip.style.opacity = '0';
                 });
 
                 tasksContainer.appendChild(taskSquare);
@@ -316,6 +322,18 @@ function renderDetailTaskCard(task) {
     el.appendChild(candidatesList);
 
     return el;
+}
+
+// Global tooltip helper to avoid z-index stacking context issues
+function getGlobalTooltip() {
+    let tooltip = document.getElementById('global-schedule-tooltip');
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.id = 'global-schedule-tooltip';
+        tooltip.className = 'schedule-tooltip';
+        document.body.appendChild(tooltip);
+    }
+    return tooltip;
 }
 
 // Initialize when DOM is ready

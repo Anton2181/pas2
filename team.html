@@ -513,6 +513,7 @@
             <script src="js/schedule-data.js"></script>
             <script src="js/schedule-aggregation.js"></script>
             <script src="js/schedule-preview.js"></script>
+            <script src="js/schedule-hover.js"></script>
             <script>
                 // Shared Date Logic
                 function setupDateEditable() {
@@ -1014,12 +1015,19 @@
                     if (groups.length === 0 && tasks.length === 0) {
                         grid.innerHTML = '<p style="color: var(--text-secondary); padding: 20px; text-align: center;">No tasks available for the selected member.</p>';
                     }
+
+                    // Re-attach hover listeners for schedule highlighting
+                    if (window.attachScheduleHoverListeners) {
+                        setTimeout(window.attachScheduleHoverListeners, 100);
+                    }
                 }
 
                 // Create task card element
                 function createTaskCard(task) {
                     const card = document.createElement('div');
                     card.className = 'task-card';
+                    card.dataset.taskName = task.name;
+                    card.dataset.isGroup = 'false';
 
                     const metrics = getMetricsForTask(task.name);
                     const candidates = getCandidatesForTask(task.name);
@@ -1094,6 +1102,8 @@
                 // Create group card element
                 function createGroupCard(group) {
                     const card = document.createElement('div');
+                    card.dataset.taskName = group.title;
+                    card.dataset.isGroup = 'true';
                     // Add variant class (default to 1 if not set)
                     const variant = group.variant || 1;
                     card.className = `task-card group-card variant-${variant}`;

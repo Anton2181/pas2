@@ -205,7 +205,7 @@
     width: 32px;
     height: 32px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: opacity 0.2s, box-shadow 0.2s, transform 0.2s;
     position: relative;
     margin-right: 1px;
     margin-bottom: 1px;
@@ -214,7 +214,7 @@
 .schedule-task-square:hover {
     opacity: 0.9;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
-    z-index: 10;
+    z-index: 100;
 }
 
 .schedule-detail-container {
@@ -302,6 +302,15 @@
     text-align: center;
 }
 
-.schedule-task-square:hover .schedule-tooltip {
-    opacity: 1;
+/* Hover highlighting effect for schedule preview */
+.schedule-task-square.dimmed {
+    opacity: 0.25 !important;
+}
+
+.schedule-task-square.highlighted {
+    opacity: 1 !important;
+    box-shadow: 0 0 0 3px var(--accent-primary) !important;
+    transform: scale(1.02);
+    z-index: 100;
+    /* Keep highlighted items on top */
 }
