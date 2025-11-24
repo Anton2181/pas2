@@ -1,0 +1,253 @@
+/**
+ * Schedule Aggregation - Automatically aggregates tasks into groups
+ * Runs on page load to combine tasks that belong to defined groups
+ */
+
+function aggregateScheduleIntoGroups(scheduleData) {
+    // Load groups from localStorage
+    let groups = [];
+    try {
+        const workspaceStr = localStorage.getItem('workspace_autosave');
+        if (workspaceStr) {
+            const workspace = JSON.parse(workspaceStr);
+            groups = workspace.state?.groups || [];
+            const canvasTasks = workspace.state?.canvasTasks || [];
+
+            console.log('Loaded groups for aggregation:', groups.length);
+            console.log('Canvas tasks:', canvasTasks.length);
+
+            // Debug: Show structure
+            if (canvasTasks.length > 0) {
+                console.log('Sample canvas task:', canvasTasks[0]);
+            }
+            if (groups.length > 0) {
+                console.log('Sample group:', groups[0]);
+            }
+
+            // Map tasks to each group
+            groups.forEach(group => {
+                group.taskNames = canvasTasks
+                    .filter(t => String(t.groupId) === String(group.id) || String(t.parentId) === String(group.id))
+                    .map(t => t.name);
+
+                console.log(`Group "${group.title}" (id: ${group.id}):`, group.taskNames);
+
+                // Determine if group has repeats (duplicate task names)
+                const uniqueNames = new Set(group.taskNames);
+                group.hasRepeats = uniqueNames.size !== group.taskNames.length;
+            });
+        } else {
+            console.log('No workspace_autosave found in localStorage');
+        }
+    } catch (e) {
+        console.error('Error loading groups for aggregation:', e);
+        return scheduleData; // Return original data if can't load groups
+    }
+
+    if (groups.length === 0) {
+        console.log('No groups found, skipping aggregation');
+        return scheduleData; // No groups to aggregate
+    }
+
+    // Sort groups: No repeats first, then repeats
+    groups.sort((a, b) => {
+        if (a.hasRepeats === b.hasRepeats) return 0;
+        return a.hasRepeats ? 1 : -1;
+    });
+
+    // Process each week
+    const aggregated = scheduleData.map(weekData => {
+        const newWeekData = {
+            week: weekData.week,
+            days: weekData.days.map(dayData => {
+                const processedTasks = [];
+                const usedIndices = new Set();
+
+                // Try to match each group
+                groups.forEach(group => {
+                    if (!group.taskNames || group.taskNames.length === 0) return;
+
+                    // Count required task names in group
+                    const groupTaskCounts = {};
+                    group.taskNames.forEach(name => {
+                        groupTaskCounts[name] = (groupTaskCounts[name] || 0) + 1;
+                    });
+
+                    // Count available task names in day
+                    const dayTaskCounts = {};
+                    dayData.tasks.forEach((task, idx) => {
+                        if (usedIndices.has(idx)) return;
+                        dayTaskCounts[task.name] = (dayTaskCounts[task.name] || 0) + 1;
+                    });
+
+                    // Check if we have all required tasks
+                    let canMatch = true;
+                    for (const [taskName, requiredCount] of Object.entries(groupTaskCounts)) {
+                        if ((dayTaskCounts[taskName] || 0) < requiredCount) {
+                            canMatch = false;
+                            break;
+                        }
+                    }
+
+                    if (canMatch) {
+                        // Match found! Collect matching tasks
+                        const matchedIndices = [];
+                        const groupTaskNamesCopy = [...group.taskNames];
+
+                        dayData.tasks.forEach((task, idx) => {
+                            if (usedIndices.has(idx)) return;
+                            const nameIdx = groupTaskNamesCopy.indexOf(task.name);
+                            if (nameIdx !== -1) {
+                                matchedIndices.push(idx);
+                                groupTaskNamesCopy.splice(nameIdx, 1);
+                            }
+                        });
+
+                        // Verify we found all tasks
+                        if (groupTaskNamesCopy.length === 0) {
+                            matchedIndices.forEach(idx => usedIndices.add(idx));
+
+                            // Aggregate metrics (using canvas logic for time union)
+                            let totalEffort = 0;
+                            const timeSlots = [];
+                            let hasAll = false;
+
+                            matchedIndices.forEach(idx => {
+                                const task = dayData.tasks[idx];
+                                totalEffort += task.effort || 0;
+                                if (task.time) {
+                                    if (task.time.toLowerCase() === 'all') {
+                                        hasAll = true;
+                                    } else {
+                                        timeSlots.push(task.time);
+                                    }
+                                }
+                            });
+
+                            // Calculate union of times (from canvas logic)
+                            let displayTime = '';
+                            if (hasAll) {
+                                displayTime = 'All';
+                            } else if (timeSlots.length > 0) {
+                                const parsedSlots = timeSlots.map(slot => {
+                                    const parts = slot.split('-');
+                                    if (parts.length === 2) {
+                                        let start = parseInt(parts[0]);
+                                        let end = parseInt(parts[1]);
+                                        if (end === 0) end = 24;
+                                        if (start === 0) start = 24;
+                                        return { start, end };
+                                    }
+                                    return null;
+                                }).filter(s => s !== null);
+
+                                if (parsedSlots.length > 0) {
+                                    const earliest = Math.min(...parsedSlots.map(s => s.start));
+                                    let latest = Math.max(...parsedSlots.map(s => s.end));
+
+                                    if (earliest === 20 && latest === 24) {
+                                        displayTime = 'All';
+                                    } else {
+                                        const latestStr = latest === 24 ? '00' : latest.toString();
+                                        const earliestStr = earliest === 24 ? '00' : earliest.toString();
+                                        displayTime = `${earliestStr}-${latestStr}`;
+                                    }
+                                } else {
+                                    displayTime = timeSlots.join(', ');
+                                }
+                            }
+
+                            // Calculate candidate count as intersection
+                            const taskNamesInGroup = matchedIndices.map(idx => dayData.tasks[idx].name);
+                            console.log(`Group "${group.title}" in ${weekData.week} ${dayData.name}:`, taskNamesInGroup);
+
+                            let candidateCount = 0;
+                            if (typeof CANDIDATES !== 'undefined' && CANDIDATES) {
+                                const qualified = CANDIDATES.filter(c => {
+                                    return taskNamesInGroup.every(taskName => c.roles.includes(taskName));
+                                });
+                                candidateCount = qualified.length;
+                                console.log(`  -> ${candidateCount} candidates:`, qualified.map(c => c.name));
+                            } else {
+                                console.log('  -> CANDIDATES not defined yet!');
+                            }
+
+                            // Create grouped task entry
+                            processedTasks.push({
+                                id: `grp-${group.id}-${dayData.name}`,
+                                name: group.title,
+                                color: getGroupColor(group.variant),
+                                time: displayTime,
+                                effort: totalEffort,
+                                isGroup: true,
+                                candidateCount: candidateCount
+                            });
+                        }
+                    }
+                });
+
+                // Add remaining ungrouped tasks
+                dayData.tasks.forEach((task, idx) => {
+                    if (!usedIndices.has(idx)) {
+                        processedTasks.push(task);
+                    }
+                });
+
+                return {
+                    name: dayData.name,
+                    type: dayData.type,
+                    tasks: processedTasks
+                };
+            })
+        };
+
+        return newWeekData;
+    });
+
+    return aggregated;
+}
+
+function getGroupColor(variant) {
+    const colors = {
+        1: '#E2B49A', // Peach
+        2: '#A8C6A3', // Green
+        3: '#DBCB96', // Gold
+        4: '#9ABDE2', // Blue
+        5: '#E29AA8'  // Pink
+    };
+    return colors[variant] || '#e0e0e0';
+}
+
+// Wait for DOMContentLoaded to ensure CANDIDATES is loaded
+if (typeof SCHEDULE_DATA !== 'undefined') {
+    // Check if DOM is already loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', runAggregation);
+    } else {
+        // DOM already loaded, run immediately
+        runAggregation();
+    }
+}
+
+function runAggregation() {
+    console.log('Running schedule aggregation');
+    console.log('CANDIDATES available:', typeof CANDIDATES !== 'undefined');
+    console.log('CANDIDATES count:', CANDIDATES?.length || 0);
+
+    window.ORIGINAL_SCHEDULE_DATA = [...SCHEDULE_DATA];
+    const aggregated = aggregateScheduleIntoGroups(SCHEDULE_DATA);
+
+    // Clear and repopulate the array in place (can't reassign const)
+    SCHEDULE_DATA.length = 0;
+    SCHEDULE_DATA.push(...aggregated);
+
+    console.log('Schedule data aggregated into groups');
+
+    // Re-render if the preview is already rendered
+    if (typeof renderSchedulePreview === 'function') {
+        const container = document.getElementById('schedule-preview-container');
+        if (container) {
+            renderSchedulePreview();
+        }
+    }
+}

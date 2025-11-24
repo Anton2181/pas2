@@ -498,15 +498,21 @@
                         </div>
                     </div>
 
-                    <div class="content-panel">
-                        <div class="panel-header">Second Panel (Coming Soon)</div>
-                        <p style="color: var(--text-secondary);">Future content will appear here.</p>
+                    <div class="content-panel" id="schedule-preview-panel">
+                        <div class="panel-header">Schedule Preview</div>
+                        <div id="schedule-preview-container">
+                            <!-- Populated by JS -->
+                        </div>
                     </div>
-                </main>
+            </div>
+            </main>
             </div>
 
             <script src="js/data.js"></script>
             <script src="js/global-storage.js"></script>
+            <script src="js/schedule-data.js"></script>
+            <script src="js/schedule-aggregation.js"></script>
+            <script src="js/schedule-preview.js"></script>
             <script>
                 // Shared Date Logic
                 function setupDateEditable() {

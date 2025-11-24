@@ -140,6 +140,168 @@
     flex: 1;
     background: var(--bg-color);
     display: flex;
-    justify-content: center;
+    gap: 16px;
+    padding: 16px;
+    overflow: hidden;
+}
+
+/* Schedule Preview Panel */
+#schedule-preview-panel {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#schedule-preview-panel h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 1.1em;
+    color: var(--text-primary);
+}
+
+#schedule-preview-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    overflow-x: hidden;
+}
+
+.schedule-week-group {
+    position: relative;
+    overflow: visible;
+    /* Allow triangle to appear outside */
+}
+
+.schedule-week-header {
+    font-size: 12px;
+    font-weight: 600;
     color: var(--text-secondary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.schedule-day-row {
+    display: flex;
+    align-items: stretch;
+    min-height: 32px;
+    margin-bottom: 1px;
+}
+
+.schedule-day-row:last-child {
+    margin-bottom: 0;
+}
+
+.schedule-day-label {
+    display: none;
+}
+
+.schedule-tasks-container {
+    flex-grow: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+}
+
+.schedule-task-square {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    margin-right: 1px;
+    margin-bottom: 1px;
+}
+
+.schedule-task-square:hover {
+    opacity: 0.9;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+    z-index: 10;
+}
+
+.schedule-detail-container {
+    overflow: visible;
+    /* Allow triangle to extend outside */
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        margin-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        padding 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.3s ease-out;
+    max-height: 0;
+    margin-bottom: 0;
+    padding: 0 16px;
+    opacity: 0;
+    background: var(--surface-color);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.schedule-detail-container.open {
+    max-height: 400px;
+    margin-bottom: 16px;
+    padding: 16px;
+    opacity: 1;
+}
+
+.schedule-detail-content {
+    opacity: 0;
+    transition: opacity 0.25s ease-out;
+    transform: translateY(-10px);
+    transition: opacity 0.25s ease-out, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.schedule-detail-container.open .schedule-detail-content {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.15s;
+}
+
+/* Triangle marker pointing to origin task */
+.schedule-detail-triangle {
+    position: absolute;
+    top: -8px;
+    width: 0;
+    height: 0;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-bottom: 12px solid var(--border-color);
+    transition: opacity 0.3s ease-out, left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+    /* High z-index to appear above everything */
+}
+
+.schedule-detail-triangle::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: -11px;
+    width: 0;
+    height: 0;
+    border-left: 11px solid transparent;
+    border-right: 11px solid transparent;
+    border-bottom: 11px solid var(--surface-color);
+}
+
+.schedule-detail-container.open .schedule-detail-triangle {
+    opacity: 1;
+}
+
+/* Custom Tooltip */
+.schedule-tooltip {
+    position: fixed;
+    background: #333;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s;
+    max-width: 200px;
+    white-space: normal;
+    text-align: center;
+}
+
+.schedule-task-square:hover .schedule-tooltip {
+    opacity: 1;
 }
