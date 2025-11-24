@@ -191,16 +191,20 @@ function navigateToElement(elementId) {
     if (!element) return;
 
     const container = elements.canvasContainer;
-    const rect = element.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
+    // Get the element's absolute position from its style (since they are absolute positioned)
+    const elementLeft = parseFloat(element.style.left);
+    const elementTop = parseFloat(element.style.top);
+    const elementWidth = element.offsetWidth;
+    const elementHeight = element.offsetHeight;
 
-    // Calculate the element's position in canvas coordinates
-    const elementX = (rect.left - containerRect.left) / state.zoomLevel;
-    const elementY = (rect.top - containerRect.top) / state.zoomLevel;
+    // Calculate the center of the element in canvas coordinates
+    const centerX = elementLeft + (elementWidth / 2);
+    const centerY = elementTop + (elementHeight / 2);
 
-    // Calculate where to scroll to center the element
-    const targetScrollLeft = (elementX * state.zoomLevel) - (container.clientWidth / 2) + (rect.width / 2);
-    const targetScrollTop = (elementY * state.zoomLevel) - (container.clientHeight / 2) + (rect.height / 2);
+    // Calculate the target scroll position to center the element in the viewport
+    // Target Scroll = (Center * Zoom) - (Viewport / 2)
+    const targetScrollLeft = (centerX * state.zoomLevel) - (container.clientWidth / 2);
+    const targetScrollTop = (centerY * state.zoomLevel) - (container.clientHeight / 2);
 
     // Smooth scroll to the element
     container.scrollTo({

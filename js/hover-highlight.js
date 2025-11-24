@@ -254,7 +254,7 @@ function drawConnectionWithHighlight(conn, isHighlighted, hoveredId) {
     hitPath.setAttribute('fill', 'none');
     hitPath.style.cursor = 'pointer';
     hitPath.style.pointerEvents = 'stroke';
-    hitPath.onclick = (e) => showDeleteButton(e, conn);
+    hitPath.onclick = (e) => showConnectionControls(e, conn);
     elements.connectionsLayer.appendChild(hitPath);
 }
 

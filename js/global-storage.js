@@ -185,3 +185,52 @@ function showToast(message) {
         setTimeout(() => toast.remove(), 300);
     }, 2000);
 }
+
+// Autosave functions for backward compatibility with main.js
+function saveWorkspace(silent = false) {
+    const data = {
+        timestamp: new Date().toISOString(),
+        version: '1.0',
+        state: {
+            availableTasks: state.availableTasks,
+            usedTasks: state.usedTasks,
+            skippedTasks: state.skippedTasks,
+            canvasTasks: state.canvasTasks,
+            groups: state.groups,
+            connections: state.connections,
+            nextInstanceId: state.nextInstanceId,
+            nextGroupId: state.nextGroupId
+        }
+    };
+
+    localStorage.setItem('workspace_autosave', JSON.stringify(data));
+    console.log('Workspace autosaved');
+
+    if (!silent) {
+        showToast('Workspace saved');
+    }
+}
+
+function loadWorkspace() {
+    const stored = localStorage.getItem('workspace_autosave');
+    if (stored) {
+        try {
+            const data = JSON.parse(stored);
+            // Check if data is wrapped in a global export format or direct autosave
+            const stateData = data.workspace ? data.workspace.state : (data.state || data);
+
+            restoreState(stateData); // Use history.js restore function
+            console.log('Workspace loaded from autosave');
+            if (typeof pushState === 'function') pushState(); // Add to history
+            return true;
+        } catch (e) {
+            console.error('Failed to load workspace', e);
+        }
+    }
+    return false;
+}
+
+// Make functions globally available
+window.saveWorkspace = saveWorkspace;
+window.loadWorkspace = loadWorkspace;
+window.showToast = showToast;

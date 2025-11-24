@@ -409,7 +409,7 @@ function drawConnection(conn) {
     hitPath.setAttribute('fill', 'none');
     hitPath.style.cursor = 'pointer';
     hitPath.style.pointerEvents = 'stroke'; // Enable clicks on the stroke
-    hitPath.onclick = (e) => showDeleteButton(e, conn);
+    hitPath.onclick = (e) => showConnectionControls(e, conn);
     elements.connectionsLayer.appendChild(hitPath);
 }
 
@@ -511,42 +511,143 @@ function getColorForType(type) {
     }
 }
 
-function showDeleteButton(e, conn) {
-    // Remove existing delete buttons
-    const existing = document.querySelector('.connection-delete-btn');
+function showConnectionControls(e, conn) {
+    // Remove existing controls
+    const existing = document.querySelector('.connection-controls');
     if (existing) existing.remove();
 
-    const btn = document.createElement('div');
-    btn.className = 'connection-delete-btn';
-    btn.innerHTML = '×';
+    const container = document.createElement('div');
+    container.className = 'connection-controls';
+
+    // Resolve elements to determine orientation
+    let fromId = resolveEndpoint(conn.fromId);
+    let toId = resolveEndpoint(conn.toId);
+    const fromEl = document.getElementById(fromId);
+    const toEl = document.getElementById(toId);
+
+    if (!fromEl || !toEl) return;
+
+    const fromRect = getScaledRect(fromEl);
+    const toRect = getScaledRect(toEl);
+
+    // Calculate centers
+    const fromCenter = { x: fromRect.left + fromRect.width / 2, y: fromRect.top + fromRect.height / 2 };
+    const toCenter = { x: toRect.left + toRect.width / 2, y: toRect.top + toRect.height / 2 };
+
+    const dx = toCenter.x - fromCenter.x;
+    const dy = toCenter.y - fromCenter.y;
+
+    // Determine orientation (more vertical than horizontal)
+    const isVertical = Math.abs(dy) > Math.abs(dx);
+
+    if (isVertical) {
+        container.classList.add('vertical');
+    }
+
+    // Determine which element is first (Left/Top) and second (Right/Bottom)
+    let firstEl, secondEl;
+    if (isVertical) {
+        // Sort by Y (Top first)
+        if (fromRect.top < toRect.top) {
+            firstEl = fromEl;
+            secondEl = toEl;
+        } else {
+            firstEl = toEl;
+            secondEl = fromEl;
+        }
+    } else {
+        // Sort by X (Left first)
+        if (fromRect.left < toRect.left) {
+            firstEl = fromEl;
+            secondEl = toEl;
+        } else {
+            firstEl = toEl;
+            secondEl = fromEl;
+        }
+    }
+
+    // Get names for tooltips
+    const getName = (el) => {
+        let name = null;
+        if (el.classList.contains('component-group')) {
+            // Try state first
+            const group = state.groups.find(g => `group-${g.id}` === el.id);
+            if (group) name = group.title;
+            // Fallback to DOM
+            if (!name) {
+                const header = el.querySelector('.group-header');
+                if (header && header.firstElementChild) {
+                    name = header.firstElementChild.textContent.trim();
+                }
+            }
+            return name || 'Group';
+        } else {
+            // Try state first
+            const instanceId = el.id.replace('task-', '');
+            const task = state.canvasTasks.find(t => t.instanceId === instanceId);
+            if (task) name = task.name;
+            // Fallback to DOM
+            if (!name) {
+                const header = el.querySelector('.task-header');
+                if (header) name = header.textContent.trim();
+            }
+            return name || 'Task';
+        }
+    };
+    const firstName = getName(firstEl);
+    const secondName = getName(secondEl);
+
+    // First Arrow (Left or Up)
+    const firstBtn = document.createElement('button');
+    firstBtn.className = 'connection-control-btn left-btn';
+    firstBtn.innerHTML = isVertical ? '↑' : '←';
+    firstBtn.setAttribute('data-tooltip', `Go to ${firstName}`);
+    firstBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        navigateToElement(firstEl.id);
+        container.remove();
+    };
+    container.appendChild(firstBtn);
+
+    // Delete Button
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'connection-control-btn delete-btn';
+    deleteBtn.innerHTML = '×';
+    deleteBtn.setAttribute('data-tooltip', 'Delete connection');
+    deleteBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        state.connections = state.connections.filter(c => c.id !== conn.id);
+        renderConnections();
+        container.remove();
+        if (typeof pushState === 'function') pushState();
+    };
+    container.appendChild(deleteBtn);
+
+    // Second Arrow (Right or Down)
+    const secondBtn = document.createElement('button');
+    secondBtn.className = 'connection-control-btn right-btn';
+    secondBtn.innerHTML = isVertical ? '↓' : '→';
+    secondBtn.setAttribute('data-tooltip', `Go to ${secondName}`);
+    secondBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        navigateToElement(secondEl.id);
+        container.remove();
+    };
+    container.appendChild(secondBtn);
 
     // Position at click
     const canvasRect = elements.canvas.getBoundingClientRect();
     const x = (e.clientX - canvasRect.left) / state.zoomLevel;
     const y = (e.clientY - canvasRect.top) / state.zoomLevel;
 
-    btn.style.left = `${x}px`;
-    btn.style.top = `${y}px`;
+    container.style.left = `${x}px`;
+    container.style.top = `${y}px`;
 
-    // Style
-    const color = getColorForType(conn.type);
-    btn.style.backgroundColor = color;
-    btn.style.color = 'white';
-    btn.style.border = '2px solid white';
-    btn.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-
-    btn.onclick = () => {
-        state.connections = state.connections.filter(c => c.id !== conn.id);
-        renderConnections();
-        btn.remove();
-        if (typeof pushState === 'function') pushState();
-    };
-
-    elements.canvas.appendChild(btn);
+    elements.canvas.appendChild(container);
 
     // Auto-remove after 3 seconds
     setTimeout(() => {
-        if (btn.parentElement) btn.remove();
+        if (container.parentElement) container.remove();
     }, 3000);
 }
 
