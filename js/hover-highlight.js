@@ -57,6 +57,17 @@ function attachHoverListeners(element) {
             return; // Don't clear, we're still inside
         }
 
+        // Check if we're moving within the same group (Task -> Group or Task -> Sibling)
+        if (element.classList.contains('task-card')) {
+            const group = element.closest('.component-group');
+            if (group) {
+                // If moving to the group itself or another element inside the group
+                if (relatedTarget === group || group.contains(relatedTarget)) {
+                    return;
+                }
+            }
+        }
+
         // Clear timeout if mouse leaves before delay
         if (hoverTimeout) {
             clearTimeout(hoverTimeout);
