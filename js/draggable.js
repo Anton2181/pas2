@@ -40,11 +40,21 @@ function handleNewTaskDrop(data, x, y, targetGroup = null) {
     }
 
     const instanceId = state.nextInstanceId++;
-    const canvasRect = elements.canvas.getBoundingClientRect();
+    // const canvasRect = elements.canvas.getBoundingClientRect(); // Removed: unreliable with scaling/scrolling
 
-    // Fix: Divide by zoomLevel for position because the container is scaled.
-    const posX = (x - canvasRect.left) / state.zoomLevel;
-    const posY = (y - canvasRect.top) / state.zoomLevel;
+    // Fix: Use container rect and scroll position for robust coordinate calculation
+    const containerRect = elements.canvasContainer.getBoundingClientRect();
+    const scrollLeft = elements.canvasContainer.scrollLeft;
+    const scrollTop = elements.canvasContainer.scrollTop;
+
+    // Calculate position relative to the UN-SCROLLED, UN-SCALED canvas origin
+    // x - containerRect.left gives mouse position relative to container viewport
+    // + scrollLeft adds the scrolled amount
+    // / zoomLevel scales it down to internal coordinates
+    const posX = (x - containerRect.left + scrollLeft) / state.zoomLevel;
+    const posY = (y - containerRect.top + scrollTop) / state.zoomLevel;
+
+    console.log('Drop:', { x, y, containerLeft: containerRect.left, scrollLeft, zoom: state.zoomLevel, posX, posY });
 
     // Calculate priority for this task instance
     const existingInstances = state.canvasTasks.filter(t => t.id === task.id);

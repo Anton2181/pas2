@@ -1,6 +1,40 @@
-// Main Initialization
+// Main Application Logic
+
+// Shared Date Logic
+function setupDateEditable() {
+    const dateEl = document.getElementById('project-date');
+    if (!dateEl) return;
+
+    const storedDate = localStorage.getItem('project_date');
+    if (storedDate) {
+        dateEl.textContent = storedDate;
+    }
+
+    dateEl.addEventListener('dblclick', () => {
+        const currentText = dateEl.textContent;
+        const input = document.createElement('input');
+        input.value = currentText;
+
+        input.onblur = () => {
+            const newValue = input.value || 'December 2025';
+            dateEl.textContent = newValue;
+            localStorage.setItem('project_date', newValue);
+        };
+
+        input.onkeydown = (e) => {
+            if (e.key === 'Enter') input.blur();
+        };
+
+        dateEl.textContent = '';
+        dateEl.appendChild(input);
+        input.focus();
+    });
+}
 
 async function init() {
+    // Setup Date
+    setupDateEditable();
+
     initElements();
     await loadData();
 
@@ -15,7 +49,7 @@ async function init() {
     initConnections();
     initHistory();
     initStorage();
-    setupReset();
+    // setupReset(); // Removed to avoid conflict with zoom.js
 
     // Try to load autosave
     if (loadWorkspace()) {
@@ -32,26 +66,8 @@ async function init() {
     }
 }
 
-function setupReset() {
-    if (elements.resetBtn) {
-        elements.resetBtn.onclick = () => {
-            if (confirm('Are you sure you want to reset the workspace? This will clear all tasks and groups.')) {
-                state.availableTasks = [...TASKS];
-                state.usedTasks = [];
-                state.skippedTasks = [];
-                state.canvasTasks = [];
-                state.groups = [];
-                state.connections = [];
-                state.nextInstanceId = 1;
-                state.nextGroupId = 1;
+// setupReset removed
 
-                renderAll();
-                if (typeof pushState === 'function') pushState();
-                showToast('Workspace reset');
-            }
-        };
-    }
-}
 
 function renderAll() {
     // Clear Canvas

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tango Scheduler - Component Builder</title>
+    <title>Warsaw Tango Partyka - Component Builder</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,20 +12,23 @@
 </head>
 
 <body>
-    <div class="app-container">
+    <div class="top-nav">
+        <div class="nav-brand">
+            <div>Warsaw Tango Partyka</div>
+            <div id="project-date" class="project-date" title="Double-click to edit">December 2025</div>
+        </div>
+        <div class="nav-links">
+            <a href="task-groups.html" class="nav-link active">Schedule</a>
+            <a href="team.html" class="nav-link">Team Members</a>
+        </div>
+    </div>
+
+    <div class="app-container with-nav">
         <aside class="sidebar">
-            <div class="logo">TangoPlan</div>
-
-            <nav class="sidebar-nav">
-                <a href="schedule.html" class="nav-item">Schedule</a>
-                <a href="team.html" class="nav-item">Team Members</a>
-                <a href="task-groups.html" class="nav-item active">Task Groups</a>
-            </nav>
-
             <div class="tool-section">
                 <h3>Create</h3>
                 <button id="add-group-btn" class="tool-btn">
-                    <span class="icon">□</span> New Group
+                    <span class="icon">📁</span> New Group
                 </button>
             </div>
             <div class="tool-section">

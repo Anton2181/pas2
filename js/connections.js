@@ -183,14 +183,34 @@ function getGroupIdForElement(elementId) {
 }
 
 function createGroupFromTasks(task1Id, task2Id) {
-    // 1. Create Group
-    createGroup();
+    // 1. Calculate center position
+    const task1 = document.getElementById(task1Id);
+    const task2 = document.getElementById(task2Id);
+
+    let groupX, groupY;
+
+    if (task1 && task2) {
+        // Use current style positions (unscaled canvas coords)
+        const x1 = parseFloat(task1.style.left) || 0;
+        const y1 = parseFloat(task1.style.top) || 0;
+        const x2 = parseFloat(task2.style.left) || 0;
+        const y2 = parseFloat(task2.style.top) || 0;
+
+        const centerX = (x1 + x2) / 2;
+        const centerY = (y1 + y2) / 2;
+
+        // Center the group (width 280, height 200)
+        groupX = centerX - 140 + (task1.offsetWidth / 2); // Add half task width to center better
+        groupY = centerY - 100;
+    }
+
+    // 2. Create Group
+    createGroup(groupX, groupY);
     const group = state.groups[state.groups.length - 1];
     const groupEl = document.getElementById(`group-${group.id}`);
 
     // 2. Move tasks
-    const task1 = document.getElementById(task1Id);
-    const task2 = document.getElementById(task2Id);
+    // task1 and task2 are already defined above
 
     moveTaskToGroup(task1, groupEl);
     moveTaskToGroup(task2, groupEl);
@@ -278,8 +298,21 @@ function moveTaskToGroup(taskEl, groupEl) {
     taskEl.style.left = '';
     taskEl.style.top = '';
     taskEl.style.transform = '';
+    taskEl.style.zIndex = ''; // Reset z-index
 
     content.appendChild(taskEl);
+
+    // Hide candidates toggle when added to group
+    const toggle = taskEl.querySelector('.candidates-toggle') || taskEl._candidatesToggle;
+    if (toggle) {
+        toggle.style.display = 'none';
+    }
+
+    // Also hide the list if it's open
+    const list = taskEl.querySelector('.candidates-list') || taskEl._candidatesList;
+    if (list) {
+        list.style.display = 'none';
+    }
 
     // Trigger updates
     if (groupEl._updateGroupCandidates) {

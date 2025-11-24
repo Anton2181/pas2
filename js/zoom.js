@@ -1,6 +1,9 @@
 // Zoom and Pan Controls
 
+let resetConfirmationTimeout = null;
+
 function setupZoom() {
+    console.log('setupZoom called');
     if (elements.zoomIn) {
         elements.zoomIn.addEventListener('click', () => {
             updateZoom(0.1);
@@ -17,6 +20,40 @@ function setupZoom() {
         elements.fitBtn.addEventListener('click', fitToContent);
     }
 
+    if (elements.resetBtn) {
+        console.log('Reset button found, attaching listener');
+        elements.resetBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+
+            // If Shift is held, force reset immediately
+            if (e.shiftKey) {
+                resetWorkspace(true);
+                return;
+            }
+
+            // Check if already in confirming state
+            if (elements.resetBtn.classList.contains('confirming')) {
+                // Confirmed!
+                clearTimeout(resetConfirmationTimeout);
+                elements.resetBtn.classList.remove('confirming');
+                elements.resetBtn.innerHTML = '⟲'; // Reset icon
+                resetWorkspace(true); // Force reset as we already confirmed
+            } else {
+                // First click - enter confirming state
+                elements.resetBtn.classList.add('confirming');
+                elements.resetBtn.innerHTML = '??'; // Change text to question marks
+
+                // Auto-revert after 3 seconds
+                resetConfirmationTimeout = setTimeout(() => {
+                    elements.resetBtn.classList.remove('confirming');
+                    elements.resetBtn.innerHTML = '⟲';
+                }, 3000);
+            }
+        });
+    } else {
+        console.error('Reset button NOT found in elements');
+    }
+
     // Ctrl+Scroll to zoom
     elements.canvasContainer.addEventListener('wheel', (e) => {
         if (e.ctrlKey) {
@@ -29,6 +66,65 @@ function setupZoom() {
     }, { passive: false });
 
     setupPanning();
+}
+
+function resetWorkspace(force = false) {
+    console.log('resetWorkspace called');
+    const confirmed = force || confirm('Are you sure you want to clear the canvas?');
+    console.log('Confirmation result:', confirmed);
+
+    if (confirmed) {
+        // Reset State
+        state.canvasTasks = [];
+        state.groups = [];
+        state.connections = [];
+        state.nextInstanceId = 1;
+        state.nextGroupId = 1;
+
+        // Clear DOM
+        const canvas = elements.canvas;
+        const connectionsLayer = document.getElementById('connections-layer');
+
+        // Remove all task cards and groups
+        const tasks = canvas.querySelectorAll('.task-card');
+        const groups = canvas.querySelectorAll('.component-group');
+        console.log(`Removing ${tasks.length} tasks and ${groups.length} groups`);
+
+        tasks.forEach(el => el.remove());
+        groups.forEach(el => el.remove());
+
+        // Clear connections
+        while (connectionsLayer.firstChild) {
+            connectionsLayer.removeChild(connectionsLayer.firstChild);
+        }
+
+        // Return used tasks to available
+        state.usedTasks.forEach(task => {
+            if (!state.availableTasks.find(t => t.id === task.id)) {
+                state.availableTasks.push(task);
+            }
+        });
+        state.usedTasks = [];
+        state.skippedTasks = [];
+
+        if (typeof renderSidebarLists === 'function') {
+            renderSidebarLists();
+        } else {
+            console.error('renderSidebarLists is not defined');
+        }
+
+        // Reset Zoom and Pan
+        state.zoomLevel = 1;
+        applyZoom();
+
+        // Move view to top-left
+        const container = elements.canvasContainer;
+        container.scrollLeft = 0;
+        container.scrollTop = 0;
+
+        if (typeof pushState === 'function') pushState();
+        console.log('Workspace reset complete');
+    }
 }
 
 function updateZoom(change) {

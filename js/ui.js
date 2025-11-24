@@ -148,16 +148,32 @@ function createTaskListItem(task, source) {
         const container = elements.canvasContainer;
         const containerRect = container.getBoundingClientRect();
 
-        // Spawn at the center of the visible viewport
-        const centerX = containerRect.left + containerRect.width / 2;
+        // User requested formula: "add an x offset by 1/2 the width of the sidebar * 0/1"
+        const leftSidebarWidth = 260;
+        const rightSidebarWidth = 300;
+        const isSidebarOpen = !elements.sidebar.classList.contains('collapsed');
+
+        // Base center: Center of the space between left sidebar and window edge
+        const baseCenterX = leftSidebarWidth + ((window.innerWidth - leftSidebarWidth) / 2);
+
+        // Offset: Shift left by half the right sidebar width if open
+        const offset = isSidebarOpen ? -(rightSidebarWidth / 2) : 0;
+
+        const centerX = baseCenterX + offset;
+
+        // Use container's vertical center
         const centerY = containerRect.top + containerRect.height / 2;
 
         // Add random nudge (in screen pixels)
         const nudgeX = (Math.random() - 0.5) * 40;
         const nudgeY = (Math.random() - 0.5) * 40;
 
-        const x = centerX + nudgeX;
-        const y = centerY + nudgeY;
+        // Task tile dimensions (approximate based on CSS)
+        const taskWidth = 264;
+        const taskHeight = 100; // Approximate height
+
+        const x = centerX + nudgeX - (taskWidth / 2);
+        const y = centerY + nudgeY - (taskHeight / 2);
 
         const data = {
             taskId: task.id,
@@ -236,7 +252,7 @@ function renderTaskOnCanvas(instance) {
     timeSpan.textContent = time;
 
     const effortSpan = document.createElement('span');
-    effortSpan.textContent = effort ? `${effort}` : '';
+    effortSpan.textContent = effort ? `${effort} Effort` : '';
 
     meta.appendChild(timeSpan);
     meta.appendChild(effortSpan);
@@ -251,6 +267,7 @@ function renderTaskOnCanvas(instance) {
         cursor: pointer;
         color: var(--text-secondary);
         font-size: 12px;
+        display: ${instance.groupId ? 'none' : 'block'};
     `;
 
     const suitableCandidates = CANDIDATES.filter(c => c.roles.includes(instance.name));

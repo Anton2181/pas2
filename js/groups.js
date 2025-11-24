@@ -14,14 +14,21 @@ function createGroup() {
     const container = elements.canvasContainer;
     const zoom = state.zoomLevel;
 
-    // Center of viewport in SCROLLED pixels
-    const viewportCenterX = container.scrollLeft + container.clientWidth / 2;
-    const viewportCenterY = container.scrollTop + container.clientHeight / 2;
+    let x, y;
 
-    // Convert to UNSCALED coordinates
-    // We subtract half the group size (280x200) to center it
-    const x = (viewportCenterX / zoom) - 140;
-    const y = (viewportCenterY / zoom) - 100;
+    if (arguments.length >= 2 && typeof arguments[0] === 'number') {
+        x = arguments[0];
+        y = arguments[1];
+    } else {
+        // Center of viewport in SCROLLED pixels
+        const viewportCenterX = container.scrollLeft + container.clientWidth / 2;
+        const viewportCenterY = container.scrollTop + container.clientHeight / 2;
+
+        // Convert to UNSCALED coordinates
+        // We subtract half the group size (280x200) to center it
+        x = (viewportCenterX / zoom) - 140;
+        y = (viewportCenterY / zoom) - 100;
+    }
 
     const group = {
         id: groupId,
@@ -137,18 +144,33 @@ function renderGroup(group) {
             const parsedSlots = timeSlots.map(slot => {
                 const parts = slot.split('-');
                 if (parts.length === 2) {
-                    return {
-                        start: parseInt(parts[0]),
-                        end: parseInt(parts[1])
-                    };
+                    let start = parseInt(parts[0]);
+                    let end = parseInt(parts[1]);
+
+                    // Handle midnight wrapping (e.g. 22-00)
+                    if (end === 0) end = 24;
+                    if (start === 0) start = 24; // Unlikely but possible
+
+                    return { start, end };
                 }
                 return null;
             }).filter(s => s !== null);
 
             if (parsedSlots.length > 0) {
                 const earliest = Math.min(...parsedSlots.map(s => s.start));
-                const latest = Math.max(...parsedSlots.map(s => s.end));
-                timeDisplay = `${earliest}-${latest}`;
+                let latest = Math.max(...parsedSlots.map(s => s.end));
+
+                console.log('Time Calc:', { timeSlots, parsedSlots, earliest, latest });
+
+                if (earliest === 20 && latest === 24) {
+                    timeDisplay = 'All';
+                } else {
+                    // Format back to string, converting 24 back to 00 if needed
+                    const latestStr = latest === 24 ? '00' : latest.toString();
+                    const earliestStr = earliest === 24 ? '00' : earliest.toString();
+
+                    timeDisplay = `${earliestStr}-${latestStr}`;
+                }
             } else {
                 // Fallback if times aren't in XX-YY format
                 timeDisplay = timeSlots.join(', ');
@@ -280,12 +302,15 @@ function renderGroup(group) {
         }
         groupCandidatesList.style.display = isHidden ? 'block' : 'none';
         const textSpan = groupCandidatesToggle.querySelector('.candidates-text');
-        const iconSpan = candidatesToggle.querySelector('.candidates-icon'); // Bug fix: candidatesToggle is not defined here, should be groupCandidatesToggle
-        // Wait, in previous code it was groupCandidatesToggle.querySelector.
-        // Let's fix that.
-        const iconSpanCorrect = groupCandidatesToggle.querySelector('.candidates-icon');
-        if (textSpan) textSpan.textContent = isHidden ? '▲ Candidates' : '▼ Candidates';
-        if (iconSpanCorrect) iconSpanCorrect.textContent = isHidden ? '▲' : '▼';
+        const iconSpan = groupCandidatesToggle.querySelector('.candidates-icon');
+
+        if (textSpan) {
+            const currentText = textSpan.innerHTML;
+            if (currentText.includes('Candidates')) {
+                textSpan.innerHTML = currentText.replace(isHidden ? '▼' : '▲', isHidden ? '▲' : '▼');
+            }
+        }
+        if (iconSpan) iconSpan.textContent = isHidden ? '▲' : '▼';
     };
 
     el.appendChild(groupCandidatesToggle);

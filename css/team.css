@@ -1,0 +1,146 @@
+.team-container {
+    display: flex;
+    height: calc(100vh - 48px);
+}
+
+.team-sidebar {
+    width: 320px;
+    background: var(--surface-color);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    position: relative;
+}
+
+.sidebar-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+    color: var(--text-primary);
+    position: sticky;
+    top: 0;
+    background: var(--surface-color);
+    z-index: 10;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sidebar-header:hover {
+    background: var(--surface-hover);
+}
+
+.sidebar-header.selected {
+    background: var(--surface-hover);
+    color: var(--accent-primary);
+    border-left: 3px solid var(--accent-primary);
+}
+
+.member-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: background 0.2s;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+}
+
+.member-item:hover {
+    background: var(--surface-hover);
+}
+
+.member-item.selected {
+    background: var(--surface-hover);
+    border-left: 5px solid var(--accent-primary);
+}
+
+.member-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.member-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.member-role {
+    font-size: 11px;
+    color: var(--text-secondary);
+    background: rgba(0, 0, 0, 0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.member-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+}
+
+.control-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.col-label {
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.toggle-square {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.03);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 16px;
+    color: transparent;
+}
+
+.toggle-square:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.toggle-square.active {
+    color: white;
+}
+
+.toggle-square.active::after {
+    content: '×';
+}
+
+/* Leader - Peach */
+.toggle-square.leader.active {
+    background: #E2B49A;
+}
+
+/* Follower - Green */
+.toggle-square.follower.active {
+    background: #A8C6A3;
+}
+
+/* Both - Gold */
+.toggle-square.both.active {
+    background: #DBCB96;
+}
+
+.team-content {
+    flex: 1;
+    background: var(--bg-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+}
