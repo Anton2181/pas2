@@ -275,6 +275,35 @@
                         border-radius: 50%;
                         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
                         border: 1px solid var(--border-color);
+                        z-index: 5;
+                        /* Ensure above card content */
+                    }
+
+                    /* Tooltip for star badge */
+                    .task-star:hover::after {
+                        content: attr(data-tooltip);
+                        position: absolute;
+                        bottom: 100%;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background: #333;
+                        color: white;
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                        font-size: 11px;
+                        white-space: nowrap;
+                        pointer-events: none;
+                        z-index: 100;
+                        margin-bottom: 6px;
+                        opacity: 0;
+                        animation: fadeIn 0.2s forwards;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                    }
+
+                    @keyframes fadeIn {
+                        to {
+                            opacity: 1;
+                        }
                     }
 
                     .task-star.disabled {
@@ -985,11 +1014,25 @@
                     // Check if star should be disabled (All Members mode + not starred)
                     const starDisabled = selectedMemberId === null && !starred;
 
+                    // Sort candidates: starred first
+                    candidates.sort((a, b) => {
+                        const aStarred = isCandidateStarred(task.id, a.id);
+                        const bStarred = isCandidateStarred(task.id, b.id);
+                        if (aStarred && !bStarred) return -1;
+                        if (!aStarred && bStarred) return 1;
+                        return 0;
+                    });
+
+                    // Calculate tooltip text
+                    const starredCount = candidates.filter(c => isCandidateStarred(task.id, c.id)).length;
+                    const tooltipText = starredCount === 1 ? '1 Priority Assignee' : `${starredCount} Priority Assignees`;
+
                     let html = `
                         <div class="task-card-header">
                             <div class="task-name">${task.name}</div>
                             <div class="task-star ${starred ? 'starred' : ''} ${starDisabled ? 'disabled' : ''}" 
-                                 onclick="event.stopPropagation(); toggleTaskStar('${task.id}', false, event)">★</div>
+                                 onclick="event.stopPropagation(); toggleTaskStar('${task.id}', false, event)"
+                                 data-tooltip="${tooltipText}">★</div>
                         </div>
                     `;
 
@@ -1119,6 +1162,19 @@
                         }
                     }
 
+                    // Sort candidates: starred first
+                    candidates.sort((a, b) => {
+                        const aStarred = isCandidateStarred(group.id, a.id);
+                        const bStarred = isCandidateStarred(group.id, b.id);
+                        if (aStarred && !bStarred) return -1;
+                        if (!aStarred && bStarred) return 1;
+                        return 0;
+                    });
+
+                    // Calculate tooltip text
+                    const starredCount = candidates.filter(c => isCandidateStarred(group.id, c.id)).length;
+                    const tooltipText = starredCount === 1 ? '1 Priority Assignee' : `${starredCount} Priority Assignees`;
+
                     let html = `
                         <div class="task-card-header">
                             <div class="task-name">
@@ -1127,7 +1183,8 @@
                             </div>
                             <div class="task-star ${starred ? 'starred' : ''} ${starDisabled ? 'disabled' : ''}" 
                                  onclick="event.stopPropagation(); toggleTaskStar('${group.id}', true, event)"
-                                 style="${starDisabled ? 'cursor: not-allowed; opacity: 0.3;' : ''}">★</div>
+                                 style="${starDisabled ? 'cursor: not-allowed; opacity: 0.3;' : ''}"
+                                 data-tooltip="${tooltipText}">★</div>
                         </div>
                     `;
 
