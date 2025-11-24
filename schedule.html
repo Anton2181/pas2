@@ -12,19 +12,64 @@
 </head>
 
 <body>
-    <nav class="top-nav">
-        <div class="nav-brand">TangoPlan</div>
-        <div class="nav-links">
-            <a href="schedule.html" class="nav-link active">Schedule</a>
-            <a href="team.html" class="nav-link">Team Members</a>
-            <a href="task-groups.html" class="nav-link">Task Groups</a>
+    <div class="top-nav">
+        <div class="nav-left">
+            <div class="nav-brand">
+                <div>Warsaw Tango Partyka</div>
+                <div id="project-date" class="project-date" title="Double-click to edit">December 2025</div>
+            </div>
+            <div class="nav-links">
+                <a href="schedule.html" class="nav-link active">Schedule</a>
+                <a href="team.html" class="nav-link">Team Members</a>
+                <a href="task-groups.html" class="nav-link">Task Groups</a>
+            </div>
         </div>
-    </nav>
+        <div class="nav-actions">
+            <button id="global-save-btn" class="global-action-btn" title="Save All Data">💾</button>
+            <button id="global-load-btn" class="global-action-btn" title="Load All Data">📂</button>
+        </div>
+    </div>
+    <input type="file" id="global-file-input" accept=".json" style="display: none;">
 
     <div class="app-container with-nav" style="padding: 24px; overflow: auto;">
         <h1>Schedule</h1>
         <p style="color: var(--text-secondary);">This page is under construction.</p>
     </div>
+
+    <script src="js/global-storage.js"></script>
+    <script>
+        // Setup date editable
+        function setupDateEditable() {
+            const dateEl = document.getElementById('project-date');
+            const storedDate = localStorage.getItem('project_date');
+            if (storedDate) {
+                dateEl.textContent = storedDate;
+            }
+
+            dateEl.addEventListener('dblclick', () => {
+                const currentText = dateEl.textContent;
+                const input = document.createElement('input');
+                input.value = currentText;
+
+                input.onblur = () => {
+                    const newValue = input.value || 'December 2025';
+                    dateEl.textContent = newValue;
+                    localStorage.setItem('project_date', newValue);
+                };
+
+                input.onkeydown = (e) => {
+                    if (e.key === 'Enter') input.blur();
+                };
+
+                dateEl.textContent = '';
+                dateEl.appendChild(input);
+                input.focus();
+            });
+        }
+
+        setupDateEditable();
+        initGlobalStorage();
+    </script>
 </body>
 
 </html>

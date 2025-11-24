@@ -49,7 +49,6 @@ async function init() {
     initConnections();
     initCanvasSearch();
     initHistory();
-    initStorage();
     // setupReset(); // Removed to avoid conflict with zoom.js
 
     // Try to load autosave

@@ -467,16 +467,23 @@
 
         <body>
             <div class="top-nav">
-                <div class="nav-brand">
-                    <div>Warsaw Tango Partyka</div>
-                    <div id="project-date" class="project-date" title="Double-click to edit">December 2025</div>
+                <div class="nav-left">
+                    <div class="nav-brand">
+                        <div>Warsaw Tango Partyka</div>
+                        <div id="project-date" class="project-date" title="Double-click to edit">December 2025</div>
+                    </div>
+                    <div class="nav-links">
+                        <a href="schedule.html" class="nav-link">Schedule</a>
+                        <a href="team.html" class="nav-link active">Team Members</a>
+                        <a href="task-groups.html" class="nav-link">Task Groups</a>
+                    </div>
                 </div>
-                <div class="nav-links">
-                    <a href="schedule.html" class="nav-link">Schedule</a>
-                    <a href="team.html" class="nav-link active">Team Members</a>
-                    <a href="task-groups.html" class="nav-link">Task Groups</a>
+                <div class="nav-actions">
+                    <button id="global-save-btn" class="global-action-btn" title="Save All Data">💾</button>
+                    <button id="global-load-btn" class="global-action-btn" title="Load All Data">📂</button>
                 </div>
             </div>
+            <input type="file" id="global-file-input" accept=".json" style="display: none;">
 
             <div class="team-container">
                 <aside class="team-sidebar" id="team-sidebar-list">
@@ -499,6 +506,7 @@
             </div>
 
             <script src="js/data.js"></script>
+            <script src="js/global-storage.js"></script>
             <script>
                 // Shared Date Logic
                 function setupDateEditable() {
@@ -1247,6 +1255,7 @@
                 };
 
                 initTeamPage();
+                initGlobalStorage();
             </script>
         </body>
 

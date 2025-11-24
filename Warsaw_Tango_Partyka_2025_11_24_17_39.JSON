@@ -1,0 +1,3267 @@
+{
+  "timestamp": "2025-11-24T16:39:07.521Z",
+  "version": "1.0",
+  "workspace": {
+    "timestamp": "2025-11-24T14:19:02.839Z",
+    "version": "1.0",
+    "state": {
+      "availableTasks": [
+        {
+          "id": "t15",
+          "name": "Mentorship / Class - Tuesday",
+          "duration": 60,
+          "type": "mentorship / class - tuesday"
+        },
+        {
+          "id": "t23",
+          "name": "Social Media Posts - Tuesday",
+          "duration": 60,
+          "type": "social media posts - tuesday"
+        },
+        {
+          "id": "t33",
+          "name": "Mentorship / Class - Wednesday",
+          "duration": 60,
+          "type": "mentorship / class - wednesday"
+        },
+        {
+          "id": "t41",
+          "name": "Social Media Posts - Wednesday",
+          "duration": 60,
+          "type": "social media posts - wednesday"
+        },
+        {
+          "id": "t48",
+          "name": "Planning of the Month / Teachers and Assistants",
+          "duration": 60,
+          "type": "planning of the month / teachers and assistants"
+        },
+        {
+          "id": "t49",
+          "name": "Planning of the Month / Registrations",
+          "duration": 60,
+          "type": "planning of the month / registrations"
+        },
+        {
+          "id": "t50",
+          "name": "Planning of the Month / Master of Cerimony",
+          "duration": 60,
+          "type": "planning of the month / master of cerimony"
+        },
+        {
+          "id": "t51",
+          "name": "Planning of the Month / Food Supply",
+          "duration": 60,
+          "type": "planning of the month / food supply"
+        },
+        {
+          "id": "t52",
+          "name": "Monthly Monitoring",
+          "duration": 60,
+          "type": "monthly monitoring"
+        },
+        {
+          "id": "t53",
+          "name": "Monthly Report",
+          "duration": 60,
+          "type": "monthly report"
+        },
+        {
+          "id": "t54",
+          "name": "Monthly Print",
+          "duration": 60,
+          "type": "monthly print"
+        },
+        {
+          "id": "t55",
+          "name": "Monthly Payments",
+          "duration": 60,
+          "type": "monthly payments"
+        },
+        {
+          "id": "t56",
+          "name": "Take Care of Team Members",
+          "duration": 60,
+          "type": "take care of team members"
+        },
+        {
+          "id": "t57",
+          "name": "CRM Manteince",
+          "duration": 60,
+          "type": "crm manteince"
+        },
+        {
+          "id": "t58",
+          "name": "Project Management",
+          "duration": 60,
+          "type": "project management"
+        }
+      ],
+      "usedTasks": [
+        {
+          "id": "t7",
+          "name": "Registrations / Advanced - Tuesday",
+          "duration": 60,
+          "type": "registrations / advanced - tuesday"
+        },
+        {
+          "id": "t8",
+          "name": "Preparation for the Lesson / Advanced - Tuesday",
+          "duration": 60,
+          "type": "preparation for the lesson / advanced - tuesday"
+        },
+        {
+          "id": "t9",
+          "name": "Conducting the lesson / Advanced - Tuesday",
+          "duration": 60,
+          "type": "conducting the lesson / advanced - tuesday"
+        },
+        {
+          "id": "t10",
+          "name": "Registrations / Beginners - Tuesday",
+          "duration": 60,
+          "type": "registrations / beginners - tuesday"
+        },
+        {
+          "id": "t11",
+          "name": "Preparation for the Lesson / Teachers - Tuesday",
+          "duration": 60,
+          "type": "preparation for the lesson / teachers - tuesday"
+        },
+        {
+          "id": "t12",
+          "name": "Conducting the lesson / Teacher - Tuesday",
+          "duration": 60,
+          "type": "conducting the lesson / teacher - tuesday"
+        },
+        {
+          "id": "t13",
+          "name": "Preparation for the Lesson / Assistant - Tuesday",
+          "duration": 60,
+          "type": "preparation for the lesson / assistant - tuesday"
+        },
+        {
+          "id": "t14",
+          "name": "Assisting the lesson - Tuesday",
+          "duration": 60,
+          "type": "assisting the lesson - tuesday"
+        },
+        {
+          "id": "t16",
+          "name": "Take Care of Newcomers - Tuesday",
+          "duration": 60,
+          "type": "take care of newcomers - tuesday"
+        },
+        {
+          "id": "t17",
+          "name": "Take Care of Partyka Students - Tuesday",
+          "duration": 60,
+          "type": "take care of partyka students - tuesday"
+        },
+        {
+          "id": "t18",
+          "name": "Master of Cerimony - Tuesday",
+          "duration": 60,
+          "type": "master of cerimony - tuesday"
+        },
+        {
+          "id": "t19",
+          "name": "Installing the Venue - Tuesday",
+          "duration": 60,
+          "type": "installing the venue - tuesday"
+        },
+        {
+          "id": "t20",
+          "name": "DJ - Tuesday",
+          "duration": 60,
+          "type": "dj - tuesday"
+        },
+        {
+          "id": "t21",
+          "name": "Food Supply - Tuesday",
+          "duration": 60,
+          "type": "food supply - tuesday"
+        },
+        {
+          "id": "t22",
+          "name": "Deistalling the Venue + Cleaning - Tuesday",
+          "duration": 60,
+          "type": "deistalling the venue + cleaning - tuesday"
+        },
+        {
+          "id": "t24",
+          "name": "Photographer / Videomaker - Tuesday",
+          "duration": 60,
+          "type": "photographer / videomaker - tuesday"
+        },
+        {
+          "id": "t25",
+          "name": "Registrations / Intermediate - Wednesday",
+          "duration": 60,
+          "type": "registrations / intermediate - wednesday"
+        },
+        {
+          "id": "t26",
+          "name": "Preparation for the Lesson / Intermediate - Wednesday",
+          "duration": 60,
+          "type": "preparation for the lesson / intermediate - wednesday"
+        },
+        {
+          "id": "t27",
+          "name": "Conducting the lesson / Intermediate - Wednesday",
+          "duration": 60,
+          "type": "conducting the lesson / intermediate - wednesday"
+        },
+        {
+          "id": "t28",
+          "name": "Registrations / Beginners - Wednesday",
+          "duration": 60,
+          "type": "registrations / beginners - wednesday"
+        },
+        {
+          "id": "t29",
+          "name": "Preparation for the Lesson / Teachers - Wednesday",
+          "duration": 60,
+          "type": "preparation for the lesson / teachers - wednesday"
+        },
+        {
+          "id": "t30",
+          "name": "Conducting the lesson - Wednesday",
+          "duration": 60,
+          "type": "conducting the lesson - wednesday"
+        },
+        {
+          "id": "t31",
+          "name": "Preparation for the Lesson / Assistant - Wednesday",
+          "duration": 60,
+          "type": "preparation for the lesson / assistant - wednesday"
+        },
+        {
+          "id": "t32",
+          "name": "Assisting the lesson - Wednesday",
+          "duration": 60,
+          "type": "assisting the lesson - wednesday"
+        },
+        {
+          "id": "t34",
+          "name": "Take Care of Newcomers - Wednesday",
+          "duration": 60,
+          "type": "take care of newcomers - wednesday"
+        },
+        {
+          "id": "t35",
+          "name": "Take Care of Partyka Students - Wednesday",
+          "duration": 60,
+          "type": "take care of partyka students - wednesday"
+        },
+        {
+          "id": "t36",
+          "name": "Master of Cerimony - Wednesday",
+          "duration": 60,
+          "type": "master of cerimony - wednesday"
+        },
+        {
+          "id": "t37",
+          "name": "Installing the Venue - Wednesday",
+          "duration": 60,
+          "type": "installing the venue - wednesday"
+        },
+        {
+          "id": "t38",
+          "name": "DJ - Wednesday",
+          "duration": 60,
+          "type": "dj - wednesday"
+        },
+        {
+          "id": "t39",
+          "name": "Food Supply - Wednesday",
+          "duration": 60,
+          "type": "food supply - wednesday"
+        },
+        {
+          "id": "t40",
+          "name": "Deistalling the Venue + Cleaning - Wednesday",
+          "duration": 60,
+          "type": "deistalling the venue + cleaning - wednesday"
+        },
+        {
+          "id": "t42",
+          "name": "Photographer / Videomaker - Wednesday",
+          "duration": 60,
+          "type": "photographer / videomaker - wednesday"
+        },
+        {
+          "id": "t63",
+          "name": "Registrations / Sunday 21:30 - 23:00",
+          "duration": 60,
+          "type": "registrations / sunday 21:30 - 23:00"
+        },
+        {
+          "id": "t64",
+          "name": "Registrations / Sunday 23:00 - 00:30",
+          "duration": 60,
+          "type": "registrations / sunday 23:00 - 00:30"
+        },
+        {
+          "id": "t65",
+          "name": "Installing the Venue - Sunday",
+          "duration": 60,
+          "type": "installing the venue - sunday"
+        },
+        {
+          "id": "t66",
+          "name": "Food Supply - Sunday",
+          "duration": 60,
+          "type": "food supply - sunday"
+        },
+        {
+          "id": "t67",
+          "name": "Deinstalling the Venue + Cleaning - Sunday",
+          "duration": 60,
+          "type": "deinstalling the venue + cleaning - sunday"
+        },
+        {
+          "id": "t68",
+          "name": "Master of Cerimony - Sunday",
+          "duration": 60,
+          "type": "master of cerimony - sunday"
+        }
+      ],
+      "skippedTasks": [
+        {
+          "id": "t15",
+          "name": "Mentorship / Class - Tuesday",
+          "duration": 60,
+          "type": "mentorship / class - tuesday"
+        },
+        {
+          "id": "t33",
+          "name": "Mentorship / Class - Wednesday",
+          "duration": 60,
+          "type": "mentorship / class - wednesday"
+        }
+      ],
+      "canvasTasks": [
+        {
+          "id": "t8",
+          "name": "Preparation for the Lesson / Advanced - Tuesday",
+          "duration": 60,
+          "type": "preparation for the lesson / advanced - tuesday",
+          "instanceId": 1,
+          "x": 1073.73,
+          "y": 197.825,
+          "priority": 1,
+          "time": "20-21",
+          "effort": 1,
+          "groupId": "1"
+        },
+        {
+          "id": "t9",
+          "name": "Conducting the lesson / Advanced - Tuesday",
+          "duration": 60,
+          "type": "conducting the lesson / advanced - tuesday",
+          "instanceId": 2,
+          "x": 154.102,
+          "y": 250.882,
+          "priority": 1,
+          "time": "20-21",
+          "effort": 1.5,
+          "groupId": "1"
+        },
+        {
+          "id": "t11",
+          "name": "Preparation for the Lesson / Teachers - Tuesday",
+          "duration": 60,
+          "type": "preparation for the lesson / teachers - tuesday",
+          "instanceId": 3,
+          "x": 677,
+          "y": 260,
+          "priority": 1,
+          "time": "21-22",
+          "effort": 1,
+          "groupId": "2"
+        },
+        {
+          "id": "t12",
+          "name": "Conducting the lesson / Teacher - Tuesday",
+          "duration": 60,
+          "type": "conducting the lesson / teacher - tuesday",
+          "instanceId": 4,
+          "x": 251.24028657332462,
+          "y": 416.2316082211536,
+          "priority": 1,
+          "time": "21-22",
+          "effort": 1.5,
+          "groupId": "2"
+        },
+        {
+          "id": "t22",
+          "name": "Deistalling the Venue + Cleaning - Tuesday",
+          "duration": 60,
+          "type": "deistalling the venue + cleaning - tuesday",
+          "instanceId": 6,
+          "x": 248.822,
+          "y": 1094.73,
+          "priority": 1,
+          "time": "22-00",
+          "effort": 0.5
+        },
+        {
+          "id": "t24",
+          "name": "Photographer / Videomaker - Tuesday",
+          "duration": 60,
+          "type": "photographer / videomaker - tuesday",
+          "instanceId": 8,
+          "x": 909.818,
+          "y": 436.633,
+          "priority": 1,
+          "time": "All",
+          "effort": 1
+        },
+        {
+          "id": "t13",
+          "name": "Preparation for the Lesson / Assistant - Tuesday",
+          "duration": 60,
+          "type": "preparation for the lesson / assistant - tuesday",
+          "instanceId": 9,
+          "x": 569,
+          "y": 221,
+          "priority": 1,
+          "groupId": "3",
+          "time": "21-22",
+          "effort": 1
+        },
+        {
+          "id": "t14",
+          "name": "Assisting the lesson - Tuesday",
+          "duration": 60,
+          "type": "assisting the lesson - tuesday",
+          "instanceId": 10,
+          "x": 533,
+          "y": 226,
+          "priority": 1,
+          "groupId": "3",
+          "time": "21-22",
+          "effort": ""
+        },
+        {
+          "id": "t10",
+          "name": "Registrations / Beginners - Tuesday",
+          "duration": 60,
+          "type": "registrations / beginners - tuesday",
+          "instanceId": 11,
+          "x": 557,
+          "y": 255,
+          "priority": 1,
+          "groupId": "3",
+          "time": "21-22",
+          "effort": 0.5
+        },
+        {
+          "id": "t10",
+          "name": "Registrations / Beginners - Tuesday",
+          "duration": 60,
+          "type": "registrations / beginners - tuesday",
+          "instanceId": 12,
+          "x": 244.45770619173118,
+          "y": 445.6598909240379,
+          "priority": 2,
+          "time": "21-22",
+          "effort": 0.5,
+          "groupId": "4"
+        },
+        {
+          "id": "t7",
+          "name": "Registrations / Advanced - Tuesday",
+          "duration": 60,
+          "type": "registrations / advanced - tuesday",
+          "instanceId": 13,
+          "x": 309.846,
+          "y": 537.582,
+          "priority": 1,
+          "time": "20-21",
+          "effort": 0.5,
+          "groupId": "4"
+        },
+        {
+          "id": "t20",
+          "name": "DJ - Tuesday",
+          "duration": 60,
+          "type": "dj - tuesday",
+          "instanceId": 14,
+          "x": 1649.2,
+          "y": 894.204,
+          "priority": 1,
+          "time": "22-00",
+          "effort": 3
+        },
+        {
+          "id": "t21",
+          "name": "Food Supply - Tuesday",
+          "duration": 60,
+          "type": "food supply - tuesday",
+          "instanceId": 15,
+          "x": 500.366,
+          "y": 820.736,
+          "priority": 1,
+          "time": "All",
+          "effort": 1,
+          "groupId": "6"
+        },
+        {
+          "id": "t19",
+          "name": "Installing the Venue - Tuesday",
+          "duration": 60,
+          "type": "installing the venue - tuesday",
+          "instanceId": 16,
+          "x": 569,
+          "y": 697.5,
+          "priority": 1,
+          "time": "22-00",
+          "effort": 0.5,
+          "groupId": "6"
+        },
+        {
+          "id": "t16",
+          "name": "Take Care of Newcomers - Tuesday",
+          "duration": 60,
+          "type": "take care of newcomers - tuesday",
+          "instanceId": 17,
+          "x": 550.336,
+          "y": 762.584,
+          "priority": 1,
+          "time": "21-22",
+          "effort": 1
+        },
+        {
+          "id": "t18",
+          "name": "Master of Cerimony - Tuesday",
+          "duration": 60,
+          "type": "master of cerimony - tuesday",
+          "instanceId": 19,
+          "x": 1978.74,
+          "y": 1176.61,
+          "priority": 1,
+          "time": "All",
+          "effort": 0.5
+        },
+        {
+          "id": "t29",
+          "name": "Preparation for the Lesson / Teachers - Wednesday",
+          "duration": 60,
+          "type": "preparation for the lesson / teachers - wednesday",
+          "instanceId": 31,
+          "x": 254.84705259124908,
+          "y": 2143.384742592194,
+          "priority": 1,
+          "time": "21-22",
+          "effort": 1,
+          "groupId": "17"
+        },
+        {
+          "id": "t30",
+          "name": "Conducting the lesson - Wednesday",
+          "duration": 60,
+          "type": "conducting the lesson - wednesday",
+          "instanceId": 32,
+          "x": 323.169,
+          "y": 2248.28,
+          "priority": 1,
+          "time": "21-22",
+          "effort": 1.5,
+          "groupId": "17"
+        },
+        {
+          "id": "t31",
+          "name": "Preparation for the Lesson / Assistant - Wednesday",
+          "duration": 60,
+          "type": "preparation for the lesson / assistant - wednesday",
+          "instanceId": 33,
+          "x": 451.996,
+          "y": 2237,
+          "priority": 1,
+          "time": "21-22",
+          "effort": 1,
+          "groupId": "16"
+        },
+        {
+          "id": "t38",
+          "name": "DJ - Wednesday",
+          "duration": 60,
+          "type": "dj - wednesday",
+          "instanceId": 34,
+          "x": 1615.28,
+          "y": 2433.14,
+          "priority": 1,
+          "time": "22-00",
+          "effort": 3
+        },
+        {
+          "id": "t40",
+          "name": "Deistalling the Venue + Cleaning - Wednesday",
+          "duration": 60,
+          "type": "deistalling the venue + cleaning - wednesday",
+          "instanceId": 35,
+          "x": 192.611,
+          "y": 2490.16,
+          "priority": 1,
+          "time": "22-00",
+          "effort": 0.5
+        },
+        {
+          "id": "t42",
+          "name": "Photographer / Videomaker - Wednesday",
+          "duration": 60,
+          "type": "photographer / videomaker - wednesday",
+          "instanceId": 37,
+          "x": 1002.89,
+          "y": 1987.69,
+          "priority": 1,
+          "time": "All",
+          "effort": 1
+        },
+        {
+          "id": "t28",
+          "name": "Registrations / Beginners - Wednesday",
+          "duration": 60,
+          "type": "registrations / beginners - wednesday",
+          "instanceId": 38,
+          "x": 574.096,
+          "y": 2162.77,
+          "priority": 1,
+          "time": "21-22",
+          "effort": 0.5,
+          "groupId": "16"
+        },
+        {
+          "id": "t27",
+          "name": "Conducting the lesson / Intermediate - Wednesday",
+          "duration": 60,
+          "type": "conducting the lesson / intermediate - wednesday",
+          "instanceId": 39,
+          "x": 55.6791,
+          "y": 2270.31,
+          "priority": 1,
+          "time": "20-21",
+          "effort": "",
+          "groupId": "18"
+        },
+        {
+          "id": "t26",
+          "name": "Preparation for the Lesson / Intermediate - Wednesday",
+          "duration": 60,
+          "type": "preparation for the lesson / intermediate - wednesday",
+          "instanceId": 40,
+          "x": 116.962,
+          "y": 1928.52,
+          "priority": 1,
+          "time": "20-21",
+          "effort": "",
+          "groupId": "18"
+        },
+        {
+          "id": "t25",
+          "name": "Registrations / Intermediate - Wednesday",
+          "duration": 60,
+          "type": "registrations / intermediate - wednesday",
+          "instanceId": 41,
+          "x": 121.518,
+          "y": 1753.12,
+          "priority": 1,
+          "time": "20-21",
+          "effort": "",
+          "groupId": "19"
+        },
+        {
+          "id": "t32",
+          "name": "Assisting the lesson - Wednesday",
+          "duration": 60,
+          "type": "assisting the lesson - wednesday",
+          "instanceId": 42,
+          "x": 624.283,
+          "y": 1974.42,
+          "priority": 1,
+          "time": "21-22",
+          "effort": "",
+          "groupId": "16"
+        },
+        {
+          "id": "t37",
+          "name": "Installing the Venue - Wednesday",
+          "duration": 60,
+          "type": "installing the venue - wednesday",
+          "instanceId": 43,
+          "x": 667.194,
+          "y": 2310.02,
+          "priority": 1,
+          "time": "22-00",
+          "effort": 0.5,
+          "groupId": "20"
+        },
+        {
+          "id": "t36",
+          "name": "Master of Cerimony - Wednesday",
+          "duration": 60,
+          "type": "master of cerimony - wednesday",
+          "instanceId": 44,
+          "x": 1983.33,
+          "y": 2852.4,
+          "priority": 1,
+          "time": "All",
+          "effort": 0.5
+        },
+        {
+          "id": "t39",
+          "name": "Food Supply - Wednesday",
+          "duration": 60,
+          "type": "food supply - wednesday",
+          "instanceId": 45,
+          "x": 540.63,
+          "y": 2528.75,
+          "priority": 1,
+          "time": "All",
+          "effort": 1,
+          "groupId": "20"
+        },
+        {
+          "id": "t35",
+          "name": "Take Care of Partyka Students - Wednesday",
+          "duration": 60,
+          "type": "take care of partyka students - wednesday",
+          "instanceId": 46,
+          "x": 240.028,
+          "y": 2668.4,
+          "priority": 1,
+          "time": "22-00",
+          "effort": 2
+        },
+        {
+          "id": "t34",
+          "name": "Take Care of Newcomers - Wednesday",
+          "duration": 60,
+          "type": "take care of newcomers - wednesday",
+          "instanceId": 47,
+          "x": 665.385,
+          "y": 2278.35,
+          "priority": 1,
+          "time": "21--22",
+          "effort": 1
+        },
+        {
+          "id": "t28",
+          "name": "Registrations / Beginners - Wednesday",
+          "duration": 60,
+          "type": "registrations / beginners - wednesday",
+          "instanceId": 48,
+          "x": 423.333,
+          "y": 1961.11,
+          "priority": 2,
+          "time": "21-22",
+          "effort": 0.5,
+          "groupId": "19"
+        },
+        {
+          "id": "t17",
+          "name": "Take Care of Partyka Students - Tuesday",
+          "duration": 60,
+          "type": "take care of partyka students - tuesday",
+          "instanceId": 49,
+          "x": 515.872,
+          "y": 1207.14,
+          "priority": 1,
+          "time": "22-00",
+          "effort": 2
+        },
+        {
+          "id": "t63",
+          "name": "Registrations / Sunday 21:30 - 23:00",
+          "duration": 60,
+          "type": "registrations / sunday 21:30 - 23:00",
+          "instanceId": 50,
+          "x": 1601.83,
+          "y": 942.973,
+          "priority": 1,
+          "time": "All",
+          "effort": 1,
+          "groupId": "22"
+        },
+        {
+          "id": "t65",
+          "name": "Installing the Venue - Sunday",
+          "duration": 60,
+          "type": "installing the venue - sunday",
+          "instanceId": 51,
+          "x": 1918.3,
+          "y": 1047.95,
+          "priority": 1,
+          "time": "All",
+          "effort": 0.5,
+          "groupId": "22"
+        },
+        {
+          "id": "t66",
+          "name": "Food Supply - Sunday",
+          "duration": 60,
+          "type": "food supply - sunday",
+          "instanceId": 52,
+          "x": 1575.97,
+          "y": 1113.29,
+          "priority": 1,
+          "time": "All",
+          "effort": 1,
+          "groupId": "21"
+        },
+        {
+          "id": "t67",
+          "name": "Deinstalling the Venue + Cleaning - Sunday",
+          "duration": 60,
+          "type": "deinstalling the venue + cleaning - sunday",
+          "instanceId": 53,
+          "x": 1900.4,
+          "y": 855.193,
+          "priority": 1,
+          "time": "All",
+          "effort": 0.5,
+          "groupId": "23"
+        },
+        {
+          "id": "t64",
+          "name": "Registrations / Sunday 23:00 - 00:30",
+          "duration": 60,
+          "type": "registrations / sunday 23:00 - 00:30",
+          "instanceId": 54,
+          "x": 1959.58,
+          "y": 1247.86,
+          "priority": 1,
+          "time": "All",
+          "effort": 1,
+          "groupId": "23"
+        },
+        {
+          "id": "t68",
+          "name": "Master of Cerimony - Sunday",
+          "duration": 60,
+          "type": "master of cerimony - sunday",
+          "instanceId": 55,
+          "x": 1579.09,
+          "y": 1356.47,
+          "priority": 1,
+          "time": "All",
+          "effort": 0.5,
+          "groupId": "21"
+        }
+      ],
+      "groups": [
+        {
+          "id": 1,
+          "title": "Leading Advanced",
+          "variant": 3,
+          "x": 348.536,
+          "y": 345.071,
+          "width": 280,
+          "height": 200
+        },
+        {
+          "id": 2,
+          "title": "Leading Tuesday Beg",
+          "variant": 4,
+          "x": 35.2143,
+          "y": 594.5,
+          "width": 280,
+          "height": 200
+        },
+        {
+          "id": 3,
+          "title": "Tuesday Assistants",
+          "variant": 4,
+          "x": 1230.9616130434783,
+          "y": 90.7562904347826,
+          "width": 280,
+          "height": 200
+        },
+        {
+          "id": 4,
+          "title": "Third Tuesday Registrator",
+          "variant": 1,
+          "x": 26.7971,
+          "y": 69.91900000000001,
+          "width": 280,
+          "height": 200
+        },
+        {
+          "id": 6,
+          "title": "Tuesday Food Supply",
+          "variant": 4,
+          "x": 1165.6552373913044,
+          "y": 1199.4279069565216,
+          "width": 280,
+          "height": 200
+        },
+        {
+          "id": 16,
+          "title": "Wednesday Assistans",
+          "variant": 3,
+          "x": 734.523,
+          "y": 1575.94,
+          "width": 280,
+          "height": 200
+        },
+        {
+          "id": 17,
+          "title": "Leading Wednesday Beg",
+          "variant": 5,
+          "x": -9.660690434782602,
+          "y": 2065.9141860869568,
+          "width": 280,
+          "height": 200
+        },
+        {
+          "id": 18,
+          "title": "Leading Intermediate",
+          "variant": 1,
+          "x": 508.06261565217386,
+          "y": 1950.9935495652176,
+          "width": 280,
+          "height": 200
+        },
+        {
+          "id": 19,
+          "title": "Third Wednesday Registrator",
+          "variant": 1,
+          "x": 238.43187130434782,
+          "y": 1580.1290330434783,
+          "width": 280,
+          "height": 200
+        },
+        {
+          "id": 20,
+          "title": "Wednesday Food Supply",
+          "variant": 4,
+          "x": 1118.4343695652174,
+          "y": 2821.93,
+          "width": 280,
+          "height": 200
+        },
+        {
+          "id": 21,
+          "title": "Sunday MC",
+          "variant": 1,
+          "x": 2548.3082495652175,
+          "y": 2121.17,
+          "width": 280,
+          "height": 200
+        },
+        {
+          "id": 22,
+          "title": "Sunday Installing",
+          "variant": 3,
+          "x": 2304.545348695652,
+          "y": 1707.6867808695652,
+          "width": 280,
+          "height": 200
+        },
+        {
+          "id": 23,
+          "title": "Sunday Deinstalling",
+          "variant": 1,
+          "x": 2839.829216521739,
+          "y": 1697.3704895652174,
+          "width": 280,
+          "height": 200
+        }
+      ],
+      "connections": [
+        {
+          "id": "1763952246766",
+          "fromId": "group-1",
+          "toId": "group-2",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952500434",
+          "fromId": "group-4",
+          "toId": "group-1",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952546647",
+          "fromId": "group-2",
+          "toId": "group-4",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952562031",
+          "fromId": "group-6",
+          "toId": "task-14",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952590951",
+          "fromId": "group-1",
+          "toId": "group-3",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952593367",
+          "fromId": "group-1",
+          "toId": "task-8",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952620409",
+          "fromId": "group-4",
+          "toId": "group-3",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952632441",
+          "fromId": "group-4",
+          "toId": "task-17",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952634457",
+          "fromId": "task-17",
+          "toId": "group-3",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952637675",
+          "fromId": "group-2",
+          "toId": "task-17",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952663022",
+          "fromId": "group-3",
+          "toId": "task-8",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952665422",
+          "fromId": "group-4",
+          "toId": "task-8",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952668172",
+          "fromId": "group-2",
+          "toId": "task-8",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952670139",
+          "fromId": "task-17",
+          "toId": "task-8",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952681490",
+          "fromId": "task-14",
+          "toId": "task-6",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952862859",
+          "fromId": "task-14",
+          "toId": "task-19",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952907387",
+          "fromId": "task-14",
+          "toId": "task-8",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952927652",
+          "fromId": "task-17",
+          "toId": "group-1",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763952962937",
+          "fromId": "group-2",
+          "toId": "group-3",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763953282518",
+          "fromId": "task-6",
+          "toId": "group-6",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763963718978",
+          "fromId": "task-8",
+          "toId": "group-6",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965139640",
+          "fromId": "task-49",
+          "toId": "group-6",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965145372",
+          "fromId": "task-49",
+          "toId": "task-14",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965163839",
+          "fromId": "group-19",
+          "toId": "group-16",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965165824",
+          "fromId": "group-19",
+          "toId": "task-47",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965168256",
+          "fromId": "group-19",
+          "toId": "group-17",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965170555",
+          "fromId": "group-16",
+          "toId": "group-17",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965174272",
+          "fromId": "group-16",
+          "toId": "group-18",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965175921",
+          "fromId": "group-16",
+          "toId": "task-47",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965183189",
+          "fromId": "group-17",
+          "toId": "task-47",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965184506",
+          "fromId": "task-47",
+          "toId": "group-18",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965322503",
+          "fromId": "group-19",
+          "toId": "task-37",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965323704",
+          "fromId": "task-37",
+          "toId": "group-16",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965325606",
+          "fromId": "task-37",
+          "toId": "group-18",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965327222",
+          "fromId": "task-37",
+          "toId": "group-17",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965328687",
+          "fromId": "task-37",
+          "toId": "task-47",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965331902",
+          "fromId": "task-37",
+          "toId": "group-20",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965333803",
+          "fromId": "task-37",
+          "toId": "task-34",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965352003",
+          "fromId": "group-20",
+          "toId": "task-34",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965357820",
+          "fromId": "task-34",
+          "toId": "task-35",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965359586",
+          "fromId": "task-44",
+          "toId": "task-34",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965363069",
+          "fromId": "group-20",
+          "toId": "task-35",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965373235",
+          "fromId": "group-20",
+          "toId": "task-46",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965375470",
+          "fromId": "task-46",
+          "toId": "task-34",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965423686",
+          "fromId": "group-6",
+          "toId": "group-3",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965428719",
+          "fromId": "group-6",
+          "toId": "task-17",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965435385",
+          "fromId": "group-6",
+          "toId": "group-2",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965446419",
+          "fromId": "group-6",
+          "toId": "group-4",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965492287",
+          "fromId": "group-20",
+          "toId": "task-47",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965494485",
+          "fromId": "group-20",
+          "toId": "group-17",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965497117",
+          "fromId": "group-20",
+          "toId": "group-19",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965500602",
+          "fromId": "group-20",
+          "toId": "group-16",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965836763",
+          "fromId": "group-22",
+          "toId": "group-23",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965839029",
+          "fromId": "group-21",
+          "toId": "group-22",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965841116",
+          "fromId": "group-23",
+          "toId": "group-21",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965883329",
+          "fromId": "group-17",
+          "toId": "group-18",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763965942812",
+          "fromId": "group-18",
+          "toId": "group-19",
+          "type": "exclusion"
+        },
+        {
+          "id": "1763989971701",
+          "fromId": "group-2",
+          "toId": "group-1",
+          "type": "equivalent"
+        },
+        {
+          "id": "1763991795070",
+          "fromId": "group-17",
+          "toId": "group-18",
+          "type": "equivalent"
+        },
+        {
+          "id": "1763991800703",
+          "fromId": "group-17",
+          "toId": "group-2",
+          "type": "equivalent"
+        },
+        {
+          "id": "1763991808372",
+          "fromId": "group-20",
+          "toId": "group-6",
+          "type": "equivalent"
+        },
+        {
+          "id": "1763991824037",
+          "fromId": "group-19",
+          "toId": "group-16",
+          "type": "equivalent"
+        },
+        {
+          "id": "1763991826002",
+          "fromId": "group-4",
+          "toId": "group-3",
+          "type": "equivalent"
+        },
+        {
+          "id": "1763991829386",
+          "fromId": "group-16",
+          "toId": "group-3",
+          "type": "equivalent"
+        },
+        {
+          "id": "1763991835804",
+          "fromId": "group-3",
+          "toId": "task-17",
+          "type": "equivalent"
+        },
+        {
+          "id": "1763991838802",
+          "fromId": "group-16",
+          "toId": "task-47",
+          "type": "equivalent"
+        },
+        {
+          "id": "1763991842719",
+          "fromId": "task-35",
+          "toId": "task-6",
+          "type": "equivalent"
+        },
+        {
+          "id": "1763991846702",
+          "fromId": "task-46",
+          "toId": "task-49",
+          "type": "equivalent"
+        },
+        {
+          "id": "1763991854619",
+          "fromId": "task-37",
+          "toId": "task-8",
+          "type": "equivalent"
+        },
+        {
+          "id": "1763991857169",
+          "fromId": "task-34",
+          "toId": "task-14",
+          "type": "equivalent"
+        },
+        {
+          "id": "1763991861618",
+          "fromId": "task-19",
+          "toId": "task-44",
+          "type": "equivalent"
+        },
+        {
+          "id": "1763991868568",
+          "fromId": "group-20",
+          "toId": "group-21",
+          "type": "equivalent"
+        },
+        {
+          "id": "1763991872554",
+          "fromId": "task-44",
+          "toId": "group-21",
+          "type": "equivalent"
+        },
+        {
+          "id": "1763991878401",
+          "fromId": "group-22",
+          "toId": "group-23",
+          "type": "equivalent"
+        }
+      ],
+      "nextInstanceId": 56,
+      "nextGroupId": 30
+    }
+  },
+  "stars": {
+    "candidate_star_t10_c14": "false",
+    "candidate_star_4_c10": "false",
+    "candidate_star_3_c24": "false",
+    "candidate_star_t13_c2": "false",
+    "candidate_star_t14_c14": "false",
+    "task_star_group_t10": "true",
+    "candidate_star_2_c23": "false",
+    "task_star_t8": "true",
+    "candidate_star_t9_c11": "false",
+    "candidate_star_t9_c26": "false",
+    "candidate_star_t14_c18": "false",
+    "candidate_star_t17_c5": "false",
+    "task_star_t22": "false",
+    "candidate_star_2_c1": "false",
+    "candidate_star_t14_c20": "false",
+    "candidate_star_3_c19": "false",
+    "candidate_star_t18_c14": "false",
+    "candidate_star_6_c12": "false",
+    "candidate_star_t22_c16": "false",
+    "candidate_star_2_c19": "false",
+    "candidate_star_t13_c7": "false",
+    "candidate_star_3_c20": "false",
+    "task_star_group_6": "false",
+    "candidate_star_t17_c26": "false",
+    "candidate_star_t10_c21": "false",
+    "candidate_star_t16_c10": "false",
+    "candidate_star_t22_c12": "false",
+    "candidate_star_t8_c12": "false",
+    "candidate_star_t8_c11": "false",
+    "candidate_star_3_c11": "false",
+    "candidate_star_1_c26": "true",
+    "candidate_star_t10_c12": "false",
+    "task_star_t13": "true",
+    "candidate_star_t13_c12": "false",
+    "candidate_star_t22_c8": "false",
+    "candidate_star_t14_c1": "false",
+    "candidate_star_t17_c18": "false",
+    "candidate_star_6_c16": "false",
+    "candidate_star_2_c21": "false",
+    "candidate_star_t16_c2": "false",
+    "candidate_star_t41_c12": "false",
+    "candidate_star_t9_c22": "false",
+    "candidate_star_t13_c9": "false",
+    "candidate_star_t9_c23": "false",
+    "candidate_star_t14_c16": "false",
+    "candidate_star_t17_c10": "false",
+    "candidate_star_t9_c15": "false",
+    "candidate_star_t17_c14": "false",
+    "candidate_star_4_c9": "false",
+    "candidate_star_t14_c6": "false",
+    "task_star_group_t7": "true",
+    "candidate_star_t17_c2": "false",
+    "task_star_t10": "false",
+    "candidate_star_6_c1": "false",
+    "candidate_star_t7_c12": "false",
+    "candidate_star_6_c18": "false",
+    "candidate_star_4_c14": "false",
+    "candidate_star_1_c14": "true",
+    "candidate_star_t10_c20": "false",
+    "candidate_star_t10_c9": "false",
+    "candidate_star_t22_c6": "false",
+    "task_star_group_t14": "true",
+    "candidate_star_t13_c16": "false",
+    "candidate_star_t23_c8": "false",
+    "candidate_star_t17_c25": "false",
+    "candidate_star_t9_c21": "false",
+    "candidate_star_6_c14": "false",
+    "candidate_star_t63_c1": "false",
+    "candidate_star_6_c9": "false",
+    "candidate_star_4_c5": "false",
+    "candidate_star_t25_c1": "false",
+    "candidate_star_6_c8": "false",
+    "candidate_star_t13_c18": "false",
+    "candidate_star_t13_c6": "false",
+    "candidate_star_t22_c14": "false",
+    "candidate_star_2_c14": "false",
+    "candidate_star_4_c21": "false",
+    "candidate_star_t16_c7": "false",
+    "candidate_star_t16_c25": "false",
+    "candidate_star_t10_c18": "false",
+    "candidate_star_t7_c7": "false",
+    "task_star_group_3": "false",
+    "task_star_t63": "true",
+    "candidate_star_t13_c24": "false",
+    "candidate_star_t17_c12": "false",
+    "candidate_star_t14_c10": "false",
+    "candidate_star_2_c22": "false",
+    "task_star_group_t9": "true",
+    "candidate_star_t14_c11": "false",
+    "candidate_star_4_c6": "false",
+    "candidate_star_t7_c18": "false",
+    "candidate_star_4_c20": "false",
+    "candidate_star_t18_c8": "false",
+    "candidate_star_4_c15": "false",
+    "candidate_star_t10_c6": "false",
+    "candidate_star_2_c18": "false",
+    "candidate_star_t13_c5": "false",
+    "candidate_star_t10_c11": "false",
+    "candidate_star_1_c11": "false",
+    "candidate_star_t13_c4": "false",
+    "task_star_t65": "false",
+    "candidate_star_3_c7": "false",
+    "candidate_star_4_c2": "false",
+    "candidate_star_t17_c13": "false",
+    "candidate_star_t13_c19": "false",
+    "candidate_star_t9_c12": "false",
+    "candidate_star_2_c12": "false",
+    "candidate_star_t23_c16": "false",
+    "candidate_star_t23_c3": "false",
+    "candidate_star_t16_c26": "false",
+    "candidate_star_t10_c15": "false",
+    "candidate_star_t23_c11": "false",
+    "candidate_star_t14_c26": "false",
+    "candidate_star_3_c9": "false",
+    "candidate_star_t18_c2": "false",
+    "task_star_t41": "false",
+    "candidate_star_t17_c16": "false",
+    "candidate_star_t16_c18": "false",
+    "candidate_star_t13_c10": "false",
+    "task_star_t30": "false",
+    "candidate_star_t17_c20": "false",
+    "candidate_star_t16_c4": "false",
+    "candidate_star_t13_c26": "false",
+    "candidate_star_2_c16": "false",
+    "candidate_star_t17_c15": "false",
+    "task_star_group_t63": "true",
+    "candidate_star_2_c24": "false",
+    "candidate_star_t9_c14": "false",
+    "task_star_t16": "false",
+    "candidate_star_t22_c2": "false",
+    "candidate_star_t16_c11": "false",
+    "candidate_star_t10_c1": "false",
+    "candidate_star_t16_c12": "false",
+    "candidate_star_t41_c11": "false",
+    "candidate_star_6_c26": "false",
+    "candidate_star_3_c14": "false",
+    "candidate_star_t7_c21": "false",
+    "candidate_star_2_c20": "false",
+    "candidate_star_t10_c4": "false",
+    "candidate_star_3_c4": "false",
+    "candidate_star_t16_c13": "false",
+    "candidate_star_3_c2": "false",
+    "candidate_star_3_c16": "false",
+    "candidate_star_2_c15": "false",
+    "candidate_star_t7_c1": "false",
+    "candidate_star_t10_c16": "false",
+    "candidate_star_t16_c5": "false",
+    "candidate_star_3_c6": "false",
+    "candidate_star_4_c16": "false",
+    "task_star_group_t41": "true",
+    "candidate_star_t16_c16": "false",
+    "candidate_star_3_c26": "false",
+    "candidate_star_t7_c11": "false",
+    "candidate_star_t18_c24": "false",
+    "task_star_t18": "false",
+    "candidate_star_t32_c1": "false",
+    "candidate_star_6_c10": "false",
+    "candidate_star_t14_c24": "false",
+    "candidate_star_6_c2": "false",
+    "candidate_star_t16_c14": "false",
+    "task_star_t14": "false",
+    "candidate_star_t18_c16": "false",
+    "candidate_star_t7_c5": "false",
+    "task_star_group_4": "false",
+    "candidate_star_3_c21": "false",
+    "candidate_star_t22_c1": "false",
+    "task_star_t23": "false",
+    "candidate_star_4_c18": "false",
+    "candidate_star_t16_c15": "false",
+    "candidate_star_t14_c15": "false",
+    "candidate_star_4_c12": "false",
+    "candidate_star_t13_c25": "false",
+    "candidate_star_t14_c9": "false",
+    "task_star_t7": "false",
+    "candidate_star_t17_c21": "false",
+    "candidate_star_t9_c19": "false",
+    "candidate_star_t13_c1": "false",
+    "candidate_star_4_c1": "false",
+    "candidate_star_2_c11": "false",
+    "candidate_star_t7_c15": "false",
+    "candidate_star_3_c1": "false",
+    "candidate_star_t17_c4": "false",
+    "candidate_star_3_c5": "false",
+    "task_star_t11": "false",
+    "candidate_star_t16_c1": "false",
+    "candidate_star_t17_c1": "false",
+    "task_star_group_1": "true",
+    "task_star_t17": "false",
+    "candidate_star_t14_c12": "false",
+    "candidate_star_t14_c4": "false",
+    "candidate_star_t16_c9": "false",
+    "candidate_star_3_c18": "false",
+    "candidate_star_t18_c19": "false",
+    "candidate_star_t10_c5": "false",
+    "candidate_star_t16_c24": "false",
+    "candidate_star_t17_c7": "false",
+    "candidate_star_t30_c9": "false",
+    "candidate_star_t9_c24": "false",
+    "candidate_star_t10_c7": "false",
+    "candidate_star_t14_c25": "false",
+    "task_star_t28": "false",
+    "candidate_star_6_c22": "false",
+    "candidate_star_3_c12": "false",
+    "candidate_star_t10_c10": "false",
+    "candidate_star_t13_c15": "false",
+    "candidate_star_t41_c3": "false",
+    "candidate_star_3_c25": "false",
+    "candidate_star_2_c25": "false",
+    "candidate_star_6_c6": "false",
+    "candidate_star_t16_c19": "false",
+    "candidate_star_t10_c2": "false",
+    "candidate_star_t7_c2": "false",
+    "candidate_star_2_c26": "false",
+    "candidate_star_t7_c4": "false",
+    "candidate_star_t16_c20": "false",
+    "candidate_star_t9_c16": "false",
+    "candidate_star_6_c19": "false",
+    "candidate_star_t16_c6": "false",
+    "candidate_star_4_c11": "false",
+    "candidate_star_1_c12": "false",
+    "candidate_star_t14_c19": "false",
+    "candidate_star_t14_c7": "false",
+    "candidate_star_t9_c18": "false",
+    "candidate_star_t41_c16": "false",
+    "candidate_star_t23_c12": "false",
+    "candidate_star_3_c15": "false",
+    "task_star_t25": "false",
+    "candidate_star_t17_c6": "false",
+    "candidate_star_4_c7": "false",
+    "candidate_star_t13_c20": "false",
+    "candidate_star_4_c4": "false",
+    "candidate_star_t13_c14": "false",
+    "candidate_star_t13_c11": "false",
+    "candidate_star_2_c9": "false",
+    "task_star_t9": "false",
+    "candidate_star_t17_c19": "false",
+    "candidate_star_t14_c5": "false",
+    "candidate_star_t63_c3": "false",
+    "task_star_group_2": "false",
+    "candidate_star_6_c20": "false",
+    "candidate_star_6_c13": "false",
+    "candidate_star_3_c10": "false",
+    "candidate_star_t17_c11": "false",
+    "candidate_star_t7_c16": "false",
+    "candidate_star_t17_c24": "false",
+    "candidate_star_t7_c9": "false",
+    "candidate_star_t14_c2": "false",
+    "candidate_star_t17_c9": "false"
+  },
+  "teamRoles": {
+    "team_role_c10": {
+      "leader": false,
+      "follower": true,
+      "both": false
+    },
+    "team_role_c19": {
+      "leader": false,
+      "follower": true,
+      "both": false
+    },
+    "team_role_c13": {
+      "leader": true,
+      "follower": false,
+      "both": false
+    },
+    "team_role_c23": {
+      "leader": true,
+      "follower": false,
+      "both": false
+    },
+    "team_role_c8": {
+      "leader": true,
+      "follower": false,
+      "both": false
+    },
+    "team_role_c3": {
+      "leader": false,
+      "follower": true,
+      "both": false
+    },
+    "team_role_c16": {
+      "leader": true,
+      "follower": false,
+      "both": false
+    },
+    "team_role_c6": {
+      "leader": true,
+      "follower": false,
+      "both": false
+    },
+    "team_role_c9": {
+      "leader": false,
+      "follower": true,
+      "both": true
+    },
+    "team_role_c7": {
+      "leader": false,
+      "follower": true,
+      "both": false
+    },
+    "team_role_c26": {
+      "leader": false,
+      "follower": true,
+      "both": true
+    },
+    "team_role_c17": {
+      "leader": false,
+      "follower": true,
+      "both": false
+    },
+    "team_role_c21": {
+      "leader": false,
+      "follower": true,
+      "both": false
+    },
+    "team_role_c5": {
+      "leader": true,
+      "follower": false,
+      "both": false
+    },
+    "team_role_c24": {
+      "leader": false,
+      "follower": true,
+      "both": false
+    },
+    "team_role_c18": {
+      "leader": true,
+      "follower": false,
+      "both": false
+    },
+    "team_role_c4": {
+      "leader": true,
+      "follower": false,
+      "both": false
+    },
+    "team_role_c2": {
+      "leader": false,
+      "follower": true,
+      "both": false
+    },
+    "team_role_c14": {
+      "leader": true,
+      "follower": false,
+      "both": false
+    },
+    "team_role_c25": {
+      "leader": true,
+      "follower": false,
+      "both": false
+    },
+    "team_role_c15": {
+      "leader": true,
+      "follower": false,
+      "both": false
+    },
+    "team_role_c11": {
+      "leader": false,
+      "follower": true,
+      "both": true
+    },
+    "team_role_c12": {
+      "leader": false,
+      "follower": true,
+      "both": false
+    },
+    "team_role_c20": {
+      "leader": true,
+      "follower": false,
+      "both": false
+    },
+    "team_role_c22": {
+      "leader": false,
+      "follower": true,
+      "both": false
+    },
+    "team_role_c1": {
+      "leader": true,
+      "follower": false,
+      "both": false
+    }
+  },
+  "projectDate": null,
+  "spreadsheetData": {
+    "tasks": [
+      {
+        "id": "t7",
+        "name": "Registrations / Advanced - Tuesday",
+        "duration": 60,
+        "type": "registrations / advanced - tuesday"
+      },
+      {
+        "id": "t8",
+        "name": "Preparation for the Lesson / Advanced - Tuesday",
+        "duration": 60,
+        "type": "preparation for the lesson / advanced - tuesday"
+      },
+      {
+        "id": "t9",
+        "name": "Conducting the lesson / Advanced - Tuesday",
+        "duration": 60,
+        "type": "conducting the lesson / advanced - tuesday"
+      },
+      {
+        "id": "t10",
+        "name": "Registrations / Beginners - Tuesday",
+        "duration": 60,
+        "type": "registrations / beginners - tuesday"
+      },
+      {
+        "id": "t11",
+        "name": "Preparation for the Lesson / Teachers - Tuesday",
+        "duration": 60,
+        "type": "preparation for the lesson / teachers - tuesday"
+      },
+      {
+        "id": "t12",
+        "name": "Conducting the lesson / Teacher - Tuesday",
+        "duration": 60,
+        "type": "conducting the lesson / teacher - tuesday"
+      },
+      {
+        "id": "t13",
+        "name": "Preparation for the Lesson / Assistant - Tuesday",
+        "duration": 60,
+        "type": "preparation for the lesson / assistant - tuesday"
+      },
+      {
+        "id": "t14",
+        "name": "Assisting the lesson - Tuesday",
+        "duration": 60,
+        "type": "assisting the lesson - tuesday"
+      },
+      {
+        "id": "t15",
+        "name": "Mentorship / Class - Tuesday",
+        "duration": 60,
+        "type": "mentorship / class - tuesday"
+      },
+      {
+        "id": "t16",
+        "name": "Take Care of Newcomers - Tuesday",
+        "duration": 60,
+        "type": "take care of newcomers - tuesday"
+      },
+      {
+        "id": "t17",
+        "name": "Take Care of Partyka Students - Tuesday",
+        "duration": 60,
+        "type": "take care of partyka students - tuesday"
+      },
+      {
+        "id": "t18",
+        "name": "Master of Cerimony - Tuesday",
+        "duration": 60,
+        "type": "master of cerimony - tuesday"
+      },
+      {
+        "id": "t19",
+        "name": "Installing the Venue - Tuesday",
+        "duration": 60,
+        "type": "installing the venue - tuesday"
+      },
+      {
+        "id": "t20",
+        "name": "DJ - Tuesday",
+        "duration": 60,
+        "type": "dj - tuesday"
+      },
+      {
+        "id": "t21",
+        "name": "Food Supply - Tuesday",
+        "duration": 60,
+        "type": "food supply - tuesday"
+      },
+      {
+        "id": "t22",
+        "name": "Deistalling the Venue + Cleaning - Tuesday",
+        "duration": 60,
+        "type": "deistalling the venue + cleaning - tuesday"
+      },
+      {
+        "id": "t23",
+        "name": "Social Media Posts - Tuesday",
+        "duration": 60,
+        "type": "social media posts - tuesday"
+      },
+      {
+        "id": "t24",
+        "name": "Photographer / Videomaker - Tuesday",
+        "duration": 60,
+        "type": "photographer / videomaker - tuesday"
+      },
+      {
+        "id": "t25",
+        "name": "Registrations / Intermediate - Wednesday",
+        "duration": 60,
+        "type": "registrations / intermediate - wednesday"
+      },
+      {
+        "id": "t26",
+        "name": "Preparation for the Lesson / Intermediate - Wednesday",
+        "duration": 60,
+        "type": "preparation for the lesson / intermediate - wednesday"
+      },
+      {
+        "id": "t27",
+        "name": "Conducting the lesson / Intermediate - Wednesday",
+        "duration": 60,
+        "type": "conducting the lesson / intermediate - wednesday"
+      },
+      {
+        "id": "t28",
+        "name": "Registrations / Beginners - Wednesday",
+        "duration": 60,
+        "type": "registrations / beginners - wednesday"
+      },
+      {
+        "id": "t29",
+        "name": "Preparation for the Lesson / Teachers - Wednesday",
+        "duration": 60,
+        "type": "preparation for the lesson / teachers - wednesday"
+      },
+      {
+        "id": "t30",
+        "name": "Conducting the lesson - Wednesday",
+        "duration": 60,
+        "type": "conducting the lesson - wednesday"
+      },
+      {
+        "id": "t31",
+        "name": "Preparation for the Lesson / Assistant - Wednesday",
+        "duration": 60,
+        "type": "preparation for the lesson / assistant - wednesday"
+      },
+      {
+        "id": "t32",
+        "name": "Assisting the lesson - Wednesday",
+        "duration": 60,
+        "type": "assisting the lesson - wednesday"
+      },
+      {
+        "id": "t33",
+        "name": "Mentorship / Class - Wednesday",
+        "duration": 60,
+        "type": "mentorship / class - wednesday"
+      },
+      {
+        "id": "t34",
+        "name": "Take Care of Newcomers - Wednesday",
+        "duration": 60,
+        "type": "take care of newcomers - wednesday"
+      },
+      {
+        "id": "t35",
+        "name": "Take Care of Partyka Students - Wednesday",
+        "duration": 60,
+        "type": "take care of partyka students - wednesday"
+      },
+      {
+        "id": "t36",
+        "name": "Master of Cerimony - Wednesday",
+        "duration": 60,
+        "type": "master of cerimony - wednesday"
+      },
+      {
+        "id": "t37",
+        "name": "Installing the Venue - Wednesday",
+        "duration": 60,
+        "type": "installing the venue - wednesday"
+      },
+      {
+        "id": "t38",
+        "name": "DJ - Wednesday",
+        "duration": 60,
+        "type": "dj - wednesday"
+      },
+      {
+        "id": "t39",
+        "name": "Food Supply - Wednesday",
+        "duration": 60,
+        "type": "food supply - wednesday"
+      },
+      {
+        "id": "t40",
+        "name": "Deistalling the Venue + Cleaning - Wednesday",
+        "duration": 60,
+        "type": "deistalling the venue + cleaning - wednesday"
+      },
+      {
+        "id": "t41",
+        "name": "Social Media Posts - Wednesday",
+        "duration": 60,
+        "type": "social media posts - wednesday"
+      },
+      {
+        "id": "t42",
+        "name": "Photographer / Videomaker - Wednesday",
+        "duration": 60,
+        "type": "photographer / videomaker - wednesday"
+      },
+      {
+        "id": "t48",
+        "name": "Planning of the Month / Teachers and Assistants",
+        "duration": 60,
+        "type": "planning of the month / teachers and assistants"
+      },
+      {
+        "id": "t49",
+        "name": "Planning of the Month / Registrations",
+        "duration": 60,
+        "type": "planning of the month / registrations"
+      },
+      {
+        "id": "t50",
+        "name": "Planning of the Month / Master of Cerimony",
+        "duration": 60,
+        "type": "planning of the month / master of cerimony"
+      },
+      {
+        "id": "t51",
+        "name": "Planning of the Month / Food Supply",
+        "duration": 60,
+        "type": "planning of the month / food supply"
+      },
+      {
+        "id": "t52",
+        "name": "Monthly Monitoring",
+        "duration": 60,
+        "type": "monthly monitoring"
+      },
+      {
+        "id": "t53",
+        "name": "Monthly Report",
+        "duration": 60,
+        "type": "monthly report"
+      },
+      {
+        "id": "t54",
+        "name": "Monthly Print",
+        "duration": 60,
+        "type": "monthly print"
+      },
+      {
+        "id": "t55",
+        "name": "Monthly Payments",
+        "duration": 60,
+        "type": "monthly payments"
+      },
+      {
+        "id": "t56",
+        "name": "Take Care of Team Members",
+        "duration": 60,
+        "type": "take care of team members"
+      },
+      {
+        "id": "t57",
+        "name": "CRM Manteince",
+        "duration": 60,
+        "type": "crm manteince"
+      },
+      {
+        "id": "t58",
+        "name": "Project Management",
+        "duration": 60,
+        "type": "project management"
+      },
+      {
+        "id": "t63",
+        "name": "Registrations / Sunday 21:30 - 23:00",
+        "duration": 60,
+        "type": "registrations / sunday 21:30 - 23:00"
+      },
+      {
+        "id": "t64",
+        "name": "Registrations / Sunday 23:00 - 00:30",
+        "duration": 60,
+        "type": "registrations / sunday 23:00 - 00:30"
+      },
+      {
+        "id": "t65",
+        "name": "Installing the Venue - Sunday",
+        "duration": 60,
+        "type": "installing the venue - sunday"
+      },
+      {
+        "id": "t66",
+        "name": "Food Supply - Sunday",
+        "duration": 60,
+        "type": "food supply - sunday"
+      },
+      {
+        "id": "t67",
+        "name": "Deinstalling the Venue + Cleaning - Sunday",
+        "duration": 60,
+        "type": "deinstalling the venue + cleaning - sunday"
+      },
+      {
+        "id": "t68",
+        "name": "Master of Cerimony - Sunday",
+        "duration": 60,
+        "type": "master of cerimony - sunday"
+      }
+    ],
+    "candidates": [
+      {
+        "id": "c1",
+        "name": "Aleksander Nowak",
+        "role": "assistant",
+        "roles": [
+          "Registrations / Grojecka",
+          "Preparation for the Lesson / Teachers - Grojecka",
+          "Conducting the lesson - Grojecka",
+          "Master of Cerimony - Grojecka",
+          "Registrations / Advanced - Tuesday",
+          "Registrations / Beginners - Tuesday",
+          "Preparation for the Lesson / Teachers - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Installing the Venue - Tuesday",
+          "Food Supply - Tuesday",
+          "Deistalling the Venue + Cleaning - Tuesday",
+          "Registrations / Intermediate - Wednesday",
+          "Preparation for the Lesson / Intermediate - Wednesday",
+          "Registrations / Beginners - Wednesday",
+          "Preparation for the Lesson / Teachers - Wednesday",
+          "Preparation for the Lesson / Assistant - Wednesday",
+          "Assisting the lesson - Wednesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "Installing the Venue - Wednesday",
+          "Food Supply - Wednesday",
+          "Deistalling the Venue + Cleaning - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting",
+          "Take Care of Team Members",
+          "Registrations / Sunday 21:30 - 23:00",
+          "Registrations / Sunday 23:00 - 00:30",
+          "Installing the Venue - Sunday",
+          "Food Supply - Sunday",
+          "Deinstalling the Venue + Cleaning - Sunday",
+          "Master of Cerimony - Sunday"
+        ]
+      },
+      {
+        "id": "c2",
+        "name": "Alicja Nowak",
+        "role": "assistant",
+        "roles": [
+          "Registrations / Advanced - Tuesday",
+          "Registrations / Beginners - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Master of Cerimony - Tuesday",
+          "Installing the Venue - Tuesday",
+          "DJ - Tuesday",
+          "Food Supply - Tuesday",
+          "Deistalling the Venue + Cleaning - Tuesday",
+          "Registrations / Intermediate - Wednesday",
+          "Preparation for the Lesson / Intermediate - Wednesday",
+          "Registrations / Beginners - Wednesday",
+          "Preparation for the Lesson / Assistant - Wednesday",
+          "Assisting the lesson - Wednesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "Master of Cerimony - Wednesday",
+          "Installing the Venue - Wednesday",
+          "DJ - Wednesday",
+          "Food Supply - Wednesday",
+          "Deistalling the Venue + Cleaning - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting",
+          "Take Care of Team Members",
+          "Registrations / Sunday 21:30 - 23:00",
+          "Registrations / Sunday 23:00 - 00:30",
+          "Installing the Venue - Sunday",
+          "Food Supply - Sunday",
+          "Deinstalling the Venue + Cleaning - Sunday",
+          "Master of Cerimony - Sunday"
+        ]
+      },
+      {
+        "id": "c3",
+        "name": "Anna Brzoza",
+        "role": "assistant",
+        "roles": [
+          "Replying to Social Media Messages and Questions",
+          "Social Media Posts - Tuesday",
+          "Social Media Posts - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting",
+          "Take Care of Team Members",
+          "Social Media Plan",
+          "Social Media Copy",
+          "Social Media Story",
+          "Social Media Reels",
+          "Registrations / Sunday 21:30 - 23:00",
+          "Registrations / Sunday 23:00 - 00:30",
+          "Installing the Venue - Sunday",
+          "Food Supply - Sunday",
+          "Deinstalling the Venue + Cleaning - Sunday",
+          "Master of Cerimony - Sunday"
+        ]
+      },
+      {
+        "id": "c4",
+        "name": "Antoni Domanowski",
+        "role": "assistant",
+        "roles": [
+          "Registrations / Advanced - Tuesday",
+          "Registrations / Beginners - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting"
+        ]
+      },
+      {
+        "id": "c5",
+        "name": "Damian Bagnowski",
+        "role": "assistant",
+        "roles": [
+          "Registrations / Advanced - Tuesday",
+          "Registrations / Beginners - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting"
+        ]
+      },
+      {
+        "id": "c6",
+        "name": "Damian Bartosiewicz",
+        "role": "assistant",
+        "roles": [
+          "Registrations / Beginners - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Food Supply - Tuesday",
+          "Deistalling the Venue + Cleaning - Tuesday",
+          "Registrations / Intermediate - Wednesday",
+          "Registrations / Beginners - Wednesday",
+          "Preparation for the Lesson / Assistant - Wednesday",
+          "Assisting the lesson - Wednesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "Food Supply - Wednesday",
+          "Deistalling the Venue + Cleaning - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting",
+          "Take Care of Team Members"
+        ]
+      },
+      {
+        "id": "c7",
+        "name": "Diana Siwicka",
+        "role": "assistant",
+        "roles": [
+          "Registrations / Advanced - Tuesday",
+          "Registrations / Beginners - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Photographer / Videomaker - Tuesday",
+          "Registrations / Intermediate - Wednesday",
+          "Registrations / Beginners - Wednesday",
+          "Preparation for the Lesson / Assistant - Wednesday",
+          "Assisting the lesson - Wednesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "Photographer / Videomaker - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting",
+          "Take Care of Team Members",
+          "Registrations / Sunday 21:30 - 23:00"
+        ]
+      },
+      {
+        "id": "c8",
+        "name": "Maciek Oficialski",
+        "role": "assistant",
+        "roles": [
+          "Replying to Social Media Messages and Questions",
+          "Master of Cerimony - Tuesday",
+          "Installing the Venue - Tuesday",
+          "DJ - Tuesday",
+          "Food Supply - Tuesday",
+          "Deistalling the Venue + Cleaning - Tuesday",
+          "Social Media Posts - Tuesday",
+          "Photographer / Videomaker - Tuesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "Board + Audit Commitee Meeting",
+          "General Meeting",
+          "Monthly Report",
+          "Monthly Print",
+          "Monthly Payments",
+          "Take Care of Team Members",
+          "Social Media Plan",
+          "Social Media Copy",
+          "Social Media Story"
+        ]
+      },
+      {
+        "id": "c9",
+        "name": "Maria Merchel",
+        "role": "assistant",
+        "roles": [
+          "Registrations / Grojecka",
+          "Preparation for the Lesson / Teachers - Grojecka",
+          "Conducting the lesson - Grojecka",
+          "Master of Cerimony - Grojecka",
+          "Registrations / Advanced - Tuesday",
+          "Registrations / Beginners - Tuesday",
+          "Preparation for the Lesson / Teachers - Tuesday",
+          "Conducting the lesson / Teacher - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "DJ - Tuesday",
+          "Food Supply - Tuesday",
+          "Photographer / Videomaker - Tuesday",
+          "Registrations / Intermediate - Wednesday",
+          "Preparation for the Lesson / Intermediate - Wednesday",
+          "Conducting the lesson / Intermediate - Wednesday",
+          "Registrations / Beginners - Wednesday",
+          "Preparation for the Lesson / Teachers - Wednesday",
+          "Conducting the lesson - Wednesday",
+          "Preparation for the Lesson / Assistant - Wednesday",
+          "Assisting the lesson - Wednesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "DJ - Wednesday",
+          "Food Supply - Wednesday",
+          "Photographer / Videomaker - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting",
+          "Registrations / Sunday 21:30 - 23:00",
+          "Installing the Venue - Sunday",
+          "Food Supply - Sunday",
+          "Deinstalling the Venue + Cleaning - Sunday"
+        ]
+      },
+      {
+        "id": "c10",
+        "name": "Nina Andrzejczyk",
+        "role": "assistant",
+        "roles": [
+          "Registrations / Beginners - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Food Supply - Tuesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting"
+        ]
+      },
+      {
+        "id": "c11",
+        "name": "Anna Kolomenkina",
+        "role": "teacher",
+        "roles": [
+          "Conducting the lesson - Grojecka",
+          "Master of Cerimony - Grojecka",
+          "Registrations / Advanced - Tuesday",
+          "Preparation for the Lesson / Advanced - Tuesday",
+          "Conducting the lesson / Advanced - Tuesday",
+          "Registrations / Beginners - Tuesday",
+          "Preparation for the Lesson / Teachers - Tuesday",
+          "Conducting the lesson / Teacher - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "DJ - Tuesday",
+          "Social Media Posts - Tuesday",
+          "Photographer / Videomaker - Tuesday",
+          "Registrations / Intermediate - Wednesday",
+          "Preparation for the Lesson / Intermediate - Wednesday",
+          "Conducting the lesson / Intermediate - Wednesday",
+          "Registrations / Beginners - Wednesday",
+          "Preparation for the Lesson / Teachers - Wednesday",
+          "Conducting the lesson - Wednesday",
+          "Preparation for the Lesson / Assistant - Wednesday",
+          "Assisting the lesson - Wednesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "DJ - Wednesday",
+          "Social Media Posts - Wednesday",
+          "Photographer / Videomaker - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting",
+          "Social Media Plan",
+          "Social Media Copy",
+          "Social Media Story",
+          "Social Media Reels",
+          "Registrations / Sunday 21:30 - 23:00"
+        ]
+      },
+      {
+        "id": "c12",
+        "name": "Anna Sidorowicz",
+        "role": "teacher",
+        "roles": [
+          "Replying to Social Media Messages and Questions",
+          "Registrations / Grojecka",
+          "Preparation for the Lesson / Teachers - Grojecka",
+          "Conducting the lesson - Grojecka",
+          "Master of Cerimony - Grojecka",
+          "Registrations / Advanced - Tuesday",
+          "Preparation for the Lesson / Advanced - Tuesday",
+          "Conducting the lesson / Advanced - Tuesday",
+          "Registrations / Beginners - Tuesday",
+          "Preparation for the Lesson / Teachers - Tuesday",
+          "Conducting the lesson / Teacher - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Food Supply - Tuesday",
+          "Deistalling the Venue + Cleaning - Tuesday",
+          "Social Media Posts - Tuesday",
+          "Photographer / Videomaker - Tuesday",
+          "Registrations / Intermediate - Wednesday",
+          "Preparation for the Lesson / Intermediate - Wednesday",
+          "Conducting the lesson / Intermediate - Wednesday",
+          "Registrations / Beginners - Wednesday",
+          "Preparation for the Lesson / Teachers - Wednesday",
+          "Conducting the lesson - Wednesday",
+          "Preparation for the Lesson / Assistant - Wednesday",
+          "Assisting the lesson - Wednesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "Food Supply - Wednesday",
+          "Deistalling the Venue + Cleaning - Wednesday",
+          "Social Media Posts - Wednesday",
+          "Photographer / Videomaker - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting",
+          "Take Care of Team Members",
+          "Social Media Plan",
+          "Social Media Copy",
+          "Social Media Story",
+          "Social Media Reels",
+          "Registrations / Sunday 21:30 - 23:00",
+          "Registrations / Sunday 23:00 - 00:30",
+          "Installing the Venue - Sunday",
+          "Food Supply - Sunday",
+          "Deinstalling the Venue + Cleaning - Sunday",
+          "Master of Cerimony - Sunday"
+        ]
+      },
+      {
+        "id": "c13",
+        "name": "Damian Karas",
+        "role": "teacher",
+        "roles": [
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Installing the Venue - Tuesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "Installing the Venue - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "Board + Audit Commitee Meeting",
+          "General Meeting",
+          "Take Care of Team Members",
+          "Social Media Plan",
+          "Social Media Copy",
+          "Social Media Story",
+          "Social Media Reels",
+          "Registrations / Sunday 21:30 - 23:00",
+          "Registrations / Sunday 23:00 - 00:30",
+          "Installing the Venue - Sunday",
+          "Master of Cerimony - Sunday"
+        ]
+      },
+      {
+        "id": "c14",
+        "name": "Daniele Donzello",
+        "role": "teacher",
+        "roles": [
+          "Replying to Social Media Messages and Questions",
+          "Weekly Newsletter",
+          "Preparation for the Lesson / Advanced - Tuesday",
+          "Conducting the lesson / Advanced - Tuesday",
+          "Registrations / Beginners - Tuesday",
+          "Preparation for the Lesson / Teachers - Tuesday",
+          "Conducting the lesson / Teacher - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Mentorship / Class - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Master of Cerimony - Tuesday",
+          "Installing the Venue - Tuesday",
+          "DJ - Tuesday",
+          "Food Supply - Tuesday",
+          "Deistalling the Venue + Cleaning - Tuesday",
+          "Preparation for the Lesson / Intermediate - Wednesday",
+          "Conducting the lesson / Intermediate - Wednesday",
+          "Registrations / Beginners - Wednesday",
+          "Preparation for the Lesson / Teachers - Wednesday",
+          "Conducting the lesson - Wednesday",
+          "Preparation for the Lesson / Assistant - Wednesday",
+          "Assisting the lesson - Wednesday",
+          "Mentorship / Class - Wednesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "Master of Cerimony - Wednesday",
+          "Installing the Venue - Wednesday",
+          "DJ - Wednesday",
+          "Food Supply - Wednesday",
+          "Deistalling the Venue + Cleaning - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "Board + Audit Commitee Meeting",
+          "General Meeting",
+          "Planning of the Month / Teachers and Assistants",
+          "Planning of the Month / Master of Cerimony",
+          "Planning of the Month / Food Supply",
+          "Monthly Monitoring",
+          "Take Care of Team Members",
+          "CRM Manteince",
+          "Project Management",
+          "Registrations / Sunday 21:30 - 23:00",
+          "Registrations / Sunday 23:00 - 00:30",
+          "Installing the Venue - Sunday",
+          "Food Supply - Sunday",
+          "Deinstalling the Venue + Cleaning - Sunday",
+          "Master of Cerimony - Sunday"
+        ]
+      },
+      {
+        "id": "c15",
+        "name": "Ephraim Eshak",
+        "role": "teacher",
+        "roles": [
+          "Registrations / Advanced - Tuesday",
+          "Preparation for the Lesson / Advanced - Tuesday",
+          "Conducting the lesson / Advanced - Tuesday",
+          "Registrations / Beginners - Tuesday",
+          "Preparation for the Lesson / Teachers - Tuesday",
+          "Conducting the lesson / Teacher - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Mentorship / Class - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "DJ - Tuesday",
+          "Preparation for the Lesson / Teachers - Wednesday",
+          "Conducting the lesson - Wednesday",
+          "Preparation for the Lesson / Assistant - Wednesday",
+          "Assisting the lesson - Wednesday",
+          "Mentorship / Class - Wednesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "DJ - Wednesday",
+          "Deistalling the Venue + Cleaning - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "Board + Audit Commitee Meeting",
+          "General Meeting",
+          "Monthly Print",
+          "Take Care of Team Members"
+        ]
+      },
+      {
+        "id": "c16",
+        "name": "Jan Mężyński",
+        "role": "teacher",
+        "roles": [
+          "Replying to Social Media Messages and Questions",
+          "Registrations / Grojecka",
+          "Preparation for the Lesson / Teachers - Grojecka",
+          "Conducting the lesson - Grojecka",
+          "Master of Cerimony - Grojecka",
+          "Registrations / Advanced - Tuesday",
+          "Preparation for the Lesson / Advanced - Tuesday",
+          "Conducting the lesson / Advanced - Tuesday",
+          "Registrations / Beginners - Tuesday",
+          "Preparation for the Lesson / Teachers - Tuesday",
+          "Conducting the lesson / Teacher - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Master of Cerimony - Tuesday",
+          "Installing the Venue - Tuesday",
+          "DJ - Tuesday",
+          "Food Supply - Tuesday",
+          "Deistalling the Venue + Cleaning - Tuesday",
+          "Social Media Posts - Tuesday",
+          "Photographer / Videomaker - Tuesday",
+          "Registrations / Intermediate - Wednesday",
+          "Preparation for the Lesson / Intermediate - Wednesday",
+          "Conducting the lesson / Intermediate - Wednesday",
+          "Registrations / Beginners - Wednesday",
+          "Preparation for the Lesson / Teachers - Wednesday",
+          "Conducting the lesson - Wednesday",
+          "Preparation for the Lesson / Assistant - Wednesday",
+          "Assisting the lesson - Wednesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "Master of Cerimony - Wednesday",
+          "Installing the Venue - Wednesday",
+          "DJ - Wednesday",
+          "Food Supply - Wednesday",
+          "Deistalling the Venue + Cleaning - Wednesday",
+          "Social Media Posts - Wednesday",
+          "Photographer / Videomaker - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting",
+          "Take Care of Team Members",
+          "Social Media Plan",
+          "Social Media Copy",
+          "Social Media Story",
+          "Social Media Reels",
+          "Registrations / Sunday 21:30 - 23:00",
+          "Registrations / Sunday 23:00 - 00:30",
+          "Installing the Venue - Sunday",
+          "Food Supply - Sunday",
+          "Deinstalling the Venue + Cleaning - Sunday",
+          "Master of Cerimony - Sunday"
+        ]
+      },
+      {
+        "id": "c17",
+        "name": "Ludmiła Januszewska",
+        "role": "teacher",
+        "roles": []
+      },
+      {
+        "id": "c18",
+        "name": "Marius Latinis",
+        "role": "teacher",
+        "roles": [
+          "Replying to Social Media Messages and Questions",
+          "Registrations / Grojecka",
+          "Preparation for the Lesson / Teachers - Grojecka",
+          "Conducting the lesson - Grojecka",
+          "Registrations / Advanced - Tuesday",
+          "Preparation for the Lesson / Advanced - Tuesday",
+          "Conducting the lesson / Advanced - Tuesday",
+          "Registrations / Beginners - Tuesday",
+          "Preparation for the Lesson / Teachers - Tuesday",
+          "Conducting the lesson / Teacher - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Installing the Venue - Tuesday",
+          "Preparation for the Lesson / Intermediate - Wednesday",
+          "Conducting the lesson / Intermediate - Wednesday",
+          "Registrations / Beginners - Wednesday",
+          "Preparation for the Lesson / Teachers - Wednesday",
+          "Conducting the lesson - Wednesday",
+          "Preparation for the Lesson / Assistant - Wednesday",
+          "Assisting the lesson - Wednesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "Installing the Venue - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting",
+          "Registrations / Sunday 21:30 - 23:00",
+          "Registrations / Sunday 23:00 - 00:30",
+          "Installing the Venue - Sunday",
+          "Food Supply - Sunday",
+          "Deinstalling the Venue + Cleaning - Sunday",
+          "Master of Cerimony - Sunday"
+        ]
+      },
+      {
+        "id": "c19",
+        "name": "Martyna Gosz",
+        "role": "teacher",
+        "roles": [
+          "Replying to Social Media Messages and Questions",
+          "Preparation for the Lesson / Advanced - Tuesday",
+          "Conducting the lesson / Advanced - Tuesday",
+          "Preparation for the Lesson / Teachers - Tuesday",
+          "Conducting the lesson / Teacher - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Mentorship / Class - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Master of Cerimony - Tuesday",
+          "Installing the Venue - Tuesday",
+          "Food Supply - Tuesday",
+          "Photographer / Videomaker - Tuesday",
+          "Preparation for the Lesson / Teachers - Wednesday",
+          "Conducting the lesson - Wednesday",
+          "Preparation for the Lesson / Assistant - Wednesday",
+          "Assisting the lesson - Wednesday",
+          "Mentorship / Class - Wednesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "Master of Cerimony - Wednesday",
+          "Installing the Venue - Wednesday",
+          "DJ - Wednesday",
+          "Food Supply - Wednesday",
+          "Photographer / Videomaker - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "Board + Audit Commitee Meeting",
+          "General Meeting",
+          "Take Care of Team Members",
+          "Social Media Plan",
+          "Registrations / Sunday 21:30 - 23:00",
+          "Installing the Venue - Sunday",
+          "Food Supply - Sunday"
+        ]
+      },
+      {
+        "id": "c20",
+        "name": "Michał Dziedziniewicz",
+        "role": "teacher",
+        "roles": [
+          "Replying to Social Media Messages and Questions",
+          "Registrations / Grojecka",
+          "Preparation for the Lesson / Teachers - Grojecka",
+          "Conducting the lesson - Grojecka",
+          "Registrations / Beginners - Tuesday",
+          "Preparation for the Lesson / Teachers - Tuesday",
+          "Conducting the lesson / Teacher - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Installing the Venue - Tuesday",
+          "Food Supply - Tuesday",
+          "Photographer / Videomaker - Tuesday",
+          "Registrations / Beginners - Wednesday",
+          "Preparation for the Lesson / Teachers - Wednesday",
+          "Conducting the lesson - Wednesday",
+          "Preparation for the Lesson / Assistant - Wednesday",
+          "Assisting the lesson - Wednesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "Installing the Venue - Wednesday",
+          "Food Supply - Wednesday",
+          "Photographer / Videomaker - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting",
+          "Take Care of Team Members"
+        ]
+      },
+      {
+        "id": "c21",
+        "name": "Natalia Khotsianovska",
+        "role": "teacher",
+        "roles": [
+          "Registrations / Grojecka",
+          "Preparation for the Lesson / Teachers - Grojecka",
+          "Conducting the lesson - Grojecka",
+          "Registrations / Advanced - Tuesday",
+          "Preparation for the Lesson / Advanced - Tuesday",
+          "Conducting the lesson / Advanced - Tuesday",
+          "Registrations / Beginners - Tuesday",
+          "Preparation for the Lesson / Teachers - Tuesday",
+          "Conducting the lesson / Teacher - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Photographer / Videomaker - Tuesday",
+          "Registrations / Intermediate - Wednesday",
+          "Preparation for the Lesson / Intermediate - Wednesday",
+          "Conducting the lesson / Intermediate - Wednesday",
+          "Registrations / Beginners - Wednesday",
+          "Preparation for the Lesson / Teachers - Wednesday",
+          "Conducting the lesson - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "Photographer / Videomaker - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting",
+          "Planning of the Month / Registrations",
+          "Take Care of Team Members",
+          "Registrations / Sunday 21:30 - 23:00",
+          "Registrations / Sunday 23:00 - 00:30"
+        ]
+      },
+      {
+        "id": "c22",
+        "name": "Patrycja Niemczuk",
+        "role": "teacher",
+        "roles": [
+          "Preparation for the Lesson / Advanced - Tuesday",
+          "Conducting the lesson / Advanced - Tuesday",
+          "Preparation for the Lesson / Teachers - Tuesday",
+          "Conducting the lesson / Teacher - Tuesday",
+          "Food Supply - Tuesday",
+          "Preparation for the Lesson / Intermediate - Wednesday",
+          "Conducting the lesson / Intermediate - Wednesday",
+          "Preparation for the Lesson / Teachers - Wednesday",
+          "Conducting the lesson - Wednesday",
+          "Food Supply - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "Board + Audit Commitee Meeting",
+          "General Meeting",
+          "Registrations / Sunday 21:30 - 23:00",
+          "Registrations / Sunday 23:00 - 00:30",
+          "Installing the Venue - Sunday",
+          "Food Supply - Sunday",
+          "Deinstalling the Venue + Cleaning - Sunday",
+          "Master of Cerimony - Sunday"
+        ]
+      },
+      {
+        "id": "c23",
+        "name": "Pawel Wypijewski",
+        "role": "teacher",
+        "roles": [
+          "Preparation for the Lesson / Advanced - Tuesday",
+          "Conducting the lesson / Advanced - Tuesday",
+          "Preparation for the Lesson / Teachers - Tuesday",
+          "Conducting the lesson / Teacher - Tuesday",
+          "Preparation for the Lesson / Intermediate - Wednesday",
+          "Conducting the lesson / Intermediate - Wednesday",
+          "Preparation for the Lesson / Teachers - Wednesday",
+          "Conducting the lesson - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting",
+          "Registrations / Sunday 21:30 - 23:00",
+          "Registrations / Sunday 23:00 - 00:30",
+          "Installing the Venue - Sunday",
+          "Food Supply - Sunday",
+          "Deinstalling the Venue + Cleaning - Sunday",
+          "Master of Cerimony - Sunday"
+        ]
+      },
+      {
+        "id": "c24",
+        "name": "Sylwia Woźniak",
+        "role": "teacher",
+        "roles": [
+          "Replying to Social Media Messages and Questions",
+          "Preparation for the Lesson / Teachers - Grojecka",
+          "Conducting the lesson - Grojecka",
+          "Preparation for the Lesson / Advanced - Tuesday",
+          "Conducting the lesson / Advanced - Tuesday",
+          "Preparation for the Lesson / Teachers - Tuesday",
+          "Conducting the lesson / Teacher - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Master of Cerimony - Tuesday",
+          "DJ - Tuesday",
+          "Preparation for the Lesson / Intermediate - Wednesday",
+          "Conducting the lesson / Intermediate - Wednesday",
+          "Preparation for the Lesson / Teachers - Wednesday",
+          "Conducting the lesson - Wednesday",
+          "Preparation for the Lesson / Assistant - Wednesday",
+          "Assisting the lesson - Wednesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "Master of Cerimony - Wednesday",
+          "DJ - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting",
+          "Take Care of Team Members",
+          "Registrations / Sunday 21:30 - 23:00",
+          "Registrations / Sunday 23:00 - 00:30",
+          "Installing the Venue - Sunday",
+          "Food Supply - Sunday",
+          "Deinstalling the Venue + Cleaning - Sunday",
+          "Master of Cerimony - Sunday"
+        ]
+      },
+      {
+        "id": "c25",
+        "name": "Tomasz Wilk",
+        "role": "teacher",
+        "roles": [
+          "Preparation for the Lesson / Teachers - Tuesday",
+          "Conducting the lesson / Teacher - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Photographer / Videomaker - Tuesday",
+          "Preparation for the Lesson / Teachers - Wednesday",
+          "Conducting the lesson - Wednesday",
+          "Preparation for the Lesson / Assistant - Wednesday",
+          "Assisting the lesson - Wednesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "Photographer / Videomaker - Wednesday",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting",
+          "Take Care of Team Members",
+          "Social Media Plan",
+          "Social Media Copy",
+          "Social Media Story",
+          "Social Media Reels",
+          "Registrations / Sunday 21:30 - 23:00",
+          "Registrations / Sunday 23:00 - 00:30",
+          "Installing the Venue - Sunday",
+          "Food Supply - Sunday",
+          "Deinstalling the Venue + Cleaning - Sunday",
+          "Master of Cerimony - Sunday"
+        ]
+      },
+      {
+        "id": "c26",
+        "name": "Yulia Talybova",
+        "role": "teacher",
+        "roles": [
+          "Preparation for the Lesson / Advanced - Tuesday",
+          "Conducting the lesson / Advanced - Tuesday",
+          "Preparation for the Lesson / Teachers - Tuesday",
+          "Conducting the lesson / Teacher - Tuesday",
+          "Preparation for the Lesson / Assistant - Tuesday",
+          "Assisting the lesson - Tuesday",
+          "Mentorship / Class - Tuesday",
+          "Take Care of Newcomers - Tuesday",
+          "Take Care of Partyka Students - Tuesday",
+          "Installing the Venue - Tuesday",
+          "Preparation for the Lesson / Intermediate - Wednesday",
+          "Conducting the lesson / Intermediate - Wednesday",
+          "Preparation for the Lesson / Teachers - Wednesday",
+          "Conducting the lesson - Wednesday",
+          "Preparation for the Lesson / Assistant - Wednesday",
+          "Assisting the lesson - Wednesday",
+          "Mentorship / Class - Wednesday",
+          "Take Care of Newcomers - Wednesday",
+          "Take Care of Partyka Students - Wednesday",
+          "Installing the Venue - Wednesday",
+          "Mentorship / Preparation",
+          "Team Meeting",
+          "Teacher Meeting",
+          "General Meeting",
+          "Take Care of Team Members",
+          "Registrations / Sunday 21:30 - 23:00",
+          "Installing the Venue - Sunday",
+          "Food Supply - Sunday"
+        ]
+      }
+    ],
+    "metrics": [
+      {
+        "name": "Planning of the Month / Teachers and Assistants",
+        "time": "All",
+        "effort": 1.5
+      },
+      {
+        "name": "Planning of the Month / Registrations",
+        "time": "All",
+        "effort": 0.5
+      },
+      {
+        "name": "Planning of the Month / Master of Cerimony",
+        "time": "All",
+        "effort": 0.5
+      },
+      {
+        "name": "Planning of the Month / Food Supply",
+        "time": "All",
+        "effort": 0.5
+      },
+      {
+        "name": "Monthly Monitoring",
+        "time": "All",
+        "effort": 2
+      },
+      {
+        "name": "Monthly Report",
+        "time": "All",
+        "effort": 2
+      },
+      {
+        "name": "Monthly Print",
+        "time": "All",
+        "effort": 0.5
+      },
+      {
+        "name": "Monthly Payments",
+        "time": "All",
+        "effort": 1
+      },
+      {
+        "name": "Take Care of Team Members",
+        "time": "All",
+        "effort": 2
+      },
+      {
+        "name": "CRM Manteince",
+        "time": "All",
+        "effort": 1
+      },
+      {
+        "name": "Project Management",
+        "time": "All",
+        "effort": 2
+      },
+      {
+        "name": "Registrations / Advanced - Tuesday",
+        "time": "20-21",
+        "effort": 0.5
+      },
+      {
+        "name": "Preparation for the Lesson / Advanced - Tuesday",
+        "time": "20-21",
+        "effort": 1
+      },
+      {
+        "name": "Conducting the lesson / Advanced - Tuesday",
+        "time": "20-21",
+        "effort": 1.5
+      },
+      {
+        "name": "Registrations / Beginners - Tuesday",
+        "time": "21-22",
+        "effort": 0.5
+      },
+      {
+        "name": "Preparation for the Lesson / Teachers - Tuesday",
+        "time": "21-22",
+        "effort": 1
+      },
+      {
+        "name": "Conducting the lesson / Teacher - Tuesday",
+        "time": "21-22",
+        "effort": 1.5
+      },
+      {
+        "name": "Preparation for the Lesson / Assistant - Tuesday",
+        "time": "21-22",
+        "effort": 1
+      },
+      {
+        "name": "Assisting the lesson - Tuesday",
+        "time": "21-22",
+        "effort": ""
+      },
+      {
+        "name": "money collection.",
+        "time": "including check-ins",
+        "effort": ""
+      },
+      {
+        "name": "Mentorship / Class - Tuesday",
+        "time": "21-22",
+        "effort": 1.5
+      },
+      {
+        "name": "Take Care of Newcomers - Tuesday",
+        "time": "21-22",
+        "effort": 1
+      },
+      {
+        "name": "Take Care of Partyka Students - Tuesday",
+        "time": "22-00",
+        "effort": 2
+      },
+      {
+        "name": "Master of Cerimony - Tuesday",
+        "time": "All",
+        "effort": 0.5
+      },
+      {
+        "name": "Installing the Venue - Tuesday",
+        "time": "22-00",
+        "effort": 0.5
+      },
+      {
+        "name": "DJ - Tuesday",
+        "time": "22-00",
+        "effort": 3
+      },
+      {
+        "name": "Food Supply - Tuesday",
+        "time": "All",
+        "effort": 1
+      },
+      {
+        "name": "Deistalling the Venue + Cleaning - Tuesday",
+        "time": "22-00",
+        "effort": 0.5
+      },
+      {
+        "name": "Social Media Posts - Tuesday",
+        "time": "All",
+        "effort": 0.5
+      },
+      {
+        "name": "Photographer / Videomaker - Tuesday",
+        "time": "All",
+        "effort": 1
+      },
+      {
+        "name": "Registrations / Intermediate - Wednesday",
+        "time": "20-21",
+        "effort": ""
+      },
+      {
+        "name": "Preparation for the Lesson / Intermediate - Wednesday",
+        "time": "20-21",
+        "effort": ""
+      },
+      {
+        "name": "Conducting the lesson / Intermediate - Wednesday",
+        "time": "20-21",
+        "effort": ""
+      },
+      {
+        "name": "Registrations / Beginners - Wednesday",
+        "time": "21-22",
+        "effort": 0.5
+      },
+      {
+        "name": "Preparation for the Lesson / Teachers - Wednesday",
+        "time": "21-22",
+        "effort": 1
+      },
+      {
+        "name": "Conducting the lesson - Wednesday",
+        "time": "21-22",
+        "effort": 1.5
+      },
+      {
+        "name": "Preparation for the Lesson / Assistant - Wednesday",
+        "time": "21-22",
+        "effort": 1
+      },
+      {
+        "name": "Assisting the lesson - Wednesday",
+        "time": "21-22",
+        "effort": ""
+      },
+      {
+        "name": "Mentorship / Class - Wednesday",
+        "time": "21-22",
+        "effort": 1.5
+      },
+      {
+        "name": "Take Care of Newcomers - Wednesday",
+        "time": "21--22",
+        "effort": 1
+      },
+      {
+        "name": "Take Care of Partyka Students - Wednesday",
+        "time": "22-00",
+        "effort": 2
+      },
+      {
+        "name": "Master of Cerimony - Wednesday",
+        "time": "All",
+        "effort": 0.5
+      },
+      {
+        "name": "Installing the Venue - Wednesday",
+        "time": "22-00",
+        "effort": 0.5
+      },
+      {
+        "name": "DJ - Wednesday",
+        "time": "22-00",
+        "effort": 3
+      },
+      {
+        "name": "Food Supply - Wednesday",
+        "time": "All",
+        "effort": 1
+      },
+      {
+        "name": "Deistalling the Venue + Cleaning - Wednesday",
+        "time": "22-00",
+        "effort": 0.5
+      },
+      {
+        "name": "Social Media Posts - Wednesday",
+        "time": "All",
+        "effort": 0.5
+      },
+      {
+        "name": "Photographer / Videomaker - Wednesday",
+        "time": "All",
+        "effort": 1
+      },
+      {
+        "name": "Registrations / Sunday 21:30 - 23:00",
+        "time": "All",
+        "effort": 1
+      },
+      {
+        "name": "Registrations / Sunday 23:00 - 00:30",
+        "time": "All",
+        "effort": 1
+      },
+      {
+        "name": "Master of Cerimony - Sunday",
+        "time": "All",
+        "effort": 0.5
+      },
+      {
+        "name": "Installing the Venue - Sunday",
+        "time": "All",
+        "effort": 0.5
+      },
+      {
+        "name": "Food Supply - Sunday",
+        "time": "All",
+        "effort": 1
+      },
+      {
+        "name": "Deinstalling the Venue + Cleaning - Sunday",
+        "time": "All",
+        "effort": 0.5
+      }
+    ]
+  }
+}
