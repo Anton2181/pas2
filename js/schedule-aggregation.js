@@ -160,11 +160,32 @@ function aggregateScheduleIntoGroups(scheduleData) {
                         let candidateCount = 0;
                         let eligibleCandidates = [];
 
+                        if (group.isSplitRole && instanceCount >= 2) {
+                            break; // Limit to 2 instances for split roles
+                        }
+
                         if (typeof CANDIDATES !== 'undefined' && CANDIDATES) {
                             eligibleCandidates = CANDIDATES.filter(c =>
                                 taskNamesInGroup.every(name => c.roles.includes(name)) &&
                                 foundTasks.every(t => isCandidateAvailable(c, t.name, t.time, weekData.week, dayData.name))
                             );
+
+                            // Split Role Filtering
+                            if (group.isSplitRole) {
+                                const requiredRole = instanceCount === 0 ? 'leader' : 'follower';
+                                eligibleCandidates = eligibleCandidates.filter(c => {
+                                    const key = `team_role_${c.id}`;
+                                    try {
+                                        const roleState = JSON.parse(localStorage.getItem(key)) || {};
+                                        if (requiredRole === 'leader') return roleState.leader || roleState.both;
+                                        if (requiredRole === 'follower') return roleState.follower || roleState.both;
+                                    } catch (e) {
+                                        return false;
+                                    }
+                                    return true;
+                                });
+                            }
+
                             candidateCount = eligibleCandidates.length;
                         }
 
@@ -176,6 +197,7 @@ function aggregateScheduleIntoGroups(scheduleData) {
                             time: displayTime,
                             effort: totalEffort,
                             isGroup: true,
+                            isSplitRole: group.isSplitRole, // Pass flag to task
                             candidateCount,
                             candidates: eligibleCandidates, // Store the list!
                             taskNames: taskNamesInGroup, // Store original task names for filtering

@@ -368,7 +368,7 @@ input:checked+.slider:before {
 
 .schedule-task-square.highlighted {
     opacity: 1 !important;
-    box-shadow: 0 0 0 3px var(--accent-primary) !important;
+    /* box-shadow removed as per user request */
     transform: scale(1.02);
     z-index: 100;
     /* Keep highlighted items on top */

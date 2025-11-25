@@ -49,6 +49,10 @@
         });
     }
 
+    // State for hover persistence
+    let currentHoveredTaskName = null;
+    let currentHoveredIsGroup = false;
+
     function attachHoverListeners() {
         const taskCards = document.querySelectorAll('#available-tasks-grid .task-card');
         console.log('Attaching listeners to', taskCards.length, 'cards');
@@ -58,6 +62,10 @@
                 const isGroup = card.dataset.isGroup === 'true';
                 const taskName = card.dataset.taskName;
 
+                // Store state
+                currentHoveredTaskName = taskName;
+                currentHoveredIsGroup = isGroup;
+
                 console.log('Hover on:', taskName, 'isGroup:', isGroup);
                 if (!taskName) return;
 
@@ -66,6 +74,10 @@
             });
 
             card.addEventListener('mouseleave', function () {
+                // Clear state
+                currentHoveredTaskName = null;
+                currentHoveredIsGroup = false;
+
                 if (hoverTimeout) {
                     clearTimeout(hoverTimeout);
                     hoverTimeout = null;
@@ -75,8 +87,19 @@
         });
     }
 
+    // Function to re-apply hover if state exists (called after re-render)
+    function reapplyHover() {
+        if (currentHoveredTaskName) {
+            console.log('Re-applying hover for:', currentHoveredTaskName);
+            highlightScheduleTask(currentHoveredTaskName, currentHoveredIsGroup);
+        }
+    }
+
     // Expose globally so it can be called after rendering
     window.attachScheduleHoverListeners = attachHoverListeners;
+    window.reapplyScheduleHover = reapplyHover;
+    window.getCurrentHoveredTaskName = () => currentHoveredTaskName;
+    window.getCurrentHoveredIsGroup = () => currentHoveredIsGroup;
 
     // Also try to attach on load just in case (for initial load)
     if (document.readyState === 'loading') {

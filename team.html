@@ -400,6 +400,135 @@
                         gap: 4px;
                     }
 
+                    /* Header Controls Container */
+                    .header-controls {
+                        position: absolute;
+                        top: -10px;
+                        right: -10px;
+                        display: flex;
+                        gap: 6px;
+                        z-index: 5;
+                        pointer-events: none;
+                        /* Let clicks pass through */
+                    }
+
+                    /* Common Badge Styles */
+                    .split-role-badge,
+                    .task-star {
+                        width: 30px;
+                        height: 30px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 50%;
+                        background: var(--surface-color);
+                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+                        border: 1px solid var(--border-color);
+                        cursor: pointer;
+                        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                        pointer-events: auto;
+
+                        /* Default Hidden State */
+                        opacity: 0;
+                        transform: scale(0.8);
+                    }
+
+                    /* Hover State: Show both */
+                    .task-card:hover .split-role-badge,
+                    .task-card:hover .task-star {
+                        opacity: 1;
+                        transform: scale(1);
+                    }
+
+                    /* Split Role Badge Specifics */
+                    .split-role-badge {
+                        font-size: 16px;
+                        color: #ccc;
+                        font-weight: bold;
+                        padding-bottom: 2px;
+                    }
+
+                    .split-role-badge:hover {
+                        color: #666;
+                        transform: scale(1.1) !important;
+                    }
+
+                    /* Active State for Split Badge - STRICTLY INDEPENDENT */
+                    .split-role-badge.active {
+                        color: #fff;
+                        background: #4A90E2;
+                        border-color: #357ABD;
+                        box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+                        opacity: 1 !important;
+                        transform: scale(1) !important;
+                    }
+
+                    /* Task Star Updates */
+                    .task-star {
+                        font-size: 18px;
+                        color: #ddd;
+                        position: static;
+                    }
+
+                    .task-star:hover {
+                        color: #ffc515;
+                        transform: scale(1.1) !important;
+                    }
+
+                    /* Starred State for Star Badge - STRICTLY INDEPENDENT */
+                    .task-star.starred {
+                        color: #ffc515;
+                        opacity: 1 !important;
+                        transform: scale(1) !important;
+                    }
+
+                    transform: scale(1);
+                    }
+
+                    /* Group Variant Overrides for Badges */
+                    .task-card.group-card .split-role-badge,
+                    .task-card.group-card .task-star {
+                        background: rgba(255, 255, 255, 0.9);
+                    }
+
+                    /* Animations */
+                    @keyframes popIn {
+                        0% {
+                            transform: scale(0);
+                            opacity: 0;
+                        }
+
+                        80% {
+                            transform: scale(1.1);
+                            opacity: 1;
+                        }
+
+                        100% {
+                            transform: scale(1);
+                            opacity: 1;
+                        }
+                    }
+
+                    .animate-pop {
+                        animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+                    }
+
+                    @keyframes slideIn {
+                        from {
+                            transform: translateX(20px);
+                            opacity: 0;
+                        }
+
+                        to {
+                            transform: translateX(0);
+                            opacity: 1;
+                        }
+                    }
+
+                    .animate-slide {
+                        animation: slideIn 0.3s ease-out forwards;
+                    }
+
                     .meta-label {
                         font-weight: 500;
                     }
@@ -1225,10 +1354,15 @@
                                 ${group.title || 'Unnamed Group'}
                                 <span class="group-badge">GROUP</span>
                             </div>
-                            <div class="task-star ${starred ? 'starred' : ''} ${starDisabled ? 'disabled' : ''}" 
-                                 onclick="event.stopPropagation(); toggleTaskStar('${group.id}', true, event)"
-                                 style="${starDisabled ? 'cursor: not-allowed; opacity: 0.3;' : ''}"
-                                 data-tooltip="${tooltipText}">★</div>
+                            <div class="header-controls">
+                                <div class="split-role-badge ${group.isSplitRole ? 'active' : ''}"
+                                     onclick="event.stopPropagation(); toggleSplitRole('${group.id}', event)"
+                                     title="Split Role: Limit to 2 instances (Leader/Follower)">⚥</div>
+                                <div class="task-star ${starred ? 'starred' : ''} ${starDisabled ? 'disabled' : ''}" 
+                                     onclick="event.stopPropagation(); toggleTaskStar('${group.id}', true, event)"
+                                     style="${starDisabled ? 'cursor: not-allowed; opacity: 0.3;' : ''}"
+                                     data-tooltip="${tooltipText}">★</div>
+                            </div>
                         </div>
                     `;
 
@@ -1238,7 +1372,7 @@
                             ${timeDisplay ? `<div class="meta-item"><span class="meta-label">Time:</span> ${timeDisplay}</div>` : ''}
                             ${hasEffort ? `<div class="meta-item"><span class="meta-label">Effort:</span> ${totalEffort.toFixed(1)}</div>` : ''}
                         </div>
-                    `;
+                        `;
 
                     if (candidates.length > 0) {
                         html += '<div class="candidates-list">';
@@ -1288,6 +1422,26 @@
 
                     localStorage.setItem(key, JSON.stringify(state));
                     renderTeamList();
+                };
+
+                window.toggleSplitRole = function (groupId, event) {
+                    if (event) event.stopPropagation();
+
+                    // Find group in workspaceState
+                    const group = workspaceState.groups.find(g => g.id == groupId);
+                    if (group) {
+                        group.isSplitRole = !group.isSplitRole;
+
+                        // Save to localStorage
+                        localStorage.setItem('workspace_autosave', JSON.stringify({ state: workspaceState }));
+
+                        // Re-run aggregation to update schedule preview (and re-render list)
+                        if (window.refreshScheduleAggregation) {
+                            window.refreshScheduleAggregation();
+                        } else {
+                            renderAvailableTasks();
+                        }
+                    }
                 };
 
                 initTeamPage();

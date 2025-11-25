@@ -26,6 +26,14 @@ function renderSchedulePreview() {
         filterCandidate = CANDIDATES.find(c => c.id === currentMemberFilterId);
     }
 
+    // Track IDs rendered in THIS pass
+    const newRenderedIds = new Set();
+    const previousRenderedIds = window.renderedTaskIds || new Set();
+
+    // Get current hover state to apply immediately (prevents flicker)
+    const hoveredTaskName = window.getCurrentHoveredTaskName ? window.getCurrentHoveredTaskName() : null;
+    const hoveredIsGroup = window.getCurrentHoveredIsGroup ? window.getCurrentHoveredIsGroup() : false;
+
     SCHEDULE_DATA.forEach((weekData, weekIndex) => {
         const weekGroup = document.createElement('div');
         weekGroup.className = 'schedule-week-group';
@@ -70,9 +78,43 @@ function renderSchedulePreview() {
                 taskSquare.dataset.taskName = task.name;
                 taskSquare.dataset.isGroup = task.isGroup ? 'true' : 'false';
 
-                if (task.isGroup) {
-                    taskSquare.classList.add('is-group-task');
+                // Immediate Hover Application (No Flicker)
+                if (hoveredTaskName) {
+                    let isMatch = false;
+                    if (hoveredIsGroup) {
+                        isMatch = task.name === hoveredTaskName;
+                    } else {
+                        isMatch = !task.isGroup && task.name === hoveredTaskName;
+                    }
+
+                    if (isMatch) {
+                        taskSquare.classList.add('highlighted');
+                    } else {
+                        taskSquare.classList.add('dimmed');
+                    }
                 }
+
+                // Animation Logic
+                // If ID was NOT in the previous render, it's new -> Animate
+                if (!previousRenderedIds.has(task.id)) {
+                    // New task! Animate it.
+                    requestAnimationFrame(() => {
+                        if (task.isGroup) {
+                            taskSquare.classList.add('is-group-task');
+                            taskSquare.classList.add('animate-pop');
+                        } else {
+                            taskSquare.classList.add('animate-slide');
+                        }
+                    });
+                } else {
+                    // Already rendered previously, just add static class if needed
+                    if (task.isGroup) {
+                        taskSquare.classList.add('is-group-task');
+                    }
+                }
+
+                // Add to current set
+                newRenderedIds.add(task.id);
 
                 // Filtering Logic
                 if (filterCandidate) {
@@ -92,8 +134,6 @@ function renderSchedulePreview() {
 
                     if (!isEligible) {
                         taskSquare.classList.add('task-ineligible');
-                    } else {
-                        // No specific action for eligible tasks in this block, but keeping the else for structure if needed
                     }
                 }
 
@@ -135,9 +175,18 @@ function renderSchedulePreview() {
         container.appendChild(weekGroup);
     });
 
-    // Global click listener to close detail view when clicking outside
-    document.addEventListener('click', handleGlobalClick);
+    // Update global set for next time
+    window.renderedTaskIds = newRenderedIds;
+
+    // Re-apply hover if needed
+    if (window.reapplyScheduleHover) {
+        // Use requestAnimationFrame to ensure DOM is ready and reduce flicker
+        requestAnimationFrame(window.reapplyScheduleHover);
+    }
 }
+
+// Global click listener to close detail view when clicking outside
+document.addEventListener('click', handleGlobalClick);
 
 function getCandidateCount(taskName, task) {
     // If task has pre-calculated candidateCount (from aggregation), use it
