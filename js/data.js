@@ -52,20 +52,27 @@ async function fetchSheetData() {
             `https://docs.google.com/spreadsheets/d/${SPREADSHEET_CONFIG.id}/export?format=csv&gid=592403055`
         );
 
-        const [tasksResponse, metricsResponse] = await Promise.all([
+        const availabilityUrl = 'https://corsproxy.io/?' + encodeURIComponent(
+            `https://docs.google.com/spreadsheets/d/${SPREADSHEET_CONFIG.id}/export?format=csv&gid=2123241311`
+        );
+
+        const [tasksResponse, metricsResponse, availabilityResponse] = await Promise.all([
             fetch(tasksUrl),
-            fetch(metricsUrl)
+            fetch(metricsUrl),
+            fetch(availabilityUrl)
         ]);
 
-        if (!tasksResponse.ok || !metricsResponse.ok) {
+        if (!tasksResponse.ok || !metricsResponse.ok || !availabilityResponse.ok) {
             throw new Error('Failed to fetch spreadsheet data');
         }
 
         const tasksCsv = await tasksResponse.text();
         const metricsCsv = await metricsResponse.text();
+        const availabilityCsv = await availabilityResponse.text();
 
         const tasksData = parseTasksCSV(tasksCsv);
         const metricsData = parseMetricsCSV(metricsCsv);
+        const availabilityData = parseAvailabilityCSV(availabilityCsv);
 
         if (!tasksData) {
             throw new Error('Failed to parse task data');
@@ -73,6 +80,17 @@ async function fetchSheetData() {
 
         console.log('Tasks from Task Availability:', tasksData.tasks);
         console.log('Metrics from Template:', metricsData);
+        console.log('Availability Data:', availabilityData);
+
+        // Merge availability into candidates
+        tasksData.candidates.forEach(candidate => {
+            const avail = availabilityData.find(a => a.name === candidate.name);
+            if (avail) {
+                candidate.availability = avail.availability;
+            } else {
+                candidate.availability = {};
+            }
+        });
 
         // Get task names that have metrics in the Template
         const tasksWithMetrics = new Set(metricsData.map(m => m.name));
@@ -83,6 +101,40 @@ async function fetchSheetData() {
         console.log('Tasks in both sheets (intersection):', intersectedTasks);
         console.log(`Filtered from ${tasksData.tasks.length} to ${intersectedTasks.length} tasks`);
 
+        // Update Globals
+        TASKS.length = 0;
+        TASKS.push(...intersectedTasks);
+
+        CANDIDATES.length = 0;
+        CANDIDATES.push(...tasksData.candidates);
+
+        METRICS_DATA.length = 0;
+        METRICS_DATA.push(...metricsData);
+
+        // Save to LocalStorage
+        localStorage.setItem('spreadsheetData', JSON.stringify({
+            tasks: TASKS,
+            candidates: CANDIDATES,
+            metrics: METRICS_DATA
+        }));
+
+        // Update Globals
+        TASKS.length = 0;
+        TASKS.push(...intersectedTasks);
+
+        CANDIDATES.length = 0;
+        CANDIDATES.push(...tasksData.candidates);
+
+        METRICS_DATA.length = 0;
+        METRICS_DATA.push(...metricsData);
+
+        // Save to LocalStorage
+        localStorage.setItem('spreadsheetData', JSON.stringify({
+            tasks: TASKS,
+            candidates: CANDIDATES,
+            metrics: METRICS_DATA
+        }));
+
         return {
             tasks: intersectedTasks,
             candidates: tasksData.candidates,
@@ -91,6 +143,147 @@ async function fetchSheetData() {
     } catch (error) {
         console.error('Error fetching sheet data:', error);
         return null;
+    }
+}
+
+function parseAvailabilityCSV(csv) {
+    const rows = [];
+    let currentRow = [];
+    let inQuotes = false;
+    let currentCell = '';
+
+    // Simple CSV parser
+    for (let i = 0; i < csv.length; i++) {
+        const char = csv[i];
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            currentRow.push(currentCell.trim());
+            currentCell = '';
+        } else if ((char === '\r' || char === '\n') && !inQuotes) {
+            if (currentCell || currentRow.length > 0) currentRow.push(currentCell.trim());
+            if (currentRow.length > 0) rows.push(currentRow);
+            currentRow = [];
+            currentCell = '';
+        } else {
+            currentCell += char;
+        }
+    }
+    if (currentCell || currentRow.length > 0) {
+        currentRow.push(currentCell.trim());
+        rows.push(currentRow);
+    }
+
+    // Structure Validation:
+    // Row 3 (index 3): Weeks (Week 1, Week 2...)
+    // Row 4 (index 4): Days (Tue, Wed...)
+    // Row 5+ (index 5+): Candidates (Name in Column B / Index 1)
+
+    if (rows.length < 6) {
+        console.warn('Availability CSV too short:', rows.length);
+        return [];
+    }
+
+    const weekRow = rows[3];
+    const dayRow = rows[4];
+
+    // Map columns to Week/Day
+    const columnMap = {};
+    let currentWeek = '';
+
+    for (let i = 4; i < weekRow.length; i++) { // Starting from column E (index 4)
+        if (weekRow[i] && weekRow[i].toLowerCase().includes('week')) {
+            currentWeek = weekRow[i];
+        }
+
+        if (currentWeek && dayRow[i]) {
+            // Normalize day name (Tue -> Tuesday)
+            let dayName = dayRow[i];
+            const dayMap = {
+                'Tue': 'Tuesday', 'Wed': 'Wednesday', 'Thu': 'Thursday',
+                'Fri': 'Friday', 'Sat': 'Saturday', 'Sun': 'Sunday', 'Mon': 'Monday'
+            };
+            if (dayMap[dayName]) dayName = dayMap[dayName];
+
+            columnMap[i] = { week: currentWeek, day: dayName };
+        }
+    }
+
+    const candidates = [];
+    for (let i = 5; i < rows.length; i++) {
+        const row = rows[i];
+        const name = row[1]; // Column B (Name)
+        if (!name) continue;
+
+        const availability = {};
+
+        for (let j = 4; j < row.length; j++) {
+            if (columnMap[j]) {
+                const { week, day } = columnMap[j];
+                const value = row[j];
+
+                if (!availability[week]) availability[week] = {};
+                availability[week][day] = value;
+            }
+        }
+
+        candidates.push({ name, availability });
+    }
+
+    if (candidates.length === 0) {
+        console.warn('No candidates parsed from Availability CSV');
+    }
+
+    return candidates;
+}
+
+// Helper to check availability (Global)
+function isCandidateAvailable(candidate, taskName, taskTime, week, day) {
+    // 1. Check Role (Implicitly done by caller usually, but good to be safe)
+    // But for highlighting, we might need to check it here if the caller doesn't.
+    // The aggregation logic checks roles separately.
+    // Let's keep this focused on TIME availability, but maybe include role check if needed?
+    // No, keep it focused on time/availability constraints. Role check is separate.
+
+    // 2. Check Time Availability
+    if (!candidate.availability) return true; // No availability data, assume available
+
+    // Skip check for "0th Day" or tasks with "All" time
+    if (day === '0th Day' || taskTime === 'All' || !taskTime) return true;
+
+    // Normalize Week Name (e.g. "Week 10" matches "Week 10")
+    const weekAvail = candidate.availability[week];
+    if (!weekAvail) return true; // No data for this week
+
+    const dayAvail = weekAvail[day];
+    if (!dayAvail || dayAvail === 'None') return false; // Explicitly None or missing
+    if (dayAvail === 'All') return true; // Available all day
+
+    // 3. Check Time Range Intersection
+    try {
+        const parseTime = (tStr) => {
+            const parts = tStr.split(/[-–]/); // Handle different dashes
+            if (parts.length !== 2) return null;
+            let start = parseInt(parts[0].trim());
+            let end = parseInt(parts[1].trim());
+            if (isNaN(start) || isNaN(end)) return null;
+            return { start, end };
+        };
+
+        const taskRange = parseTime(taskTime);
+        const candRange = parseTime(dayAvail);
+
+        if (!taskRange || !candRange) return true; // Can't parse, assume available
+
+        // Handle midnight (00) as 24
+        if (taskRange.end === 0) taskRange.end = 24;
+        if (candRange.end === 0) candRange.end = 24;
+
+        // Strict Containment: Task must be fully within Candidate's availability
+        return taskRange.start >= candRange.start && taskRange.end <= candRange.end;
+    } catch (e) {
+        console.warn('Error checking availability:', e);
+        return true;
     }
 }
 

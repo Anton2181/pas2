@@ -162,7 +162,8 @@ function aggregateScheduleIntoGroups(scheduleData) {
 
                         if (typeof CANDIDATES !== 'undefined' && CANDIDATES) {
                             eligibleCandidates = CANDIDATES.filter(c =>
-                                taskNamesInGroup.every(name => c.roles.includes(name))
+                                taskNamesInGroup.every(name => c.roles.includes(name)) &&
+                                foundTasks.every(t => isCandidateAvailable(c, t.name, t.time, weekData.week, dayData.name))
                             );
                             candidateCount = eligibleCandidates.length;
                         }
@@ -177,7 +178,8 @@ function aggregateScheduleIntoGroups(scheduleData) {
                             isGroup: true,
                             candidateCount,
                             candidates: eligibleCandidates, // Store the list!
-                            taskNames: taskNamesInGroup // Store original task names for filtering
+                            taskNames: taskNamesInGroup, // Store original task names for filtering
+                            subTasks: foundTasks // Store full sub-task objects for availability checking
                         };
 
                         processedTasks.push(groupTask);

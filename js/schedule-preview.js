@@ -77,16 +77,23 @@ function renderSchedulePreview() {
                 // Filtering Logic
                 if (filterCandidate) {
                     let isEligible = false;
-                    if (task.isGroup && task.taskNames) {
-                        // For groups, check if candidate can do ALL tasks in the group (consistent with candidate count)
-                        isEligible = task.taskNames.every(name => filterCandidate.roles.includes(name));
+                    if (task.isGroup && task.subTasks) {
+                        // For groups, check if candidate can do ALL tasks in the group
+                        // Check Roles AND Availability for each sub-task
+                        isEligible = task.subTasks.every(subTask =>
+                            filterCandidate.roles.includes(subTask.name) &&
+                            isCandidateAvailable(filterCandidate, subTask.name, subTask.time, weekData.week, dayData.name)
+                        );
                     } else {
                         // For individual tasks
-                        isEligible = filterCandidate.roles.includes(task.name);
+                        isEligible = filterCandidate.roles.includes(task.name) &&
+                            isCandidateAvailable(filterCandidate, task.name, task.time, weekData.week, dayData.name);
                     }
 
                     if (!isEligible) {
                         taskSquare.classList.add('task-ineligible');
+                    } else {
+                        // No specific action for eligible tasks in this block, but keeping the else for structure if needed
                     }
                 }
 
