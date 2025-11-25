@@ -158,10 +158,13 @@ function aggregateScheduleIntoGroups(scheduleData) {
 
                         const taskNamesInGroup = foundTasks.map(task => task.name);
                         let candidateCount = 0;
+                        let eligibleCandidates = [];
+
                         if (typeof CANDIDATES !== 'undefined' && CANDIDATES) {
-                            candidateCount = CANDIDATES.filter(c =>
+                            eligibleCandidates = CANDIDATES.filter(c =>
                                 taskNamesInGroup.every(name => c.roles.includes(name))
-                            ).length;
+                            );
+                            candidateCount = eligibleCandidates.length;
                         }
 
                         // Create group task
@@ -172,7 +175,9 @@ function aggregateScheduleIntoGroups(scheduleData) {
                             time: displayTime,
                             effort: totalEffort,
                             isGroup: true,
-                            candidateCount
+                            candidateCount,
+                            candidates: eligibleCandidates, // Store the list!
+                            taskNames: taskNamesInGroup // Store original task names for filtering
                         };
 
                         processedTasks.push(groupTask);
@@ -183,9 +188,20 @@ function aggregateScheduleIntoGroups(scheduleData) {
                 }
             });
 
-            // Add remaining ungrouped tasks (excluding skipped)
+            // Create a set of all task names that belong to ANY group
+            const allGroupTaskNames = new Set();
+            groups.forEach(g => {
+                g.taskNames.forEach(name => allGroupTaskNames.add(name));
+            });
+
+            // Add remaining ungrouped tasks (excluding skipped AND excluding leftovers from groups)
             dayData.tasks.forEach((task, idx) => {
                 if (!usedIndices.has(idx) && !skippedTaskNames.has(task.name)) {
+                    // If this task is part of a group definition but wasn't aggregated, it's a "leftover" -> SKIP IT
+                    if (allGroupTaskNames.has(task.name)) {
+                        // console.log('Skipping leftover group task:', task.name);
+                        return;
+                    }
                     processedTasks.push(task);
                 }
             });

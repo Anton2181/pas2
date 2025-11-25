@@ -1,11 +1,30 @@
 /**
  * Renders the Schedule Preview panel
  */
+/**
+ * Renders the Schedule Preview panel
+ */
+let currentMemberFilterId = null;
+
+function setScheduleMemberFilter(memberId) {
+    currentMemberFilterId = memberId;
+    renderSchedulePreview();
+}
+
+// Expose globally
+window.setScheduleMemberFilter = setScheduleMemberFilter;
+
 function renderSchedulePreview() {
     const container = document.getElementById('schedule-preview-container');
     if (!container) return;
 
     container.innerHTML = ''; // Clear existing content
+
+    // Get selected candidate for filtering
+    let filterCandidate = null;
+    if (currentMemberFilterId) {
+        filterCandidate = CANDIDATES.find(c => c.id === currentMemberFilterId);
+    }
 
     SCHEDULE_DATA.forEach((weekData, weekIndex) => {
         const weekGroup = document.createElement('div');
@@ -53,9 +72,22 @@ function renderSchedulePreview() {
 
                 if (task.isGroup) {
                     taskSquare.classList.add('is-group-task');
-                    // console.log('Added is-group-task class to:', task.name);
-                } else {
-                    // console.log('Task is NOT group:', task.name, task);
+                }
+
+                // Filtering Logic
+                if (filterCandidate) {
+                    let isEligible = false;
+                    if (task.isGroup && task.taskNames) {
+                        // For groups, check if candidate can do ALL tasks in the group (consistent with candidate count)
+                        isEligible = task.taskNames.every(name => filterCandidate.roles.includes(name));
+                    } else {
+                        // For individual tasks
+                        isEligible = filterCandidate.roles.includes(task.name);
+                    }
+
+                    if (!isEligible) {
+                        taskSquare.classList.add('task-ineligible');
+                    }
                 }
 
                 // Click event
@@ -278,14 +310,14 @@ function renderDetailTaskCard(task) {
         display: block;
     `;
 
-    const suitableCandidates = (typeof CANDIDATES !== 'undefined')
-        ? CANDIDATES.filter(c => c.roles.includes(task.name))
-        : [];
+    // Use stored candidates (for groups) or calculate on fly (for singles)
+    const suitableCandidates = task.candidates || (
+        (typeof CANDIDATES !== 'undefined')
+            ? CANDIDATES.filter(c => c.roles.includes(task.name))
+            : []
+    );
 
-    // For groups, use the pre-calculated candidateCount
-    const displayCount = (task.isGroup && typeof task.candidateCount === 'number')
-        ? task.candidateCount
-        : suitableCandidates.length;
+    const displayCount = suitableCandidates.length;
 
     candidatesToggle.innerHTML = `<span class="candidates-text">▼ Candidates (${displayCount})</span><span class="candidates-icon" style="display:none">▼</span>`;
 

@@ -648,6 +648,11 @@
                     selectedMemberId = id;
                     renderTeamList();
                     renderAvailableTasks();
+
+                    // Filter schedule preview
+                    if (window.setScheduleMemberFilter) {
+                        window.setScheduleMemberFilter(id);
+                    }
                 }
 
                 // Load workspace state
