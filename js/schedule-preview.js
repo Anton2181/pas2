@@ -119,17 +119,46 @@ function renderSchedulePreview() {
                 // Filtering Logic
                 if (filterCandidate) {
                     let isEligible = false;
-                    if (task.isGroup && task.subTasks) {
-                        // For groups, check if candidate can do ALL tasks in the group
-                        // Check Roles AND Availability for each sub-task
-                        isEligible = task.subTasks.every(subTask =>
-                            filterCandidate.roles.includes(subTask.name) &&
-                            isCandidateAvailable(filterCandidate, subTask.name, subTask.time, weekData.week, dayData.name)
-                        );
+
+                    // Resolve Real ID for Star Checking
+                    let realId = null;
+                    let isGroup = task.isGroup;
+
+                    if (isGroup) {
+                        const parts = task.id.split('-');
+                        if (parts.length >= 2) realId = parts[1];
                     } else {
-                        // For individual tasks
-                        isEligible = filterCandidate.roles.includes(task.name) &&
-                            isCandidateAvailable(filterCandidate, task.name, task.time, weekData.week, dayData.name);
+                        const originalTask = typeof TASKS !== 'undefined' ? TASKS.find(t => t.name === task.name) : null;
+                        if (originalTask) realId = originalTask.id;
+                    }
+
+                    // 1. Check Star Restriction (Priority)
+                    let starRestricted = false;
+                    if (realId && window.isTaskStarred && window.isTaskStarred(realId, isGroup)) {
+                        // Check if ANY candidates are starred for this task
+                        const anyStarred = typeof CANDIDATES !== 'undefined' && CANDIDATES.some(c => window.isCandidateStarred(realId, c.id));
+
+                        if (anyStarred) {
+                            // Restriction is active. Is the current candidate starred?
+                            if (!window.isCandidateStarred(realId, filterCandidate.id)) {
+                                starRestricted = true; // Not starred, so ineligible
+                            }
+                        }
+                    }
+
+                    if (!starRestricted) {
+                        if (task.isGroup && task.subTasks) {
+                            // For groups, check if candidate can do ALL tasks in the group
+                            // Check Roles AND Availability for each sub-task
+                            isEligible = task.subTasks.every(subTask =>
+                                filterCandidate.roles.includes(subTask.name) &&
+                                isCandidateAvailable(filterCandidate, subTask.name, subTask.time, weekData.week, dayData.name)
+                            );
+                        } else {
+                            // For individual tasks
+                            isEligible = filterCandidate.roles.includes(task.name) &&
+                                isCandidateAvailable(filterCandidate, task.name, task.time, weekData.week, dayData.name);
+                        }
                     }
 
                     if (!isEligible) {
@@ -189,13 +218,52 @@ function renderSchedulePreview() {
 document.addEventListener('click', handleGlobalClick);
 
 function getCandidateCount(taskName, task) {
-    // If task has pre-calculated candidateCount (from aggregation), use it
-    if (task && typeof task.candidateCount === 'number') {
-        return task.candidateCount;
+    if (typeof CANDIDATES === 'undefined') return 0;
+
+    // 1. Resolve Real ID for Star Checking
+    let realId = null;
+    let isGroup = false;
+
+    if (task) {
+        if (task.isGroup) {
+            isGroup = true;
+            // Extract group ID from "g-{id}-..."
+            const parts = task.id.split('-');
+            if (parts.length >= 2) realId = parts[1];
+        } else {
+            // Find task in TASKS by name to get its persistent ID (t1, t2...)
+            const originalTask = typeof TASKS !== 'undefined' ? TASKS.find(t => t.name === task.name) : null;
+            if (originalTask) realId = originalTask.id;
+        }
     }
 
-    if (typeof CANDIDATES === 'undefined') return 0;
-    return CANDIDATES.filter(c => c.roles.includes(taskName)).length;
+    let pool = CANDIDATES;
+
+    // 2. Check Star Restriction
+    // We need to use the resolved realId
+    if (realId && window.isTaskStarred && window.isTaskStarred(realId, isGroup)) {
+        const starredCandidates = pool.filter(c => window.isCandidateStarred(realId, c.id));
+        if (starredCandidates.length > 0) {
+            pool = starredCandidates;
+        }
+        // Else fallback to full pool
+    }
+
+    // 3. Calculate Count
+    if (isGroup && task && task.subTasks) {
+        // For groups, candidate must be eligible for ALL subtasks
+        // We check if the candidate is in the pool AND has roles for all subtasks
+        // (Availability check is expensive, maybe skip for heatmap? 
+        //  The original logic just checked roles. Let's stick to roles for performance unless requested.)
+        // Wait, the previous logic was just roles.
+
+        return pool.filter(c => {
+            return task.subTasks.every(subTask => c.roles.includes(subTask.name));
+        }).length;
+    } else {
+        // Individual Task
+        return pool.filter(c => c.roles.includes(taskName)).length;
+    }
 }
 
 function getHeatmapColor(count) {
@@ -367,11 +435,36 @@ function renderDetailTaskCard(task) {
     `;
 
     // Use stored candidates (for groups) or calculate on fly (for singles)
-    const suitableCandidates = task.candidates || (
+    let suitableCandidates = task.candidates || (
         (typeof CANDIDATES !== 'undefined')
             ? CANDIDATES.filter(c => c.roles.includes(task.name))
             : []
     );
+
+    // Apply Star Restriction to the list
+    // 1. Resolve Real ID
+    let realId = null;
+    let isGroup = false;
+
+    if (task) {
+        if (task.isGroup) {
+            isGroup = true;
+            const parts = task.id.split('-');
+            if (parts.length >= 2) realId = parts[1];
+        } else {
+            const originalTask = typeof TASKS !== 'undefined' ? TASKS.find(t => t.name === task.name) : null;
+            if (originalTask) realId = originalTask.id;
+        }
+    }
+
+    // 2. Filter if Starred
+    if (realId && window.isTaskStarred && window.isTaskStarred(realId, isGroup)) {
+        const starredCandidates = suitableCandidates.filter(c => window.isCandidateStarred(realId, c.id));
+        if (starredCandidates.length > 0) {
+            suitableCandidates = starredCandidates;
+        }
+        // Else fallback to full list
+    }
 
     const displayCount = suitableCandidates.length;
 

@@ -1,10 +1,15 @@
 // Google Sheets Configuration
+// Google Sheets Configuration
 const SPREADSHEET_CONFIG = {
     id: '1s1hdDGjMQTjT1P5zO3xMX__hM1V-5Y9rEGt8uUg5_B0',
-    gid: '342418684',
-    get csvUrl() {
-        const googleUrl = `https://docs.google.com/spreadsheets/d/${this.id}/export?format=csv&gid=${this.gid}`;
-        return `https://corsproxy.io/?${encodeURIComponent(googleUrl)}`;
+    TEMPLATE_SHEET_NAME: 'Template',
+    CALENDAR_AVAILABILITY_SHEET_NAME: 'Calendar Availability',
+    TASK_AVAILABILITY_SHEET_NAME: 'Task Availability',
+    getGvizUrl(sheetName) {
+        const googleUrl = `https://docs.google.com/spreadsheets/d/${this.id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&_t=${Date.now()}`;
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(googleUrl)}`;
+        console.log(`Generated URL for ${sheetName}:`, proxyUrl);
+        return proxyUrl;
     }
 };
 
@@ -12,6 +17,24 @@ const SPREADSHEET_CONFIG = {
 let TASKS = [];
 let METRICS_DATA = [];
 let CANDIDATES = [];
+let SCHEDULE_DATA = []; // Store schedule data globally
+
+// Helper to get dynamic sheet name from project date
+function getDynamicScheduleSheetName() {
+    const projectDate = localStorage.getItem('project_date');
+    let date;
+    if (projectDate) {
+        date = new Date(projectDate);
+    } else {
+        date = new Date(); // Default to current date
+    }
+
+    // Format: "December 2025"
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+    return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+}
 
 // Proper CSV parsing function that handles quoted fields
 function parseCSVLine(line) {
@@ -43,32 +66,94 @@ function parseCSVLine(line) {
 }
 
 async function fetchSheetData() {
+    const currentProjectDate = localStorage.getItem('project_date');
+    // Store previous date if not already stored (or update it if we are on a valid date)
+    // Actually, we should assume the *previous* successful load was the valid one.
+    // But here we only know the current one.
+    // Let's rely on the UI to set 'previous_valid_date' before changing, OR just revert to 'today' or handle it simply.
+    // Better: If we fail, we ask the user to change it back, or we revert to the one stored in a global variable if available.
+    // For now, let's just use a simple revert if we can track it, otherwise just warn.
+    // User asked to "snap back".
+
     try {
-        const tasksUrl = 'https://corsproxy.io/?' + encodeURIComponent(
-            `https://docs.google.com/spreadsheets/d/${SPREADSHEET_CONFIG.id}/export?format=csv&gid=342418684`
+        const scheduleSheetName = getDynamicScheduleSheetName();
+        console.log('Fetching data from sheets:',
+            SPREADSHEET_CONFIG.TASK_AVAILABILITY_SHEET_NAME,
+            SPREADSHEET_CONFIG.TEMPLATE_SHEET_NAME,
+            SPREADSHEET_CONFIG.CALENDAR_AVAILABILITY_SHEET_NAME,
+            scheduleSheetName
         );
 
-        const metricsUrl = 'https://corsproxy.io/?' + encodeURIComponent(
-            `https://docs.google.com/spreadsheets/d/${SPREADSHEET_CONFIG.id}/export?format=csv&gid=592403055`
-        );
-
-        const availabilityUrl = 'https://corsproxy.io/?' + encodeURIComponent(
-            `https://docs.google.com/spreadsheets/d/${SPREADSHEET_CONFIG.id}/export?format=csv&gid=2123241311`
-        );
-
-        const [tasksResponse, metricsResponse, availabilityResponse] = await Promise.all([
-            fetch(tasksUrl),
-            fetch(metricsUrl),
-            fetch(availabilityUrl)
+        const [tasksResponse, metricsResponse, availabilityResponse, scheduleResponse] = await Promise.all([
+            fetch(SPREADSHEET_CONFIG.getGvizUrl(SPREADSHEET_CONFIG.TASK_AVAILABILITY_SHEET_NAME)),
+            fetch(SPREADSHEET_CONFIG.getGvizUrl(SPREADSHEET_CONFIG.TEMPLATE_SHEET_NAME)),
+            fetch(SPREADSHEET_CONFIG.getGvizUrl(SPREADSHEET_CONFIG.CALENDAR_AVAILABILITY_SHEET_NAME)),
+            fetch(SPREADSHEET_CONFIG.getGvizUrl(scheduleSheetName))
         ]);
 
         if (!tasksResponse.ok || !metricsResponse.ok || !availabilityResponse.ok) {
-            throw new Error('Failed to fetch spreadsheet data');
+            throw new Error('Failed to fetch static spreadsheet data');
         }
 
         const tasksCsv = await tasksResponse.text();
         const metricsCsv = await metricsResponse.text();
         const availabilityCsv = await availabilityResponse.text();
+
+        // Schedule response might fail if the sheet doesn't exist yet
+        let scheduleCsv = null;
+        let scheduleFetchFailed = false;
+
+        if (scheduleResponse.ok) {
+            const text = await scheduleResponse.text();
+            // Check if it's an HTML error page (Google sometimes returns 200 OK for auth/404 pages)
+            if (text.trim().startsWith('<!DOCTYPE html') || text.trim().startsWith('<html')) {
+                console.warn(`Sheet "${scheduleSheetName}" not found (returned HTML).`);
+                scheduleFetchFailed = true;
+            } else {
+                scheduleCsv = text;
+            }
+        } else {
+            console.warn(`Could not fetch schedule sheet: ${scheduleSheetName} (Status: ${scheduleResponse.status})`);
+            scheduleFetchFailed = true;
+        }
+
+        if (scheduleFetchFailed) {
+            if (window.showToast) {
+                window.showToast(`Sheet "${scheduleSheetName}" not found. Reverting date.`, 'error');
+            }
+
+            // Revert date logic
+            const previousDate = localStorage.getItem('previous_valid_project_date');
+            if (previousDate && previousDate !== currentProjectDate) {
+                console.log(`Reverting project date from ${currentProjectDate} to ${previousDate}`);
+                localStorage.setItem('project_date', previousDate);
+                // Update UI
+                const dateEl = document.getElementById('project-date');
+                if (dateEl) dateEl.textContent = previousDate;
+
+                // We should probably re-fetch with the old date, but to avoid infinite loops, let's just stop here and clear schedule?
+                // Or recursively call fetchSheetData()?
+                // Let's just clear schedule for now to be safe, user can click cloud again.
+                SCHEDULE_DATA = [];
+                if (window.renderSchedulePreview) window.renderSchedulePreview();
+                return; // Exit
+            } else {
+                // No previous date to revert to, just clear
+                SCHEDULE_DATA = [];
+                if (window.renderSchedulePreview) window.renderSchedulePreview();
+            }
+        } else {
+            // Success! Update previous valid date
+            localStorage.setItem('previous_valid_project_date', currentProjectDate);
+
+            // Update Last Downloaded Label
+            const label = document.getElementById('schedule-last-downloaded');
+            if (label) {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                label.textContent = `Last downloaded: ${timeString}`;
+            }
+        }
 
         const tasksData = parseTasksCSV(tasksCsv);
         const metricsData = parseMetricsCSV(metricsCsv);
@@ -98,6 +183,21 @@ async function fetchSheetData() {
         // Filter to only include tasks that appear in both sheets (intersection)
         const intersectedTasks = tasksData.tasks.filter(task => tasksWithMetrics.has(task.name));
 
+        // Parse Schedule Data if available
+        if (scheduleCsv && window.parseScheduleCSV) {
+            console.log('Parsing Schedule CSV...');
+            SCHEDULE_DATA = window.parseScheduleCSV(scheduleCsv);
+            console.log('Parsed Schedule Data:', SCHEDULE_DATA);
+        } else if (!scheduleFetchFailed) {
+            // If we didn't fail but csv is null (shouldn't happen with logic above unless empty), clear
+            SCHEDULE_DATA = [];
+        }
+
+        // Trigger preview render if function exists (always render to reflect changes)
+        if (window.renderSchedulePreview) {
+            window.renderSchedulePreview();
+        }
+
         console.log('Tasks in both sheets (intersection):', intersectedTasks);
         console.log(`Filtered from ${tasksData.tasks.length} to ${intersectedTasks.length} tasks`);
 
@@ -115,7 +215,8 @@ async function fetchSheetData() {
         localStorage.setItem('spreadsheetData', JSON.stringify({
             tasks: TASKS,
             candidates: CANDIDATES,
-            metrics: METRICS_DATA
+            metrics: METRICS_DATA,
+            schedule: SCHEDULE_DATA // Save schedule data
         }));
 
         // Update Globals
@@ -132,7 +233,8 @@ async function fetchSheetData() {
         localStorage.setItem('spreadsheetData', JSON.stringify({
             tasks: TASKS,
             candidates: CANDIDATES,
-            metrics: METRICS_DATA
+            metrics: METRICS_DATA,
+            schedule: SCHEDULE_DATA // Save schedule data
         }));
 
         return {
@@ -390,9 +492,29 @@ async function loadData(forceRefresh = false) {
                 METRICS_DATA.length = 0;
                 METRICS_DATA.push(...data.metrics);
             }
+            // Restore Schedule Data
+            if (data.schedule) {
+                SCHEDULE_DATA = data.schedule;
+            } else {
+                SCHEDULE_DATA = [];
+            }
+
             console.log('Loaded data from localStorage');
+
+            // Initialize previous valid date on successful load
+            const currentProjectDate = localStorage.getItem('project_date');
+            if (currentProjectDate) {
+                localStorage.setItem('previous_valid_project_date', currentProjectDate);
+            }
+
             highlightRemovedTasks();
             rebuildTaskLists();
+
+            // Render Schedule Preview
+            if (window.renderSchedulePreview) {
+                window.renderSchedulePreview();
+            }
+
             return { success: true, timestamp: lastRefresh };
         } catch (e) {
             console.error('Error parsing stored data:', e);
@@ -413,8 +535,20 @@ async function loadData(forceRefresh = false) {
         }
 
         const timestamp = new Date().toISOString();
-        localStorage.setItem('spreadsheetData', JSON.stringify(data));
+        localStorage.setItem('spreadsheetData', JSON.stringify({
+            tasks: TASKS,
+            candidates: CANDIDATES,
+            metrics: METRICS_DATA,
+            schedule: SCHEDULE_DATA // Save schedule data
+        }));
         localStorage.setItem('lastDataRefresh', timestamp);
+
+        // Initialize previous valid date on successful load
+        const currentProjectDate = localStorage.getItem('project_date');
+        if (currentProjectDate) {
+            localStorage.setItem('previous_valid_project_date', currentProjectDate);
+        }
+
         console.log('Data loaded from Google Sheets');
         highlightRemovedTasks();
         rebuildTaskLists();
@@ -426,6 +560,9 @@ async function loadData(forceRefresh = false) {
 }
 
 function highlightRemovedTasks() {
+    // Check if state exists (it might not on team.html)
+    if (typeof state === 'undefined' || !state.canvasTasks) return;
+
     // Get current valid task IDs
     const validTaskIds = new Set(TASKS.map(t => t.id));
 
@@ -448,6 +585,9 @@ function highlightRemovedTasks() {
 }
 
 function rebuildTaskLists() {
+    // Check if state exists
+    if (typeof state === 'undefined' || !state.canvasTasks) return;
+
     // Get unique task IDs currently on the canvas
     const usedTaskIds = new Set(state.canvasTasks.map(t => t.id));
 

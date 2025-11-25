@@ -113,8 +113,9 @@ function parseCSV(csv) {
 }
 
 // Main Import Logic
-function importSchedule() {
-    const rows = parseCSV(RAW_CSV_DATA);
+function importSchedule(csvData) {
+    const inputData = csvData || RAW_CSV_DATA;
+    const rows = parseCSV(inputData);
     const headers = rows[0];
     const dataRows = rows.slice(1);
 
@@ -303,3 +304,4 @@ function getDayType(dayName) {
 
 // Expose for browser execution
 window.runImport = importSchedule;
+window.parseScheduleCSV = importSchedule;

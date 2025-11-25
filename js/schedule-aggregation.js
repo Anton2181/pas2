@@ -306,6 +306,14 @@ if (typeof SCHEDULE_DATA !== 'undefined') {
         if (typeof renderAvailableTasks === 'function') {
             renderAvailableTasks();
         }
+
+        // Update Last Updated Label
+        const label = document.getElementById('groups-last-updated');
+        if (label) {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            label.textContent = `Last updated: ${timeString}`;
+        }
     };
 
     // Function to re-download data from source and then refresh

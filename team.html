@@ -279,8 +279,9 @@
                         /* Ensure above card content */
                     }
 
-                    /* Tooltip for star badge */
-                    .task-star:hover::after {
+                    /* Tooltip for star badge and split role badge */
+                    .task-star:hover::after,
+                    .split-role-badge:hover::after {
                         content: attr(data-tooltip);
                         position: absolute;
                         bottom: 100%;
@@ -608,10 +609,6 @@
                     </div>
                 </div>
                 <div class="nav-actions">
-                    <button id="global-redownload-btn" class="global-action-btn" title="Re-download Data from Source"
-                        onclick="window.reloadAndRefreshData && window.reloadAndRefreshData()">☁️</button>
-                    <button id="global-refresh-btn" class="global-action-btn" title="Refresh Data & Groups"
-                        onclick="window.refreshScheduleAggregation && window.refreshScheduleAggregation()">🔄</button>
                     <button id="global-save-btn" class="global-action-btn" title="Save All Data">💾</button>
                     <button id="global-load-btn" class="global-action-btn" title="Load All Data">📂</button>
                 </div>
@@ -625,7 +622,18 @@
 
                 <main class="team-content">
                     <div class="content-panel">
-                        <div class="panel-header">Available Tasks & Groups</div>
+                        <div class="panel-header"
+                            style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Available Tasks & Groups</span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span id="groups-last-updated"
+                                    style="font-size: 11px; color: #888; font-weight: normal;"></span>
+                                <button id="global-refresh-btn" class="global-action-btn small"
+                                    title="Refresh Data & Groups"
+                                    onclick="window.refreshScheduleAggregation && window.refreshScheduleAggregation()"
+                                    style="width: 24px; height: 24px; font-size: 14px; padding: 0;">🔄</button>
+                            </div>
+                        </div>
                         <div class="tasks-grid" id="available-tasks-grid">
                             <!-- Populated by JS -->
                         </div>
@@ -634,7 +642,17 @@
                     <div class="content-panel" id="schedule-preview-panel">
                         <div class="panel-header"
                             style="display: flex; justify-content: space-between; align-items: center;">
-                            <span>Schedule Preview</span>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span>Schedule Preview</span>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <button id="global-redownload-btn" class="global-action-btn small"
+                                        title="Re-download Data from Source"
+                                        onclick="window.reloadAndRefreshData && window.reloadAndRefreshData()"
+                                        style="width: 24px; height: 24px; font-size: 14px; padding: 0;">☁️</button>
+                                    <span id="schedule-last-downloaded"
+                                        style="font-size: 11px; color: #888; font-weight: normal;"></span>
+                                </div>
+                            </div>
                             <div class="group-style-toggle"
                                 style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: normal;">
                                 <span class="toggle-label" style="color: #666;">Groups:</span>
@@ -652,6 +670,7 @@
             </main>
             </div>
 
+            <script src="js/schedule-importer.js"></script>
             <script src="js/data.js"></script>
             <script src="js/global-storage.js"></script>
             <script src="js/schedule-data.js"></script>
@@ -695,19 +714,7 @@
                     setupDateEditable();
 
                     // Ensure data is loaded
-                    if (CANDIDATES.length === 0) {
-                        const stored = localStorage.getItem('spreadsheetData');
-                        if (stored) {
-                            const data = JSON.parse(stored);
-                            CANDIDATES.push(...data.candidates);
-                            TASKS.push(...data.tasks);
-                            if (data.metrics) {
-                                METRICS_DATA.push(...data.metrics);
-                            }
-                        } else {
-                            await fetchSheetData();
-                        }
-                    }
+                    await loadData();
 
                     // Load workspace state
                     loadWorkspaceState();
@@ -1120,6 +1127,10 @@
                     return localStorage.getItem(key) === 'true';
                 }
 
+                // Expose globally for schedule-preview.js
+                window.isTaskStarred = isTaskStarred;
+                window.isCandidateStarred = isCandidateStarred;
+
                 // Render available tasks
                 function renderAvailableTasks() {
                     const grid = document.getElementById('available-tasks-grid');
@@ -1357,7 +1368,7 @@
                             <div class="header-controls">
                                 <div class="split-role-badge ${group.isSplitRole ? 'active' : ''}"
                                      onclick="event.stopPropagation(); toggleSplitRole('${group.id}', event)"
-                                     title="Split Role: Limit to 2 instances (Leader/Follower)">⚥</div>
+                                     data-tooltip="Leader/Follower Task">⚥</div>
                                 <div class="task-star ${starred ? 'starred' : ''} ${starDisabled ? 'disabled' : ''}" 
                                      onclick="event.stopPropagation(); toggleTaskStar('${group.id}', true, event)"
                                      style="${starDisabled ? 'cursor: not-allowed; opacity: 0.3;' : ''}"

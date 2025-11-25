@@ -1,9 +1,7 @@
 {
-  "timestamp": "2025-11-24T16:39:07.521Z",
+  "timestamp": "2025-11-25T15:08:34.978Z",
   "version": "1.0",
   "workspace": {
-    "timestamp": "2025-11-24T14:19:02.839Z",
-    "version": "1.0",
     "state": {
       "availableTasks": [
         {
@@ -450,12 +448,12 @@
           "duration": 60,
           "type": "registrations / beginners - tuesday",
           "instanceId": 11,
-          "x": 557,
-          "y": 255,
+          "x": 775.518,
+          "y": 51.6507,
           "priority": 1,
-          "groupId": "3",
           "time": "21-22",
-          "effort": 0.5
+          "effort": 0.5,
+          "groupId": "4"
         },
         {
           "id": "t10",
@@ -468,7 +466,7 @@
           "priority": 2,
           "time": "21-22",
           "effort": 0.5,
-          "groupId": "4"
+          "groupId": "3"
         },
         {
           "id": "t7",
@@ -859,7 +857,8 @@
           "x": 348.536,
           "y": 345.071,
           "width": 280,
-          "height": 200
+          "height": 200,
+          "isSplitRole": false
         },
         {
           "id": 2,
@@ -868,7 +867,8 @@
           "x": 35.2143,
           "y": 594.5,
           "width": 280,
-          "height": 200
+          "height": 200,
+          "isSplitRole": true
         },
         {
           "id": 3,
@@ -877,7 +877,8 @@
           "x": 1230.9616130434783,
           "y": 90.7562904347826,
           "width": 280,
-          "height": 200
+          "height": 200,
+          "isSplitRole": true
         },
         {
           "id": 4,
@@ -885,8 +886,8 @@
           "variant": 1,
           "x": 26.7971,
           "y": 69.91900000000001,
-          "width": 280,
-          "height": 200
+          "width": 296,
+          "height": 259
         },
         {
           "id": 6,
@@ -899,12 +900,13 @@
         },
         {
           "id": 16,
-          "title": "Wednesday Assistans",
+          "title": "Wednesday Assistants",
           "variant": 3,
           "x": 734.523,
           "y": 1575.94,
           "width": 280,
-          "height": 200
+          "height": 200,
+          "isSplitRole": true
         },
         {
           "id": 17,
@@ -913,7 +915,8 @@
           "x": -9.660690434782602,
           "y": 2065.9141860869568,
           "width": 280,
-          "height": 200
+          "height": 200,
+          "isSplitRole": true
         },
         {
           "id": 18,
@@ -922,7 +925,8 @@
           "x": 508.06261565217386,
           "y": 1950.9935495652176,
           "width": 280,
-          "height": 200
+          "height": 200,
+          "isSplitRole": true
         },
         {
           "id": 19,
@@ -1802,7 +1806,7 @@
       "both": false
     }
   },
-  "projectDate": null,
+  "projectDate": "December 2025",
   "spreadsheetData": {
     "tasks": [
       {
@@ -2165,7 +2169,8 @@
           "Food Supply - Sunday",
           "Deinstalling the Venue + Cleaning - Sunday",
           "Master of Cerimony - Sunday"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c2",
@@ -2205,7 +2210,8 @@
           "Food Supply - Sunday",
           "Deinstalling the Venue + Cleaning - Sunday",
           "Master of Cerimony - Sunday"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c3",
@@ -2229,7 +2235,8 @@
           "Food Supply - Sunday",
           "Deinstalling the Venue + Cleaning - Sunday",
           "Master of Cerimony - Sunday"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c4",
@@ -2245,7 +2252,8 @@
           "Team Meeting",
           "Teacher Meeting",
           "General Meeting"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c5",
@@ -2261,7 +2269,8 @@
           "Team Meeting",
           "Teacher Meeting",
           "General Meeting"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c6",
@@ -2287,7 +2296,8 @@
           "Teacher Meeting",
           "General Meeting",
           "Take Care of Team Members"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c7",
@@ -2313,7 +2323,8 @@
           "General Meeting",
           "Take Care of Team Members",
           "Registrations / Sunday 21:30 - 23:00"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c8",
@@ -2339,7 +2350,8 @@
           "Social Media Plan",
           "Social Media Copy",
           "Social Media Story"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c9",
@@ -2381,7 +2393,8 @@
           "Installing the Venue - Sunday",
           "Food Supply - Sunday",
           "Deinstalling the Venue + Cleaning - Sunday"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c10",
@@ -2397,7 +2410,8 @@
           "Team Meeting",
           "Teacher Meeting",
           "General Meeting"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c11",
@@ -2440,7 +2454,8 @@
           "Social Media Story",
           "Social Media Reels",
           "Registrations / Sunday 21:30 - 23:00"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c12",
@@ -2494,7 +2509,8 @@
           "Food Supply - Sunday",
           "Deinstalling the Venue + Cleaning - Sunday",
           "Master of Cerimony - Sunday"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c13",
@@ -2520,7 +2536,8 @@
           "Registrations / Sunday 23:00 - 00:30",
           "Installing the Venue - Sunday",
           "Master of Cerimony - Sunday"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c14",
@@ -2576,7 +2593,8 @@
           "Food Supply - Sunday",
           "Deinstalling the Venue + Cleaning - Sunday",
           "Master of Cerimony - Sunday"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c15",
@@ -2610,7 +2628,8 @@
           "General Meeting",
           "Monthly Print",
           "Take Care of Team Members"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c16",
@@ -2670,13 +2689,15 @@
           "Food Supply - Sunday",
           "Deinstalling the Venue + Cleaning - Sunday",
           "Master of Cerimony - Sunday"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c17",
         "name": "Ludmiła Januszewska",
         "role": "teacher",
-        "roles": []
+        "roles": [],
+        "availability": {}
       },
       {
         "id": "c18",
@@ -2717,7 +2738,8 @@
           "Food Supply - Sunday",
           "Deinstalling the Venue + Cleaning - Sunday",
           "Master of Cerimony - Sunday"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c19",
@@ -2759,7 +2781,8 @@
           "Registrations / Sunday 21:30 - 23:00",
           "Installing the Venue - Sunday",
           "Food Supply - Sunday"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c20",
@@ -2794,7 +2817,8 @@
           "Teacher Meeting",
           "General Meeting",
           "Take Care of Team Members"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c21",
@@ -2827,7 +2851,8 @@
           "Take Care of Team Members",
           "Registrations / Sunday 21:30 - 23:00",
           "Registrations / Sunday 23:00 - 00:30"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c22",
@@ -2854,7 +2879,8 @@
           "Food Supply - Sunday",
           "Deinstalling the Venue + Cleaning - Sunday",
           "Master of Cerimony - Sunday"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c23",
@@ -2878,7 +2904,8 @@
           "Food Supply - Sunday",
           "Deinstalling the Venue + Cleaning - Sunday",
           "Master of Cerimony - Sunday"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c24",
@@ -2918,7 +2945,8 @@
           "Food Supply - Sunday",
           "Deinstalling the Venue + Cleaning - Sunday",
           "Master of Cerimony - Sunday"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c25",
@@ -2953,7 +2981,8 @@
           "Food Supply - Sunday",
           "Deinstalling the Venue + Cleaning - Sunday",
           "Master of Cerimony - Sunday"
-        ]
+        ],
+        "availability": {}
       },
       {
         "id": "c26",
@@ -2988,7 +3017,8 @@
           "Registrations / Sunday 21:30 - 23:00",
           "Installing the Venue - Sunday",
           "Food Supply - Sunday"
-        ]
+        ],
+        "availability": {}
       }
     ],
     "metrics": [
