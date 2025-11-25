@@ -249,54 +249,82 @@ async function fetchSheetData() {
 }
 
 function parseAvailabilityCSV(csv) {
+    // Robust CSV Parser (from test-parser.html)
     const rows = [];
-    let currentRow = [];
-    let inQuotes = false;
+    let currentLine = [];
     let currentCell = '';
+    let inQuotes = false;
 
-    // Simple CSV parser
     for (let i = 0; i < csv.length; i++) {
         const char = csv[i];
+        const nextChar = csv[i + 1];
+
         if (char === '"') {
-            inQuotes = !inQuotes;
+            if (inQuotes && nextChar === '"') {
+                currentCell += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
         } else if (char === ',' && !inQuotes) {
-            currentRow.push(currentCell.trim());
+            currentLine.push(currentCell.trim());
             currentCell = '';
         } else if ((char === '\r' || char === '\n') && !inQuotes) {
-            if (currentCell || currentRow.length > 0) currentRow.push(currentCell.trim());
-            if (currentRow.length > 0) rows.push(currentRow);
-            currentRow = [];
+            if (currentCell || currentLine.length > 0) {
+                currentLine.push(currentCell.trim());
+                rows.push(currentLine);
+            }
+            currentLine = [];
             currentCell = '';
+            if (char === '\r' && nextChar === '\n') i++;
         } else {
             currentCell += char;
         }
     }
-    if (currentCell || currentRow.length > 0) {
-        currentRow.push(currentCell.trim());
-        rows.push(currentRow);
+    if (currentCell || currentLine.length > 0) {
+        currentLine.push(currentCell.trim());
+        rows.push(currentLine);
     }
 
     // Structure Validation:
-    // Row 3 (index 3): Weeks (Week 1, Week 2...)
-    // Row 4 (index 4): Days (Tue, Wed...)
-    // Row 5+ (index 5+): Candidates (Name in Column B / Index 1)
-
     if (rows.length < 6) {
         console.warn('Availability CSV too short:', rows.length);
         return [];
     }
 
-    const weekRow = rows[3];
-    const dayRow = rows[4];
+    // Dynamic Row Detection
+    let weekRowIndex = -1;
+    for (let i = 0; i < rows.length; i++) {
+        // Look for a row that has "Week 1" (or "week 1") in it
+        if (rows[i].some(cell => cell && cell.toLowerCase().includes('week 1'))) {
+            weekRowIndex = i;
+            break;
+        }
+    }
+
+    if (weekRowIndex === -1) {
+        console.error('Could not find Week row in Availability CSV');
+        return [];
+    }
+
+    const weekRow = rows[weekRowIndex];
+    const dayRow = rows[weekRowIndex + 1];
+
+    if (!dayRow) {
+        console.error('Day row is undefined (end of file?)');
+        return [];
+    }
 
     // Map columns to Week/Day
     const columnMap = {};
     let currentWeek = '';
 
     for (let i = 4; i < weekRow.length; i++) { // Starting from column E (index 4)
+        // Check if this column has a new Week definition
         if (weekRow[i] && weekRow[i].toLowerCase().includes('week')) {
-            currentWeek = weekRow[i];
+            currentWeek = weekRow[i].trim(); // Trim to remove potential trailing spaces
         }
+        // If weekRow[i] is empty, we keep the previous `currentWeek` (Fill Down / Merged Cell behavior)
 
         if (currentWeek && dayRow[i]) {
             // Normalize day name (Tue -> Tuesday)
@@ -312,7 +340,8 @@ function parseAvailabilityCSV(csv) {
     }
 
     const candidates = [];
-    for (let i = 5; i < rows.length; i++) {
+    // Start searching for candidates AFTER the day row (weekRowIndex + 2)
+    for (let i = weekRowIndex + 2; i < rows.length; i++) {
         const row = rows[i];
         const name = row[1]; // Column B (Name)
         if (!name) continue;
@@ -348,16 +377,22 @@ function isCandidateAvailable(candidate, taskName, taskTime, week, day) {
     // No, keep it focused on time/availability constraints. Role check is separate.
 
     // 2. Check Time Availability
-    if (!candidate.availability) return true; // No availability data, assume available
+    if (!candidate.availability) {
+        // console.warn(`No availability data for ${candidate.name}`);
+        return false; // Default to NONE as requested
+    }
 
     // Skip check for "0th Day" or tasks with "All" time
     if (day === '0th Day' || taskTime === 'All' || !taskTime) return true;
 
     // Normalize Week Name (e.g. "Week 10" matches "Week 10")
     const weekAvail = candidate.availability[week];
-    if (!weekAvail) return true; // No data for this week
+    if (!weekAvail) {
+        return false; // No data for this week -> Default to NONE
+    }
 
     const dayAvail = weekAvail[day];
+
     if (!dayAvail || dayAvail === 'None') return false; // Explicitly None or missing
     if (dayAvail === 'All') return true; // Available all day
 

@@ -34,6 +34,22 @@ function renderSchedulePreview() {
     const hoveredTaskName = window.getCurrentHoveredTaskName ? window.getCurrentHoveredTaskName() : null;
     const hoveredIsGroup = window.getCurrentHoveredIsGroup ? window.getCurrentHoveredIsGroup() : false;
 
+    // 1. Calculate Max Candidates for Normalization
+    let maxCandidates = 0;
+    SCHEDULE_DATA.forEach(weekData => {
+        weekData.days.forEach(dayData => {
+            if (dayData.tasks) {
+                dayData.tasks.forEach(task => {
+                    const count = getCandidateCount(task.name, task, weekData.week, dayData.name);
+                    if (count > maxCandidates) maxCandidates = count;
+                });
+            }
+        });
+    });
+
+    // Ensure a minimum max to avoid division by zero or overly sensitive gradients for low counts
+    if (maxCandidates < 5) maxCandidates = 5;
+
     SCHEDULE_DATA.forEach((weekData, weekIndex) => {
         const weekGroup = document.createElement('div');
         weekGroup.className = 'schedule-week-group';
@@ -71,8 +87,9 @@ function renderSchedulePreview() {
                 taskSquare.className = 'schedule-task-square';
 
                 // Calculate color based on candidate count
-                const candidateCount = getCandidateCount(task.name, task);
-                taskSquare.style.backgroundColor = getHeatmapColor(candidateCount);
+                // Calculate color based on candidate count
+                const candidateCount = getCandidateCount(task.name, task, weekData.week, dayData.name);
+                taskSquare.style.backgroundColor = getHeatmapColor(candidateCount, maxCandidates);
 
                 taskSquare.dataset.taskId = task.id;
                 taskSquare.dataset.taskName = task.name;
@@ -217,7 +234,7 @@ function renderSchedulePreview() {
 // Global click listener to close detail view when clicking outside
 document.addEventListener('click', handleGlobalClick);
 
-function getCandidateCount(taskName, task) {
+function getCandidateCount(taskName, task, week, day) {
     if (typeof CANDIDATES === 'undefined') return 0;
 
     // 1. Resolve Real ID for Star Checking
@@ -253,26 +270,76 @@ function getCandidateCount(taskName, task) {
     if (isGroup && task && task.subTasks) {
         // For groups, candidate must be eligible for ALL subtasks
         // We check if the candidate is in the pool AND has roles for all subtasks
-        // (Availability check is expensive, maybe skip for heatmap? 
-        //  The original logic just checked roles. Let's stick to roles for performance unless requested.)
-        // Wait, the previous logic was just roles.
+        // AND is available
 
         return pool.filter(c => {
-            return task.subTasks.every(subTask => c.roles.includes(subTask.name));
+            return task.subTasks.every(subTask =>
+                c.roles.includes(subTask.name) &&
+                isCandidateAvailable(c, subTask.name, subTask.time, week, day)
+            );
         }).length;
     } else {
         // Individual Task
-        return pool.filter(c => c.roles.includes(taskName)).length;
+        return pool.filter(c =>
+            c.roles.includes(taskName) &&
+            isCandidateAvailable(c, taskName, task.time, week, day)
+        ).length;
     }
 }
 
-function getHeatmapColor(count) {
-    // Pastel red-yellow-green heatmap
-    if (count === 0) return '#E29AA8'; // Pastel pink/red - no candidates
-    if (count <= 2) return '#F5A896'; // Pastel coral - very few
-    if (count <= 5) return '#F5D896'; // Pastel yellow - some
-    if (count <= 10) return '#C6D89E'; // Pastel lime - good amount
-    return '#A8C6A3'; // Pastel green - many
+function getHeatmapColor(count, max) {
+    if (count === 0) return '#c66276ff'; // Pastel pink/red - no candidates
+
+    // Gradient Stops (The "Old Thresholds" colors)
+    const stops = [
+        { val: 0.0, color: '#c66276ff' }, // Pink (0%)
+        { val: 0.2, color: '#F5A896' }, // Coral (20%)
+        { val: 0.4, color: '#F5D896' }, // Yellow (40%)
+        { val: 0.7, color: '#C6D89E' }, // Lime (70%)
+        { val: 1.0, color: '#A8C6A3' }  // Green (100%)
+    ];
+
+    // Normalize count (0 to 1)
+    // We map 1..max to 0..1
+    // If max is small (e.g. 5), we still want to use the full range
+    const normalized = Math.min(1, Math.max(0, (count - 1) / (max - 1)));
+
+    // Find the two stops we are between
+    let lower = stops[0];
+    let upper = stops[stops.length - 1];
+
+    for (let i = 0; i < stops.length - 1; i++) {
+        if (normalized >= stops[i].val && normalized <= stops[i + 1].val) {
+            lower = stops[i];
+            upper = stops[i + 1];
+            break;
+        }
+    }
+
+    // Interpolate
+    const range = upper.val - lower.val;
+    const factor = (normalized - lower.val) / range;
+
+    return interpolateColor(lower.color, upper.color, factor);
+}
+
+function interpolateColor(color1, color2, factor) {
+    // Parse Hex
+    const r1 = parseInt(color1.substring(1, 3), 16);
+    const g1 = parseInt(color1.substring(3, 5), 16);
+    const b1 = parseInt(color1.substring(5, 7), 16);
+
+    const r2 = parseInt(color2.substring(1, 3), 16);
+    const g2 = parseInt(color2.substring(3, 5), 16);
+    const b2 = parseInt(color2.substring(5, 7), 16);
+
+    // Interpolate
+    const r = Math.round(r1 + (r2 - r1) * factor);
+    const g = Math.round(g1 + (g2 - g1) * factor);
+    const b = Math.round(b1 + (b2 - b1) * factor);
+
+    // To Hex
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 }
 
 function handleGlobalClick(e) {
@@ -364,7 +431,7 @@ function toggleTaskDetail(task, weekIndex, dayIndex, dayRow) {
     detailContent.innerHTML = '';
 
     // Create detailed task card
-    const card = renderDetailTaskCard(task);
+    const card = renderDetailTaskCard(task, weekIndex, dayIndex, dayRow);
 
     // Adjust card style for the detail view
     card.style.width = 'auto';
@@ -396,8 +463,11 @@ function toggleTaskDetail(task, weekIndex, dayIndex, dayRow) {
 /**
  * Renders a task card similar to the canvas view
  * @param {Object} task 
+ * @param {number} weekIndex
+ * @param {number} dayIndex
+ * @param {HTMLElement} dayRow
  */
-function renderDetailTaskCard(task) {
+function renderDetailTaskCard(task, weekIndex, dayIndex, dayRow) {
     const el = document.createElement('div');
     el.className = 'task-card';
     el.classList.add('schedule-detail-card');
@@ -440,6 +510,25 @@ function renderDetailTaskCard(task) {
             ? CANDIDATES.filter(c => c.roles.includes(task.name))
             : []
     );
+
+    // Filter by Availability
+    const weekData = SCHEDULE_DATA[weekIndex];
+    const dayData = weekData.days[dayIndex];
+    const week = weekData.week;
+    const day = dayData.name;
+
+    if (task.isGroup && task.subTasks) {
+        suitableCandidates = suitableCandidates.filter(c =>
+            task.subTasks.every(subTask =>
+                c.roles.includes(subTask.name) &&
+                isCandidateAvailable(c, subTask.name, subTask.time, week, day)
+            )
+        );
+    } else {
+        suitableCandidates = suitableCandidates.filter(c =>
+            isCandidateAvailable(c, task.name, task.time, week, day)
+        );
+    }
 
     // Apply Star Restriction to the list
     // 1. Resolve Real ID
