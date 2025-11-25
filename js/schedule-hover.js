@@ -16,8 +16,16 @@
 
             let isMatch = false;
             if (isGroup) {
-                isMatch = squareIsGroup && squareName === taskName;
+                // For groups, match if the square is also a group AND has the same name
+                // OR if the square is NOT a group but its name is one of the tasks in the group (this part is tricky without the list of tasks)
+                // SIMPLIFICATION: Just match by name for now. If the group title matches the square's task name (which for groups is the title), it's a match.
+                // ALSO: We need to handle the case where the square is a "constituent" task of the group.
+                // But wait, the schedule squares for groups are now AGGREGATED squares.
+                // So they should have isGroup=true and taskName=Group Title.
+
+                isMatch = squareName === taskName;
             } else {
+                // For individual tasks, match exact name and ensure square is NOT a group
                 isMatch = !squareIsGroup && squareName === taskName;
             }
 

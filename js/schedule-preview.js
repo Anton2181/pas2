@@ -50,9 +50,13 @@ function renderSchedulePreview() {
                 taskSquare.dataset.taskId = task.id;
                 taskSquare.dataset.taskName = task.name;
                 taskSquare.dataset.isGroup = task.isGroup ? 'true' : 'false';
-                taskSquare.dataset.taskId = task.id;
-                taskSquare.dataset.taskName = task.name;
-                taskSquare.dataset.isGroup = task.isGroup ? 'true' : 'false';
+
+                if (task.isGroup) {
+                    taskSquare.classList.add('is-group-task');
+                    // console.log('Added is-group-task class to:', task.name);
+                } else {
+                    // console.log('Task is NOT group:', task.name, task);
+                }
 
                 // Click event
                 taskSquare.addEventListener('click', (e) => {
@@ -340,3 +344,49 @@ function getGlobalTooltip() {
 document.addEventListener('DOMContentLoaded', () => {
     renderSchedulePreview();
 });
+
+// Group Style Toggle Logic
+(function () {
+    const STORAGE_KEY = 'schedule_group_style';
+
+    function updateStyle(style) {
+        const container = document.getElementById('schedule-preview-container');
+        const toggle = document.getElementById('group-style-toggle');
+
+        if (!container) return;
+
+        if (style === 'circle') {
+            container.classList.add('group-style-circle');
+            if (toggle) toggle.checked = true;
+        } else {
+            container.classList.remove('group-style-circle');
+            if (toggle) toggle.checked = false;
+        }
+        localStorage.setItem(STORAGE_KEY, style);
+    }
+
+    // Init
+    const savedStyle = localStorage.getItem(STORAGE_KEY) || 'square';
+
+    function initToggle() {
+        const toggle = document.getElementById('group-style-toggle');
+        if (toggle) {
+            // Set initial state
+            updateStyle(savedStyle);
+
+            // Add listener
+            toggle.addEventListener('change', (e) => {
+                updateStyle(e.target.checked ? 'circle' : 'square');
+            });
+        } else {
+            // Retry if not found (e.g. dynamic loading issues)
+            setTimeout(initToggle, 500);
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initToggle);
+    } else {
+        initToggle();
+    }
+})();

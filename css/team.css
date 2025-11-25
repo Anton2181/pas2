@@ -217,11 +217,63 @@
     z-index: 100;
 }
 
+/* Only apply circle style if the container has the class */
+/* Only apply circle style if the container has the class */
+.group-style-circle .schedule-task-square.is-group-task {
+    border-radius: 50% !important;
+    transform: scale(0.85);
+}
+
+/* Toggle Switch Styles */
+.switch-toggle {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+}
+
+.switch-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 4px;
+    /* Rectangular */
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 2px;
+    /* Rectangular knob */
+}
+
+input:checked+.slider {
+    background-color: #4CAF50;
+}
+
+input:checked+.slider:before {
+    transform: translateX(16px);
+}
+
 .schedule-detail-container {
-    overflow: visible;
-    /* Allow triangle to extend outside */
-    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-        margin-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transition: margin-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1),
         padding 0.4s cubic-bezier(0.4, 0, 0.2, 1),
         opacity 0.3s ease-out;
     max-height: 0;

@@ -479,6 +479,10 @@
                     </div>
                 </div>
                 <div class="nav-actions">
+                    <button id="global-redownload-btn" class="global-action-btn" title="Re-download Data from Source"
+                        onclick="window.reloadAndRefreshData && window.reloadAndRefreshData()">☁️</button>
+                    <button id="global-refresh-btn" class="global-action-btn" title="Refresh Data & Groups"
+                        onclick="window.refreshScheduleAggregation && window.refreshScheduleAggregation()">🔄</button>
                     <button id="global-save-btn" class="global-action-btn" title="Save All Data">💾</button>
                     <button id="global-load-btn" class="global-action-btn" title="Load All Data">📂</button>
                 </div>
@@ -499,7 +503,18 @@
                     </div>
 
                     <div class="content-panel" id="schedule-preview-panel">
-                        <div class="panel-header">Schedule Preview</div>
+                        <div class="panel-header"
+                            style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Schedule Preview</span>
+                            <div class="group-style-toggle"
+                                style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: normal;">
+                                <span class="toggle-label" style="color: #666;">Groups:</span>
+                                <label class="switch-toggle">
+                                    <input type="checkbox" id="group-style-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
                         <div id="schedule-preview-container">
                             <!-- Populated by JS -->
                         </div>
