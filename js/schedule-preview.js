@@ -596,7 +596,23 @@ function renderDetailTaskCard(task, weekIndex, dayIndex, dayRow) {
     el.classList.add('schedule-detail-card');
 
     const content = document.createElement('div');
-    content.innerHTML = `<div class="task-header">${task.name}</div>`;
+    content.innerHTML = `<div class="task-header">
+        ${task.name}
+        <span class="task-id-badge" style="font-size: 10px; color: #999; margin-left: 8px; font-weight: normal; font-family: monospace;">${task.id}</span>
+    </div>`;
+
+    // Show subtask IDs for groups
+    if (task.isGroup && task.subTasks) {
+        const subtasksDiv = document.createElement('div');
+        subtasksDiv.style.fontSize = '10px';
+        subtasksDiv.style.color = '#aaa';
+        subtasksDiv.style.marginTop = '2px';
+        subtasksDiv.style.fontFamily = 'monospace';
+        // Limit to first few if too many? No, user asked for "exact tasks", implying full list.
+        // But let's wrap it nicely.
+        subtasksDiv.textContent = 'Includes: ' + task.subTasks.map(t => t.id).join(', ');
+        content.appendChild(subtasksDiv);
+    }
 
     const meta = document.createElement('div');
     meta.className = 'task-meta';

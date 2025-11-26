@@ -110,12 +110,16 @@ function parseCSV(csv) {
     }
 
     // Create tasks array
-    const tasks = taskNames.map((taskName, idx) => ({
-        id: `t${idx + 1}`,
-        name: taskName,
-        duration: 60, // Default duration
-        type: taskName.toLowerCase()
-    }));
+    const tasks = taskNames.map((taskName, idx) => {
+        // Generate stable ID from name (e.g. "Group Lesson" -> "task-group-lesson")
+        const slug = taskName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        return {
+            id: `task-${slug}`,
+            name: taskName,
+            duration: 60, // Default duration
+            type: taskName.toLowerCase()
+        };
+    });
 
     return { tasks, candidates };
 }
