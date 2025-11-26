@@ -53,6 +53,9 @@ function aggregateScheduleIntoGroups(scheduleData) {
         if (a.taskNames.length !== b.taskNames.length) return a.taskNames.length - b.taskNames.length;
 
         // 4. Tiebreaker: ID (older first)
+        if (typeof a.id === 'string' && typeof b.id === 'string') {
+            return a.id.localeCompare(b.id);
+        }
         return a.id - b.id;
     });
 
@@ -198,6 +201,7 @@ function aggregateScheduleIntoGroups(scheduleData) {
                             effort: totalEffort,
                             isGroup: true,
                             isSplitRole: group.isSplitRole, // Pass flag to task
+                            splitRoleType: group.isSplitRole ? (instanceCount === 0 ? 'leader' : 'follower') : null,
                             candidateCount,
                             candidates: eligibleCandidates, // Store the list!
                             taskNames: taskNamesInGroup, // Store original task names for filtering

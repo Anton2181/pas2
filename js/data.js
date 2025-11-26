@@ -534,6 +534,11 @@ async function loadData(forceRefresh = false) {
                 SCHEDULE_DATA = [];
             }
 
+            // Sync ORIGINAL_SCHEDULE_DATA for aggregation
+            if (typeof window !== 'undefined') {
+                window.ORIGINAL_SCHEDULE_DATA = [...SCHEDULE_DATA];
+            }
+
             console.log('Loaded data from localStorage');
 
             // Initialize previous valid date on successful load
@@ -545,8 +550,10 @@ async function loadData(forceRefresh = false) {
             highlightRemovedTasks();
             rebuildTaskLists();
 
-            // Render Schedule Preview
-            if (window.renderSchedulePreview) {
+            // Trigger Aggregation (which will also render preview)
+            if (window.refreshScheduleAggregation) {
+                window.refreshScheduleAggregation();
+            } else if (window.renderSchedulePreview) {
                 window.renderSchedulePreview();
             }
 
@@ -584,9 +591,20 @@ async function loadData(forceRefresh = false) {
             localStorage.setItem('previous_valid_project_date', currentProjectDate);
         }
 
+        // Sync ORIGINAL_SCHEDULE_DATA for aggregation
+        if (typeof window !== 'undefined') {
+            window.ORIGINAL_SCHEDULE_DATA = [...SCHEDULE_DATA];
+        }
+
         console.log('Data loaded from Google Sheets');
         highlightRemovedTasks();
         rebuildTaskLists();
+
+        // Trigger Aggregation
+        if (window.refreshScheduleAggregation) {
+            window.refreshScheduleAggregation();
+        }
+
         return { success: true, timestamp: timestamp };
     }
 

@@ -30,9 +30,45 @@ function renderSchedulePreview() {
     const newRenderedIds = new Set();
     const previousRenderedIds = window.renderedTaskIds || new Set();
 
+    // Track candidate counts for animation detection
+    const newCandidateCounts = new Map();
+    const previousCandidateCounts = window.lastCandidateCounts || new Map();
+
+    // Track Filter Change
+    const previousMemberFilterId = window.lastMemberFilterId;
+    const filterChanged = previousMemberFilterId !== currentMemberFilterId;
+
+    // Track Style Change (Circle vs Square)
+    // container is already defined above
+    const isCircleStyle = container ? container.classList.contains('group-style-circle') : false;
+    const previousStyle = window.lastGroupStyle;
+    const styleChanged = previousStyle !== undefined && previousStyle !== isCircleStyle;
+    window.lastGroupStyle = isCircleStyle;
+
     // Get current hover state to apply immediately (prevents flicker)
     const hoveredTaskName = window.getCurrentHoveredTaskName ? window.getCurrentHoveredTaskName() : null;
     const hoveredIsGroup = window.getCurrentHoveredIsGroup ? window.getCurrentHoveredIsGroup() : false;
+
+    // ... (max candidates calculation) ...
+
+    // Animation Logic
+    // ...
+
+    // Inside the loop where we process tasks:
+    // We need to update the shouldAnimate logic.
+    // Since I can't easily inject into the loop from here without replacing the whole function,
+    // I will replace the block where `shouldAnimate` is calculated.
+    // Wait, I am replacing lines 38-40. I need to make sure I don't break the rest.
+    // I will just add the style tracking here.
+
+    // ...
+
+    // Actually, I need to replace the `shouldAnimate` logic block later in the file.
+    // Let's do this in two steps or one big replacement if possible.
+    // The `shouldAnimate` logic is around line 177.
+    // The setup is around line 38.
+
+    // I'll update the setup first.
 
     // 1. Calculate Max Candidates for Normalization
     let maxCandidates = 0;
@@ -87,9 +123,11 @@ function renderSchedulePreview() {
                 taskSquare.className = 'schedule-task-square';
 
                 // Calculate color based on candidate count
-                // Calculate color based on candidate count
                 const candidateCount = getCandidateCount(task.name, task, weekData.week, dayData.name);
                 taskSquare.style.backgroundColor = getHeatmapColor(candidateCount, maxCandidates);
+
+                // Store count for next comparison
+                newCandidateCounts.set(task.id, candidateCount);
 
                 taskSquare.dataset.taskId = task.id;
                 taskSquare.dataset.taskName = task.name;
@@ -110,28 +148,6 @@ function renderSchedulePreview() {
                         taskSquare.classList.add('dimmed');
                     }
                 }
-
-                // Animation Logic
-                // If ID was NOT in the previous render, it's new -> Animate
-                if (!previousRenderedIds.has(task.id)) {
-                    // New task! Animate it.
-                    requestAnimationFrame(() => {
-                        if (task.isGroup) {
-                            taskSquare.classList.add('is-group-task');
-                            taskSquare.classList.add('animate-pop');
-                        } else {
-                            taskSquare.classList.add('animate-slide');
-                        }
-                    });
-                } else {
-                    // Already rendered previously, just add static class if needed
-                    if (task.isGroup) {
-                        taskSquare.classList.add('is-group-task');
-                    }
-                }
-
-                // Add to current set
-                newRenderedIds.add(task.id);
 
                 // Filtering Logic
                 if (filterCandidate) {
@@ -168,20 +184,93 @@ function renderSchedulePreview() {
                             // For groups, check if candidate can do ALL tasks in the group
                             // Check Roles AND Availability for each sub-task
                             isEligible = task.subTasks.every(subTask =>
-                                filterCandidate.roles.includes(subTask.name) &&
+                                hasRole(filterCandidate, subTask.name) && // Use hasRole
                                 isCandidateAvailable(filterCandidate, subTask.name, subTask.time, weekData.week, dayData.name)
                             );
+
+                            // Extra check for Split Role Groups:
+                            // If this is a split role group, we must also check if the candidate has the SPECIFIC role for this instance (Leader vs Follower)
+                            if (isEligible && task.isSplitRole && task.splitRoleType) {
+                                if (!hasRole(filterCandidate, task.splitRoleType)) {
+                                    isEligible = false;
+                                }
+                            }
                         } else {
                             // For individual tasks
-                            isEligible = filterCandidate.roles.includes(task.name) &&
+                            isEligible = hasRole(filterCandidate, task.name) && // Use hasRole
                                 isCandidateAvailable(filterCandidate, task.name, task.time, weekData.week, dayData.name);
                         }
                     }
 
                     if (!isEligible) {
                         taskSquare.classList.add('task-ineligible');
+                        // Force gray background for ineligible tasks
+                        taskSquare.style.backgroundColor = '#eeeeee';
                     }
                 }
+
+                // Animation Logic
+                let shouldAnimate = false;
+
+                // Animate if:
+                // 1. Filter changed (implicit reset of view)
+                // 2. Style changed (Circle <-> Square)
+                // 3. New Task
+                // 4. Count Changed
+
+                if (filterChanged) {
+                    shouldAnimate = true;
+                } else if (styleChanged && task.isGroup) {
+                    shouldAnimate = true;
+                } else {
+                    // For groups, we ONLY animate on style/filter change.
+                    // We suppress "New" and "Count Changed" animations for groups to ensure stability.
+                    if (!task.isGroup) {
+                        // 1. New Task?
+                        if (!previousRenderedIds.has(task.id)) {
+                            shouldAnimate = true;
+                        }
+                        // 2. Count Changed?
+                        else if (previousCandidateCounts.has(task.id) && previousCandidateCounts.get(task.id) !== candidateCount) {
+                            shouldAnimate = true;
+                        }
+                    }
+                }
+
+                // SUPPRESS ANIMATION IF INELIGIBLE (Grayed out)
+                // If we are filtering by a candidate, and this task is ineligible for them, don't pop it even if count changed.
+                // It's distracting to see gray squares popping.
+                if (filterCandidate) {
+                    // Re-calculate eligibility or check class?
+                    // We already checked eligibility above.
+                    // Let's use the class check as a proxy since we just applied it.
+                    if (taskSquare.classList.contains('task-ineligible')) {
+                        shouldAnimate = false;
+                    }
+                }
+
+                if (shouldAnimate) {
+                    // DEBUG: Log why we are animating
+                    // console.log(`Animating ${task.name} (${task.id}). Group: ${task.isGroup}. Reason: ${filterChanged ? 'Filter' : styleChanged ? 'Style' : !previousRenderedIds.has(task.id) ? 'New' : 'Count'}`);
+
+                    requestAnimationFrame(() => {
+                        // Use pop animation for groups OR count updates
+                        if (task.isGroup || previousRenderedIds.has(task.id)) {
+                            taskSquare.classList.add('is-group-task'); // Ensure shape style if needed
+                            taskSquare.classList.add('animate-pop');
+                        } else {
+                            taskSquare.classList.add('animate-slide');
+                        }
+                    });
+                } else {
+                    // Already rendered previously, just add static class if needed
+                    if (task.isGroup) {
+                        taskSquare.classList.add('is-group-task');
+                    }
+                }
+
+                // Add to current set
+                newRenderedIds.add(task.id);
 
                 // Click event
                 taskSquare.addEventListener('click', (e) => {
@@ -223,6 +312,8 @@ function renderSchedulePreview() {
 
     // Update global set for next time
     window.renderedTaskIds = newRenderedIds;
+    window.lastCandidateCounts = newCandidateCounts;
+    window.lastMemberFilterId = currentMemberFilterId;
 
     // Re-apply hover if needed
     if (window.reapplyScheduleHover) {
@@ -233,6 +324,39 @@ function renderSchedulePreview() {
 
 // Global click listener to close detail view when clicking outside
 document.addEventListener('click', handleGlobalClick);
+
+// Helper to check role with localStorage override
+function hasRole(candidate, role) {
+    if (!candidate || !role) return false;
+
+    // Check for localStorage override for Leader/Follower
+    // We need to map the task name (role) to "leader" or "follower"
+    const taskName = role.toLowerCase();
+    let mappedRole = null;
+
+    if (taskName.includes('lead') || taskName.includes('conduct') || taskName.includes('teacher')) {
+        mappedRole = 'leader';
+    } else if (taskName.includes('follow') || taskName.includes('assist')) {
+        mappedRole = 'follower';
+    }
+
+    if (mappedRole) {
+        const key = `team_role_${candidate.id}`;
+        const stored = localStorage.getItem(key);
+        if (stored) {
+            try {
+                const state = JSON.parse(stored);
+                if (mappedRole === 'leader') return state.leader || state.both;
+                if (mappedRole === 'follower') return state.follower || state.both;
+            } catch (e) {
+                console.error('Error parsing team role override:', e);
+            }
+        }
+    }
+
+    // Fallback to static roles
+    return candidate.roles.includes(role);
+}
 
 function getCandidateCount(taskName, task, week, day) {
     if (typeof CANDIDATES === 'undefined') return 0;
@@ -271,17 +395,16 @@ function getCandidateCount(taskName, task, week, day) {
         // For groups, candidate must be eligible for ALL subtasks
         // We check if the candidate is in the pool AND has roles for all subtasks
         // AND is available
-
         return pool.filter(c => {
             return task.subTasks.every(subTask =>
-                c.roles.includes(subTask.name) &&
+                hasRole(c, subTask.name) && // Use hasRole helper
                 isCandidateAvailable(c, subTask.name, subTask.time, week, day)
             );
         }).length;
     } else {
         // Individual Task
         return pool.filter(c =>
-            c.roles.includes(taskName) &&
+            hasRole(c, taskName) && // Use hasRole helper
             isCandidateAvailable(c, taskName, task.time, week, day)
         ).length;
     }
@@ -507,7 +630,7 @@ function renderDetailTaskCard(task, weekIndex, dayIndex, dayRow) {
     // Use stored candidates (for groups) or calculate on fly (for singles)
     let suitableCandidates = task.candidates || (
         (typeof CANDIDATES !== 'undefined')
-            ? CANDIDATES.filter(c => c.roles.includes(task.name))
+            ? CANDIDATES.filter(c => hasRole(c, task.name)) // Use hasRole helper
             : []
     );
 
@@ -520,7 +643,7 @@ function renderDetailTaskCard(task, weekIndex, dayIndex, dayRow) {
     if (task.isGroup && task.subTasks) {
         suitableCandidates = suitableCandidates.filter(c =>
             task.subTasks.every(subTask =>
-                c.roles.includes(subTask.name) &&
+                hasRole(c, subTask.name) && // Use hasRole helper
                 isCandidateAvailable(c, subTask.name, subTask.time, week, day)
             )
         );
@@ -633,6 +756,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (toggle) toggle.checked = false;
         }
         localStorage.setItem(STORAGE_KEY, style);
+
+        // Force re-render to trigger animations
+        if (window.renderSchedulePreview) {
+            window.renderSchedulePreview();
+        }
     }
 
     // Init

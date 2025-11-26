@@ -313,58 +313,81 @@
                         cursor: default;
                     }
 
-                    .group-card .task-star {
+                    /* Active State for Split Badge - STRICTLY INDEPENDENT */
+                    .split-role-badge.active {
+                        color: var(--group-accent-color, #4A90E2) !important;
+                        opacity: 1 !important;
+                        transform: scale(1) !important;
+                    }
+
+                    .group-card .task-star,
+                    .group-card .split-role-badge {
                         background: linear-gradient(135deg, rgba(100, 160, 220, 0.3), rgba(80, 140, 200, 0.4));
                         border: 1px solid rgba(80, 140, 200, 0.5);
                     }
 
                     /* Group Variants matching canvas.css */
                     .task-card.group-card.variant-1 {
+                        --group-accent-color: #FFC9C9;
+                        /* Peach Border Match */
                         background: linear-gradient(135deg, #FFF5F5 0%, #FFE3E3 100%);
                         border-color: #FFC9C9;
                     }
 
-                    .task-card.group-card.variant-1 .task-star {
+                    .task-card.group-card.variant-1 .task-star,
+                    .task-card.group-card.variant-1 .split-role-badge {
                         background: linear-gradient(135deg, #FFF5F5 0%, #FFE3E3 100%);
                         border-color: #FFC9C9;
                     }
 
                     .task-card.group-card.variant-2 {
+                        --group-accent-color: #9AE6B4;
+                        /* Green Border Match */
                         background: linear-gradient(135deg, #F0FFF4 0%, #C6F6D5 100%);
                         border-color: #9AE6B4;
                     }
 
-                    .task-card.group-card.variant-2 .task-star {
+                    .task-card.group-card.variant-2 .task-star,
+                    .task-card.group-card.variant-2 .split-role-badge {
                         background: linear-gradient(135deg, #F0FFF4 0%, #C6F6D5 100%);
                         border-color: #9AE6B4;
                     }
 
                     .task-card.group-card.variant-3 {
+                        --group-accent-color: #90CDF4;
+                        /* Blue Border Match */
                         background: linear-gradient(135deg, #EBF8FF 0%, #BEE3F8 100%);
                         border-color: #90CDF4;
                     }
 
-                    .task-card.group-card.variant-3 .task-star {
+                    .task-card.group-card.variant-3 .task-star,
+                    .task-card.group-card.variant-3 .split-role-badge {
                         background: linear-gradient(135deg, #EBF8FF 0%, #BEE3F8 100%);
                         border-color: #90CDF4;
                     }
 
                     .task-card.group-card.variant-4 {
+                        --group-accent-color: #D6BCFA;
+                        /* Purple Border Match */
                         background: linear-gradient(135deg, #FAF5FF 0%, #E9D8FD 100%);
                         border-color: #D6BCFA;
                     }
 
-                    .task-card.group-card.variant-4 .task-star {
+                    .task-card.group-card.variant-4 .task-star,
+                    .task-card.group-card.variant-4 .split-role-badge {
                         background: linear-gradient(135deg, #FAF5FF 0%, #E9D8FD 100%);
                         border-color: #D6BCFA;
                     }
 
                     .task-card.group-card.variant-5 {
+                        --group-accent-color: #FAF089;
+                        /* Yellow Border Match */
                         background: linear-gradient(135deg, #FFFFF0 0%, #FEFCBF 100%);
                         border-color: #FAF089;
                     }
 
-                    .task-card.group-card.variant-5 .task-star {
+                    .task-card.group-card.variant-5 .task-star,
+                    .task-card.group-card.variant-5 .split-role-badge {
                         background: linear-gradient(135deg, #FFFFF0 0%, #FEFCBF 100%);
                         border-color: #FAF089;
                     }
@@ -443,26 +466,25 @@
 
                     /* Split Role Badge Specifics */
                     .split-role-badge {
-                        font-size: 16px;
-                        color: #ccc;
-                        font-weight: bold;
-                        padding-bottom: 2px;
+                        color: var(--group-accent-color, #555);
+                        /* Dark gray fallback */
+                        padding: 0;
+                        z-index: 10;
+                    }
+
+                    .split-role-badge svg {
+                        display: block;
+                        width: 16px;
+                        height: 16px;
+                        opacity: 1;
                     }
 
                     .split-role-badge:hover {
-                        color: #666;
+                        /* Keep accent color on hover */
                         transform: scale(1.1) !important;
                     }
 
-                    /* Active State for Split Badge - STRICTLY INDEPENDENT */
-                    .split-role-badge.active {
-                        color: #fff;
-                        background: #4A90E2;
-                        border-color: #357ABD;
-                        box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-                        opacity: 1 !important;
-                        transform: scale(1) !important;
-                    }
+
 
                     /* Task Star Updates */
                     .task-star {
@@ -483,8 +505,7 @@
                         transform: scale(1) !important;
                     }
 
-                    transform: scale(1);
-                    }
+
 
                     /* Group Variant Overrides for Badges */
                     .task-card.group-card .split-role-badge,
@@ -512,6 +533,27 @@
 
                     .animate-pop {
                         animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+                    }
+
+                    @keyframes popInCircle {
+                        0% {
+                            transform: scale(0);
+                            opacity: 0;
+                        }
+
+                        80% {
+                            transform: scale(0.95);
+                            opacity: 1;
+                        }
+
+                        100% {
+                            transform: scale(0.85);
+                            opacity: 1;
+                        }
+                    }
+
+                    .group-style-circle .animate-pop {
+                        animation-name: popInCircle;
                     }
 
                     @keyframes slideIn {
@@ -591,6 +633,13 @@
                         padding: 2px 6px;
                         border-radius: 4px;
                         margin-left: 6px;
+                    }
+
+                    .task-ineligible {
+                        background-color: #eeeeee !important;
+                        opacity: 0.6;
+                        color: #aaa;
+                        box-shadow: none !important;
                     }
                 </style>
             </head>
@@ -1368,7 +1417,14 @@
                             <div class="header-controls">
                                 <div class="split-role-badge ${group.isSplitRole ? 'active' : ''}"
                                      onclick="event.stopPropagation(); toggleSplitRole('${group.id}', event)"
-                                     data-tooltip="Leader/Follower Task">⚥</div>
+                                     data-tooltip="Leader/Follower Task">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="9" cy="7" r="4"></circle>
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                    </svg>
+                                </div>
                                 <div class="task-star ${starred ? 'starred' : ''} ${starDisabled ? 'disabled' : ''}" 
                                      onclick="event.stopPropagation(); toggleTaskStar('${group.id}', true, event)"
                                      style="${starDisabled ? 'cursor: not-allowed; opacity: 0.3;' : ''}"
@@ -1419,20 +1475,56 @@
 
                 window.toggleRole = function (memberId, role) {
                     const key = `team_role_${memberId}`;
-                    let state = JSON.parse(localStorage.getItem(key)) || { leader: false, follower: false, both: false };
+                    let state = null;
+                    const stored = localStorage.getItem(key);
+
+                    if (stored) {
+                        state = JSON.parse(stored);
+                    } else {
+                        // Initialize from static roles
+                        state = { leader: false, follower: false, both: false };
+                        if (typeof CANDIDATES !== 'undefined') {
+                            const candidate = CANDIDATES.find(c => c.id === memberId);
+                            if (candidate && candidate.roles) {
+                                const roles = candidate.roles.map(r => r.toLowerCase());
+                                state.leader = roles.includes('leader');
+                                state.follower = roles.includes('follower');
+                                state.both = roles.includes('both'); // Assuming 'both' might be a static role? Or maybe implied?
+                                // If 'both' isn't a static role, we might leave it false.
+                                // But wait, if static has Leader AND Follower, does that mean Both?
+                                // The UI treats 'Both' as a separate toggle.
+                                // Let's just map explicit roles.
+                            }
+                        }
+                    }
 
                     if (role === 'leader') {
                         state.leader = !state.leader;
+                        state.both = false; // Always clear Both if interacting with specific role
                         if (state.leader) state.follower = false;
                     } else if (role === 'follower') {
                         state.follower = !state.follower;
+                        state.both = false; // Always clear Both if interacting with specific role
                         if (state.follower) state.leader = false;
                     } else if (role === 'both') {
                         state.both = !state.both;
+                        // If Both is ON, implies Leader and Follower?
+                        // Usually 'Both' means they can do either.
+                        // Does it turn off specific Leader/Follower flags?
+                        // If I click Both, I probably want to be Both.
+                        if (state.both) {
+                            state.leader = false;
+                            state.follower = false;
+                        }
                     }
 
                     localStorage.setItem(key, JSON.stringify(state));
                     renderTeamList();
+
+                    // Live update schedule preview
+                    if (window.refreshScheduleAggregation) {
+                        window.refreshScheduleAggregation();
+                    }
                 };
 
                 window.toggleSplitRole = function (groupId, event) {
