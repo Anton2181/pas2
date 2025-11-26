@@ -46,6 +46,12 @@ function exportGlobalData() {
     // Get project date
     allData.projectDate = localStorage.getItem('project_date');
 
+    // Get effort threshold
+    allData.effortThreshold = localStorage.getItem('effort_threshold');
+
+    // Get rule penalties
+    allData.rulePenalties = localStorage.getItem('rule_penalties');
+
     // Get spreadsheet data cache
     const spreadsheetStr = localStorage.getItem('spreadsheetData');
     if (spreadsheetStr) {
@@ -112,6 +118,16 @@ function importGlobalData(file) {
             // Restore project date
             if (data.projectDate) {
                 localStorage.setItem('project_date', data.projectDate);
+            }
+
+            // Restore effort threshold
+            if (data.effortThreshold) {
+                localStorage.setItem('effort_threshold', data.effortThreshold);
+            }
+
+            // Restore rule penalties
+            if (data.rulePenalties) {
+                localStorage.setItem('rule_penalties', data.rulePenalties);
             }
 
             // Restore spreadsheet data cache

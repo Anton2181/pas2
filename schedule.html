@@ -31,10 +31,56 @@
     </div>
     <input type="file" id="global-file-input" accept=".json" style="display: none;">
 
-    <div class="app-container with-nav" style="padding: 24px; overflow: auto;">
-        <h1>Schedule</h1>
-        <p style="color: var(--text-secondary);">This page is under construction.</p>
+    <link rel="stylesheet" href="css/schedule-layout.css">
+    <link rel="stylesheet" href="css/rules-monitoring.css">
+
+    <div class="schedule-container">
+        <!-- Left Panel: Assignment -->
+        <div id="assignment-panel" class="panel">
+            <div class="panel-header">
+                <span>Assignment</span>
+                <div class="panel-actions">
+                    <!-- Placeholder for actions -->
+                </div>
+            </div>
+            <div class="panel-content">
+                <p style="color: #999; text-align: center; margin-top: 20px;">Assignment View Placeholder</p>
+            </div>
+        </div>
+
+        <!-- Vertical Splitter -->
+        <div id="v-splitter" class="splitter splitter-vertical"></div>
+
+        <!-- Right Container -->
+        <div id="right-container">
+            <!-- Top Right: Effort Graph -->
+            <div id="effort-panel" class="panel">
+                <div class="panel-header">Effort Graph</div>
+                <div id="effort-panel-content" class="panel-content" style="padding: 0; overflow: hidden;">
+                    <!-- Canvas injected here -->
+                </div>
+            </div>
+
+            <!-- Horizontal Splitter -->
+            <div id="h-splitter" class="splitter splitter-horizontal"></div>
+
+            <!-- Bottom Right: Rules Monitoring -->
+            <div id="rules-panel" class="panel">
+                <div class="panel-header">Rules Monitoring</div>
+                <div class="panel-content">
+                    <p style="color: #999; text-align: center; margin-top: 20px;">Rules Monitoring Placeholder</p>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <script src="js/schedule-importer.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/schedule-preview.js"></script>
+    <script src="js/schedule-aggregation.js"></script>
+    <script src="js/schedule-layout.js"></script>
+    <script src="js/effort-graph.js"></script>
+    <script src="js/rules-monitoring.js"></script>
 
     <script src="js/global-storage.js"></script>
     <script>
@@ -69,6 +115,13 @@
 
         setupDateEditable();
         initGlobalStorage();
+
+        // Load data to populate graph
+        if (typeof loadData === 'function') {
+            loadData().then(() => {
+                console.log('Data loaded for schedule view');
+            });
+        }
     </script>
 </body>
 

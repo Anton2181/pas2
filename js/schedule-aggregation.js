@@ -307,6 +307,10 @@ if (typeof SCHEDULE_DATA !== 'undefined') {
             renderSchedulePreview();
         }
 
+        if (typeof renderEffortGraph === 'function') {
+            renderEffortGraph();
+        }
+
         if (typeof renderAvailableTasks === 'function') {
             renderAvailableTasks();
         }
