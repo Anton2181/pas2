@@ -388,12 +388,16 @@ function isCandidateAvailable(candidate, taskName, taskTime, week, day) {
     // Normalize Week Name (e.g. "Week 10" matches "Week 10")
     const weekAvail = candidate.availability[week];
     if (!weekAvail) {
+        console.log(`[AVAIL-FAIL] ${candidate.name}: No data for week "${week}". Available weeks:`, Object.keys(candidate.availability || {}));
         return false; // No data for this week -> Default to NONE
     }
 
     const dayAvail = weekAvail[day];
 
-    if (!dayAvail || dayAvail === 'None') return false; // Explicitly None or missing
+    if (!dayAvail || dayAvail === 'None') {
+        console.log(`[AVAIL-FAIL] ${candidate.name}: Week "${week}", Day "${day}" = "${dayAvail}". Available days:`, Object.keys(weekAvail));
+        return false; // Explicitly None or missing
+    }
     if (dayAvail === 'All') return true; // Available all day
 
     // 3. Check Time Range Intersection
@@ -423,6 +427,9 @@ function isCandidateAvailable(candidate, taskName, taskTime, week, day) {
         return true;
     }
 }
+
+// Expose globally
+window.isCandidateAvailable = isCandidateAvailable;
 
 function parseMetricsCSV(csv) {
     const lines = csv.split('\n').filter(line => line.trim());

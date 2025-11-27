@@ -62,6 +62,16 @@ function exportGlobalData() {
         }
     }
 
+    // Get task assignments
+    const assignmentsStr = localStorage.getItem('task_assignments');
+    if (assignmentsStr) {
+        try {
+            allData.taskAssignments = JSON.parse(assignmentsStr);
+        } catch (e) {
+            console.error('Failed to parse task assignments', e);
+        }
+    }
+
     // Create filename with readable format
     const now = new Date();
     const year = now.getFullYear();
@@ -133,6 +143,11 @@ function importGlobalData(file) {
             // Restore spreadsheet data cache
             if (data.spreadsheetData) {
                 localStorage.setItem('spreadsheetData', JSON.stringify(data.spreadsheetData));
+            }
+
+            // Restore task assignments
+            if (data.taskAssignments) {
+                localStorage.setItem('task_assignments', JSON.stringify(data.taskAssignments));
             }
 
             showToast('All data imported successfully - Refresh the page to see changes');

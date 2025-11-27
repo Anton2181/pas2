@@ -4,6 +4,12 @@ class EffortGraph {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
         this.canvas = document.createElement('canvas');
+        this.canvas.style.cssText = `
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        `;
         this.container.appendChild(this.canvas);
         this.ctx = this.canvas.getContext('2d');
 
@@ -76,20 +82,27 @@ class EffortGraph {
                     const effort = parseFloat(task.effort) || 0;
                     if (effort === 0) return;
 
+                    // 1. Calculate Assigned Effort
+                    if (task.assignee) {
+                        // Find candidate by name (case-insensitive)
+                        const assigneeEntry = Array.from(candidateMap.values()).find(c => c.name.toLowerCase() === task.assignee.toLowerCase());
+                        if (assigneeEntry) {
+                            assigneeEntry.effort += effort;
+                        }
+                    }
+
+                    // 2. Calculate Potential Max Effort (for background bars)
                     let eligibleCandidates = [];
 
                     if (task.isGroup && task.candidates) {
-                        // Use pre-calculated candidates for groups (handles split roles etc.)
                         eligibleCandidates = task.candidates;
                     } else {
-                        // Calculate for single tasks
                         eligibleCandidates = CANDIDATES.filter(c =>
                             hasRole(c, task.name) &&
                             isCandidateAvailable(c, task.name, task.time, week, day)
                         );
                     }
 
-                    // Add to maxEffort for eligible candidates
                     eligibleCandidates.forEach(c => {
                         const entry = candidateMap.get(c.id);
                         if (entry) {
@@ -103,11 +116,15 @@ class EffortGraph {
         // Convert map to array
         this.data = Array.from(candidateMap.values());
 
-        // Sort by maxEffort ascending (since effort is 0)
-        // Or maybe sort by name if all 0?
-        // User said "sorted rising along", usually implies the main bar.
-        // But since main bar is 0, let's sort by maxEffort for now so it looks organized.
-        this.data.sort((a, b) => a.maxEffort - b.maxEffort);
+        // Sort by assigned effort ASCENDING (rising to the right)
+        this.data.sort((a, b) => {
+            // Primary: assigned effort (ascending)
+            if (a.effort !== b.effort) return a.effort - b.effort;
+            // Secondary: potential effort (ascending) for ties
+            if (a.maxEffort !== b.maxEffort) return a.maxEffort - b.maxEffort;
+            // Tertiary: name (ascending)
+            return a.name.localeCompare(b.name);
+        });
     }
 
     resize() {
@@ -137,12 +154,15 @@ class EffortGraph {
         if (this.data.length === 0) return;
 
         // Calculate scales
-        // Use fixed scale based on data max effort + buffer
-        const dataMax = Math.max(...this.data.map(d => d.maxEffort));
-        const maxVal = Math.max(dataMax * 1.1, 10); // Add 10% buffer, min 10
+        // Scale based on ASSIGNED effort (plus buffer), let max potential go offscreen
+        const maxAssigned = Math.max(...this.data.map(d => d.effort));
+        // Ensure we have at least some height if no one is assigned
+        const maxVal = Math.max(maxAssigned * 1.1, 16);
 
         // Y-Axis scale
-        const yScale = (this.height - this.margin.top - this.margin.bottom) / maxVal;
+        this.maxVal = maxVal; // Store for drag logic
+        this.yScale = (this.height - this.margin.top - this.margin.bottom) / maxVal;
+        const yScale = this.yScale;
 
         // X-Axis calculations - Dynamic Width
         const availableWidth = this.width - this.margin.left - this.margin.right;
@@ -150,17 +170,38 @@ class EffortGraph {
 
         const startX = this.margin.left;
 
+        // Calculate Y-axis ticks (0, 2, 4, 6, 8, 10, ...)
+        const tickInterval = 2;
+        const numTicks = Math.ceil(maxVal / tickInterval);
+
+        // Draw Y-axis gridlines and labels
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.lineWidth = 1;
+        ctx.fillStyle = '#999';
+        ctx.font = '11px Inter, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+
+        for (let i = 0; i <= numTicks; i++) {
+            const value = i * tickInterval;
+            const y = this.height - this.margin.bottom - (value * yScale);
+
+            // Gridline
+            ctx.beginPath();
+            ctx.moveTo(this.margin.left, y);
+            ctx.lineTo(this.width - this.margin.right, y);
+            ctx.stroke();
+
+            // Label
+            ctx.fillText(value.toString(), this.margin.left - 5, y);
+        }
+
         // Draw Bars
         this.data.forEach((d, i) => {
             const x = startX + i * this.barWidth;
             const yBase = this.height - this.margin.bottom;
 
-            // Max Effort Background (Gray)
-            const maxH = d.maxEffort * yScale;
-            ctx.fillStyle = (i % 2 === 0) ? '#f0f0f0' : '#e8e8e8'; // Alternating gray for distinction
-            ctx.fillRect(x, yBase - maxH, this.barWidth, maxH);
-
-            // Actual Effort
+            // Actual Effort Only (removed max effort background)
             const h = d.effort * yScale;
             // User wants to surpass threshold: Green if >= threshold, Red if < threshold
             ctx.fillStyle = d.effort >= this.threshold ? '#81c784' : '#e57373';
@@ -216,20 +257,13 @@ class EffortGraph {
 
         if (this.isDragging) {
             // Calculate new threshold value from Y position
-            const graphHeight = this.height - this.margin.top - this.margin.bottom;
+            // Use the same scale as render() to ensure 1:1 movement
             const yVal = this.height - this.margin.bottom - y;
-
-            // Convert back to units
-            // Use a fixed max scale based on data max effort to prevent jumping while dragging
-            const dataMax = Math.max(...this.data.map(d => d.maxEffort));
-            const maxVal = Math.max(dataMax * 1.1, 10); // Add 10% buffer, min 10
-            const yScale = graphHeight / maxVal;
-
-            let newVal = Math.round(yVal / yScale);
+            let newVal = Math.round(yVal / this.yScale);
 
             // Clamp
-            // User requested to limit threshold to the highest column's height
-            newVal = Math.max(0, Math.min(newVal, dataMax));
+            // Limit to reasonable bounds (0 to maxVal)
+            newVal = Math.max(0, Math.min(newVal, Math.ceil(this.maxVal)));
 
             if (newVal !== this.threshold) {
                 this.threshold = newVal;
@@ -253,7 +287,6 @@ class EffortGraph {
                     this.tooltip.innerHTML = `
                         <div style="font-weight: 600; margin-bottom: 4px;">${d.name}</div>
                         <div>Effort: ${d.effort}</div>
-                        <div style="color: #aaa;">Max: ${d.maxEffort}</div>
                     `;
 
                     // Calculate position

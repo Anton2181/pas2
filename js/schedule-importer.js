@@ -133,6 +133,7 @@ function importSchedule(csvData) {
         const day = row[dayIdx] || '0th Day'; // Default to 0th Day if empty
         const time = row[timeIdx];
         const name = row[todoIdx];
+        const date = row[4]; // Column E is index 4
         const effortStr = row[effortIdx] || '0';
         const effort = parseFloat(effortStr.replace(',', '.'));
 
@@ -144,6 +145,7 @@ function importSchedule(csvData) {
         schedule[week][day].push({
             name,
             time,
+            date,
             effort,
             originalRow: row
         });
@@ -249,9 +251,11 @@ function importSchedule(csvData) {
                             id: `g-${group.id}-${weekNum}-${dayName}-${processedTasks.length}`,
                             name: group.title,
                             color: getGroupColor(group.variant),
+                            variant: group.variant,
                             time: Array.from(times).join(', '),
                             effort: totalEffort,
                             isGroup: true,
+                            isSplitRole: group.isSplitRole, // Pass role-based flag
                             subTasks: matchedTaskIndices.map(idx => dayTasks[idx])
                         });
                     }
@@ -271,8 +275,17 @@ function importSchedule(csvData) {
                 }
             });
 
+            // Extract Date from the first task of the day (if available)
+            let dateStr = '';
+            if (dayTasks.length > 0) {
+                // Find a task that has a date
+                const taskWithDate = dayTasks.find(t => t.date);
+                if (taskWithDate) dateStr = taskWithDate.date;
+            }
+
             weekData.days.push({
                 name: dayName,
+                date: dateStr,
                 type: getDayType(dayName),
                 tasks: processedTasks
             });

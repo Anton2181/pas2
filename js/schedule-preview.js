@@ -12,7 +12,9 @@ function setScheduleMemberFilter(memberId) {
 }
 
 // Expose globally
+// Expose globally
 window.setScheduleMemberFilter = setScheduleMemberFilter;
+window.renderSchedulePreview = renderSchedulePreview;
 
 function renderSchedulePreview() {
     const container = document.getElementById('schedule-preview-container');
@@ -326,7 +328,7 @@ function renderSchedulePreview() {
 document.addEventListener('click', handleGlobalClick);
 
 // Helper to check role with localStorage override
-function hasRole(candidate, role) {
+function hasRole(candidate, role, excludeBoth = false) {
     if (!candidate || !role) return false;
 
     // Check for localStorage override for Leader/Follower
@@ -346,8 +348,14 @@ function hasRole(candidate, role) {
         if (stored) {
             try {
                 const state = JSON.parse(stored);
-                if (mappedRole === 'leader') return state.leader || state.both;
-                if (mappedRole === 'follower') return state.follower || state.both;
+                if (mappedRole === 'leader') {
+                    if (excludeBoth) return state.leader; // Only check specific role
+                    return state.leader || state.both; // Include both
+                }
+                if (mappedRole === 'follower') {
+                    if (excludeBoth) return state.follower; // Only check specific role
+                    return state.follower || state.both; // Include both
+                }
             } catch (e) {
                 console.error('Error parsing team role override:', e);
             }
@@ -378,7 +386,9 @@ function getCandidateCount(taskName, task, week, day) {
         }
     }
 
-    let pool = CANDIDATES;
+    // Optimization: Use pre-calculated candidates for groups if available
+    // This ensures we use the correct logic from schedule-aggregation.js
+    let pool = (task && task.candidates) ? task.candidates : CANDIDATES;
 
     // 2. Check Star Restriction
     // We need to use the resolved realId
@@ -390,21 +400,59 @@ function getCandidateCount(taskName, task, week, day) {
         // Else fallback to full pool
     }
 
-    // 3. Calculate Count
+    // If we used pre-calculated candidates, we are done!
+    if (task && task.candidates) {
+        return pool.length;
+    }
+
+    // 3. Calculate Count (for individual tasks or if no pre-calc)
     if (isGroup && task && task.subTasks) {
-        // For groups, candidate must be eligible for ALL subtasks
-        // We check if the candidate is in the pool AND has roles for all subtasks
-        // AND is available
-        return pool.filter(c => {
-            return task.subTasks.every(subTask =>
-                hasRole(c, subTask.name) && // Use hasRole helper
-                isCandidateAvailable(c, subTask.name, subTask.time, week, day)
-            );
-        }).length;
+        // ... (Legacy logic, should rarely be hit for groups now) ...
+        // For role-based groups, try specific roles first, then fall back to Both
+        if (task.isSplitRole) {
+            // ... (Keep existing logic as fallback) ...
+            // Actually, we can just return 0 or re-calculate if needed.
+            // But let's keep the logic I added earlier just in case.
+
+            const specificRoleCandidates = pool.filter(c => {
+                return task.subTasks.every(subTask =>
+                    hasRole(c, subTask.name, true) && // excludeBoth = true
+                    isCandidateAvailable(c, subTask.name, subTask.time, week, day)
+                );
+            });
+
+            if (specificRoleCandidates.length > 0) {
+                return specificRoleCandidates.length;
+            }
+
+            const bothCandidates = pool.filter(c => {
+                const key = `team_role_${c.id}`;
+                const stored = localStorage.getItem(key);
+                let hasBoth = false;
+                if (stored) {
+                    try {
+                        const state = JSON.parse(stored);
+                        hasBoth = state.both === true;
+                    } catch (e) { }
+                }
+                return hasBoth && task.subTasks.every(subTask =>
+                    isCandidateAvailable(c, subTask.name, subTask.time, week, day)
+                );
+            });
+
+            return bothCandidates.length;
+        } else {
+            // Non-role-based group: just check availability
+            return pool.filter(c => {
+                return task.subTasks.every(subTask =>
+                    isCandidateAvailable(c, subTask.name, subTask.time, week, day)
+                );
+            }).length;
+        }
     } else {
         // Individual Task
         return pool.filter(c =>
-            hasRole(c, taskName) && // Use hasRole helper
+            hasRole(c, taskName) && // Use hasRole helper (includes Both)
             isCandidateAvailable(c, taskName, task.time, week, day)
         ).length;
     }
@@ -657,12 +705,53 @@ function renderDetailTaskCard(task, weekIndex, dayIndex, dayRow) {
     const day = dayData.name;
 
     if (task.isGroup && task.subTasks) {
-        suitableCandidates = suitableCandidates.filter(c =>
-            task.subTasks.every(subTask =>
-                hasRole(c, subTask.name) && // Use hasRole helper
-                isCandidateAvailable(c, subTask.name, subTask.time, week, day)
-            )
-        );
+        if (task.isSplitRole && task.splitRoleType) {
+            const requiredRole = task.splitRoleType;
+
+            // Helper to check dynamic role state (inline)
+            const hasDynamicRole = (c, type) => {
+                const key = `team_role_${c.id}`;
+                try {
+                    const stored = localStorage.getItem(key);
+                    if (stored) {
+                        const state = JSON.parse(stored);
+                        if (type === 'leader') return state.leader;
+                        if (type === 'follower') return state.follower;
+                        if (type === 'both') return state.both;
+                    }
+                } catch (e) { }
+                return false;
+            };
+
+            // Filter by Capability (Static) + Availability first
+            // We assume suitableCandidates is already a pool of potentially valid people
+            let pool = suitableCandidates.filter(c =>
+                task.subTasks.every(subTask =>
+                    c.roles.includes(subTask.name) && // Capability
+                    isCandidateAvailable(c, subTask.name, subTask.time, week, day)
+                )
+            );
+
+            // Role-based filtering
+            // 1. Try specific roles (exclude Both)
+            let specificCandidates = pool.filter(c => hasDynamicRole(c, requiredRole));
+
+            if (specificCandidates.length > 0) {
+                suitableCandidates = specificCandidates;
+            } else {
+                // 2. Fallback: No specific role candidates, show Both candidates
+                suitableCandidates = pool.filter(c => hasDynamicRole(c, 'both'));
+            }
+        } else {
+            // Non-role-based group: just check availability & capability
+            suitableCandidates = suitableCandidates.filter(c =>
+                task.subTasks.every(subTask =>
+                    // c.roles.includes(subTask.name) && // Capability check? Aggregation does it.
+                    // If we rely on aggregation, we might not need this. But for safety:
+                    isCandidateAvailable(c, subTask.name, subTask.time, week, day)
+                )
+            );
+        }
     } else {
         suitableCandidates = suitableCandidates.filter(c =>
             isCandidateAvailable(c, task.name, task.time, week, day)
@@ -688,7 +777,32 @@ function renderDetailTaskCard(task, weekIndex, dayIndex, dayRow) {
     // 2. Filter if Starred
     if (realId && window.isTaskStarred && window.isTaskStarred(realId, isGroup)) {
         const starredCandidates = suitableCandidates.filter(c => window.isCandidateStarred(realId, c.id));
-        if (starredCandidates.length > 0) {
+
+        // Edge Case: Single Priority Assignment with "Both" Role
+        // If there is exactly ONE starred candidate, and that candidate has the "Both" role (or covers both sides),
+        // we ignore the priority status and show the full list.
+        // This prevents the UI from showing just one person when they are the only priority but can do everything.
+        let ignorePriority = false;
+        if (starredCandidates.length === 1) {
+            const candidate = starredCandidates[0];
+            // Check if they have "Both" role override or naturally have both roles?
+            // The user said "has the 'both' role".
+            // We check if they have the "Both" override in localStorage.
+            const key = `team_role_${candidate.id}`;
+            const stored = localStorage.getItem(key);
+            if (stored) {
+                try {
+                    const state = JSON.parse(stored);
+                    if (state.both) {
+                        ignorePriority = true;
+                    }
+                } catch (e) {
+                    console.error('Error parsing team role override:', e);
+                }
+            }
+        }
+
+        if (starredCandidates.length > 0 && !ignorePriority) {
             suitableCandidates = starredCandidates;
         }
         // Else fallback to full list

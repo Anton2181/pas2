@@ -1033,6 +1033,11 @@
                     if (grid && grid.parentElement) {
                         grid.parentElement.scrollTop = scrollTop;
                     }
+
+                    // Update Schedule Preview Heatmap
+                    if (window.renderSchedulePreview) {
+                        window.renderSchedulePreview();
+                    }
                 }
 
                 // Helper to clear all stars in a task or group
@@ -1132,6 +1137,11 @@
                     renderAvailableTasks();
                     if (grid && grid.parentElement) {
                         grid.parentElement.scrollTop = scrollTop;
+                    }
+
+                    // Update Schedule Preview Heatmap
+                    if (window.renderSchedulePreview) {
+                        window.renderSchedulePreview();
                     }
                 }
 
@@ -1508,14 +1518,6 @@
                         if (state.follower) state.leader = false;
                     } else if (role === 'both') {
                         state.both = !state.both;
-                        // If Both is ON, implies Leader and Follower?
-                        // Usually 'Both' means they can do either.
-                        // Does it turn off specific Leader/Follower flags?
-                        // If I click Both, I probably want to be Both.
-                        if (state.both) {
-                            state.leader = false;
-                            state.follower = false;
-                        }
                     }
 
                     localStorage.setItem(key, JSON.stringify(state));

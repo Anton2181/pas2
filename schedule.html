@@ -33,6 +33,7 @@
 
     <link rel="stylesheet" href="css/schedule-layout.css">
     <link rel="stylesheet" href="css/rules-monitoring.css">
+    <link rel="stylesheet" href="css/assignment-panel.css">
 
     <div class="schedule-container">
         <!-- Left Panel: Assignment -->
@@ -42,9 +43,6 @@
                 <div class="panel-actions">
                     <!-- Placeholder for actions -->
                 </div>
-            </div>
-            <div class="panel-content">
-                <p style="color: #999; text-align: center; margin-top: 20px;">Assignment View Placeholder</p>
             </div>
         </div>
 
@@ -81,6 +79,7 @@
     <script src="js/schedule-layout.js"></script>
     <script src="js/effort-graph.js"></script>
     <script src="js/rules-monitoring.js"></script>
+    <script src="js/assignment-panel.js"></script>
 
     <script src="js/global-storage.js"></script>
     <script>
@@ -104,7 +103,11 @@
                 };
 
                 input.onkeydown = (e) => {
-                    if (e.key === 'Enter') input.blur();
+                    if (e.key === 'Enter') {
+                        input.blur();
+                        if (window.renderEffortGraph) window.renderEffortGraph();
+                        if (window.renderAssignmentPanel) window.renderAssignmentPanel();
+                    }
                 };
 
                 dateEl.textContent = '';
@@ -120,6 +123,8 @@
         if (typeof loadData === 'function') {
             loadData().then(() => {
                 console.log('Data loaded for schedule view');
+                if (window.renderEffortGraph) window.renderEffortGraph();
+                if (window.renderAssignmentPanel) window.renderAssignmentPanel();
             });
         }
     </script>

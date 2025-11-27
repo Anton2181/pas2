@@ -26,6 +26,10 @@ function initSplitters() {
         e.preventDefault();
     });
 
+    vSplitter.addEventListener('dblclick', () => {
+        leftPanel.style.width = ''; // Reset to CSS default
+    });
+
     // Horizontal Splitter (Top vs Bottom)
     let isDraggingH = false;
 
@@ -34,6 +38,10 @@ function initSplitters() {
         hSplitter.classList.add('dragging');
         document.body.style.cursor = 'row-resize';
         e.preventDefault();
+    });
+
+    hSplitter.addEventListener('dblclick', () => {
+        topPanel.style.height = ''; // Reset to CSS default
     });
 
     // Global Mouse Events

@@ -168,25 +168,50 @@ function aggregateScheduleIntoGroups(scheduleData) {
                         }
 
                         if (typeof CANDIDATES !== 'undefined' && CANDIDATES) {
+                            // 1. Initial Filter: Capability (Static Roles) + Availability
                             eligibleCandidates = CANDIDATES.filter(c =>
                                 taskNamesInGroup.every(name => c.roles.includes(name)) &&
                                 foundTasks.every(t => isCandidateAvailable(c, t.name, t.time, weekData.week, dayData.name))
                             );
 
-                            // Split Role Filtering
+                            // Split Role Filtering (Strictly based on Split Badge)
                             if (group.isSplitRole) {
                                 const requiredRole = instanceCount === 0 ? 'leader' : 'follower';
-                                eligibleCandidates = eligibleCandidates.filter(c => {
+                                console.log(`[DEBUG] Split Group: ${group.title} (${instanceCount}) - Required: ${requiredRole}`);
+
+                                // Helper to check dynamic role state
+                                const hasDynamicRole = (c, type) => {
                                     const key = `team_role_${c.id}`;
                                     try {
-                                        const roleState = JSON.parse(localStorage.getItem(key)) || {};
-                                        if (requiredRole === 'leader') return roleState.leader || roleState.both;
-                                        if (requiredRole === 'follower') return roleState.follower || roleState.both;
-                                    } catch (e) {
-                                        return false;
-                                    }
-                                    return true;
+                                        const stored = localStorage.getItem(key);
+                                        if (stored) {
+                                            const state = JSON.parse(stored);
+                                            // console.log(`[DEBUG] ${c.name} role state:`, state);
+                                            if (type === 'leader') return state.leader;
+                                            if (type === 'follower') return state.follower;
+                                            if (type === 'both') return state.both;
+                                        }
+                                    } catch (e) { }
+                                    return false;
+                                };
+
+                                // Try specific roles first (exclude Both)
+                                const specificCandidates = eligibleCandidates.filter(c => {
+                                    const match = hasDynamicRole(c, requiredRole);
+                                    // console.log(`[DEBUG] ${c.name} match specific (${requiredRole})? ${match}`);
+                                    return match;
                                 });
+
+                                console.log(`[DEBUG] Specific candidates found: ${specificCandidates.length}`, specificCandidates.map(c => c.name));
+
+                                if (specificCandidates.length > 0) {
+                                    eligibleCandidates = specificCandidates;
+                                } else {
+                                    console.log(`[DEBUG] No specific candidates. Fallback to Both.`);
+                                    // Fallback to Both
+                                    eligibleCandidates = eligibleCandidates.filter(c => hasDynamicRole(c, 'both'));
+                                    console.log(`[DEBUG] Both candidates: ${eligibleCandidates.length}`, eligibleCandidates.map(c => c.name));
+                                }
                             }
 
                             candidateCount = eligibleCandidates.length;
@@ -197,6 +222,7 @@ function aggregateScheduleIntoGroups(scheduleData) {
                             id: `grp-${group.id}-${dayData.name}-${instanceCount}`,
                             name: group.title,
                             color: getGroupColor(group.variant),
+                            variant: group.variant, // Pass variant for styling
                             time: displayTime,
                             effort: totalEffort,
                             isGroup: true,
