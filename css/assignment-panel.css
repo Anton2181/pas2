@@ -7,7 +7,7 @@
 
 .assignment-table {
     width: 100%;
-    min-width: 900px;
+    min-width: 800px;
     /* Force scroll if container is too small */
     border-collapse: collapse;
     font-size: 13px;
@@ -49,11 +49,11 @@
 }
 
 .col-candidates {
-    width: 20%;
+    width: 25%;
 }
 
 .col-optimal {
-    width: 15%;
+    width: 20%;
     min-width: 180px;
     /* Increased from 150px */
 }
@@ -105,7 +105,7 @@
 }
 
 .group-cell.empty {
-    background: transparent;
+    background: #ffffff !important;
     color: #ccc;
     text-align: center;
     border-right: 1px solid #eee;
@@ -187,6 +187,11 @@
 .assignee-input.invalid {
     border-color: #E53935;
     background-color: #FFEBEE;
+}
+
+.assignee-input.input-warning {
+    border-color: #FBC02D;
+    background-color: #FFF9C4;
 }
 
 .assignee-dropdown-list {

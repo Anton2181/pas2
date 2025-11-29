@@ -265,3 +265,17 @@ function loadWorkspace() {
 window.saveWorkspace = saveWorkspace;
 window.loadWorkspace = loadWorkspace;
 window.showToast = showToast;
+
+// Star Helper Functions (Shared)
+function isCandidateStarred(taskId, candidateId) {
+    const key = `candidate_star_${taskId}_${candidateId}`;
+    return localStorage.getItem(key) === 'true';
+}
+
+function isTaskStarred(taskId, isGroup) {
+    const key = isGroup ? `task_star_group_${taskId}` : `task_star_${taskId}`;
+    return localStorage.getItem(key) === 'true';
+}
+
+window.isCandidateStarred = isCandidateStarred;
+window.isTaskStarred = isTaskStarred;

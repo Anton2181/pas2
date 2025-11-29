@@ -79,36 +79,47 @@ class EffortGraph {
             weekData.days.forEach(dayData => {
                 const day = dayData.name;
                 dayData.tasks.forEach(task => {
-                    const effort = parseFloat(task.effort) || 0;
-                    if (effort === 0) return;
+                    const processTask = (t) => {
+                        const effort = parseFloat(t.effort) || 0;
+                        if (effort === 0) return;
 
-                    // 1. Calculate Assigned Effort
-                    if (task.assignee) {
-                        // Find candidate by name (case-insensitive)
-                        const assigneeEntry = Array.from(candidateMap.values()).find(c => c.name.toLowerCase() === task.assignee.toLowerCase());
-                        if (assigneeEntry) {
-                            assigneeEntry.effort += effort;
+                        // 1. Calculate Assigned Effort
+                        if (t.assignee) {
+                            // Find candidate by name (case-insensitive)
+                            const assigneeEntry = Array.from(candidateMap.values()).find(c => c.name.toLowerCase() === t.assignee.toLowerCase());
+                            if (assigneeEntry) {
+                                assigneeEntry.effort += effort;
+                            }
                         }
-                    }
 
-                    // 2. Calculate Potential Max Effort (for background bars)
-                    let eligibleCandidates = [];
+                        // 2. Calculate Potential Max Effort (for background bars)
+                        // Note: For groups, we might want to check candidates for the group or subtask.
+                        // Assuming candidates are filtered per subtask or group.
+                        let eligibleCandidates = [];
 
-                    if (task.isGroup && task.candidates) {
-                        eligibleCandidates = task.candidates;
+                        if (t.isGroup && t.candidates) {
+                            eligibleCandidates = t.candidates;
+                        } else {
+                            // Use global check if available
+                            eligibleCandidates = CANDIDATES.filter(c =>
+                                (typeof hasRole === 'function' ? hasRole(c, t.name) : true) &&
+                                (typeof isCandidateAvailable === 'function' ? isCandidateAvailable(c, t.name, t.time, week, day) : true)
+                            );
+                        }
+
+                        eligibleCandidates.forEach(c => {
+                            const entry = candidateMap.get(c.id);
+                            if (entry) {
+                                entry.maxEffort += effort;
+                            }
+                        });
+                    };
+
+                    if (task.isGroup) {
+                        task.subTasks.forEach(processTask);
                     } else {
-                        eligibleCandidates = CANDIDATES.filter(c =>
-                            hasRole(c, task.name) &&
-                            isCandidateAvailable(c, task.name, task.time, week, day)
-                        );
+                        processTask(task);
                     }
-
-                    eligibleCandidates.forEach(c => {
-                        const entry = candidateMap.get(c.id);
-                        if (entry) {
-                            entry.maxEffort += effort;
-                        }
-                    });
                 });
             });
         });
@@ -171,7 +182,11 @@ class EffortGraph {
         const startX = this.margin.left;
 
         // Calculate Y-axis ticks (0, 2, 4, 6, 8, 10, ...)
-        const tickInterval = 2;
+        let tickInterval = 2;
+        if (maxVal > 20) tickInterval = 5;
+        if (maxVal > 50) tickInterval = 10;
+        if (maxVal > 100) tickInterval = 20;
+
         const numTicks = Math.ceil(maxVal / tickInterval);
 
         // Draw Y-axis gridlines and labels

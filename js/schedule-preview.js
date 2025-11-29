@@ -394,7 +394,40 @@ function getCandidateCount(taskName, task, week, day) {
     // We need to use the resolved realId
     if (realId && window.isTaskStarred && window.isTaskStarred(realId, isGroup)) {
         const starredCandidates = pool.filter(c => window.isCandidateStarred(realId, c.id));
-        if (starredCandidates.length > 0) {
+
+        // Edge Case: Single Priority Assignment with "Both" Role in a Split Role Group
+        // If there is exactly ONE starred candidate, and that candidate has the "Both" role,
+        // AND this is a split-role group (where we need 2 unique people),
+        // we ignore the priority status and show the full list.
+        let ignorePriority = false;
+
+        if (task && task.isGroup && task.isSplitRole && starredCandidates.length === 1) {
+            const candidate = starredCandidates[0];
+            const key = `team_role_${candidate.id}`;
+            const stored = localStorage.getItem(key);
+            if (stored) {
+                try {
+                    const state = JSON.parse(stored);
+                    if (state.both) {
+                        // Check if there are ANY OTHER starred candidates in this group?
+                        // We iterate over ALL candidates to see how many are starred for this group ID.
+                        let totalGroupStarredCount = 0;
+                        if (typeof CANDIDATES !== 'undefined') {
+                            totalGroupStarredCount = CANDIDATES.filter(c => window.isCandidateStarred(realId, c.id)).length;
+                        }
+
+                        // Only ignore priority if this candidate is the ONLY one starred in the entire group
+                        if (totalGroupStarredCount === 1) {
+                            ignorePriority = true;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error parsing team role override:', e);
+                }
+            }
+        }
+
+        if (starredCandidates.length > 0 && !ignorePriority) {
             pool = starredCandidates;
         }
         // Else fallback to full pool
@@ -778,23 +811,31 @@ function renderDetailTaskCard(task, weekIndex, dayIndex, dayRow) {
     if (realId && window.isTaskStarred && window.isTaskStarred(realId, isGroup)) {
         const starredCandidates = suitableCandidates.filter(c => window.isCandidateStarred(realId, c.id));
 
-        // Edge Case: Single Priority Assignment with "Both" Role
-        // If there is exactly ONE starred candidate, and that candidate has the "Both" role (or covers both sides),
+        // Edge Case: Single Priority Assignment with "Both" Role in a Split Role Group
+        // If there is exactly ONE starred candidate, and that candidate has the "Both" role,
+        // AND this is a split-role group (where we need 2 unique people),
         // we ignore the priority status and show the full list.
-        // This prevents the UI from showing just one person when they are the only priority but can do everything.
         let ignorePriority = false;
-        if (starredCandidates.length === 1) {
+
+        if (task.isGroup && task.isSplitRole && starredCandidates.length === 1) {
             const candidate = starredCandidates[0];
-            // Check if they have "Both" role override or naturally have both roles?
-            // The user said "has the 'both' role".
-            // We check if they have the "Both" override in localStorage.
             const key = `team_role_${candidate.id}`;
             const stored = localStorage.getItem(key);
             if (stored) {
                 try {
                     const state = JSON.parse(stored);
                     if (state.both) {
-                        ignorePriority = true;
+                        // Check if there are ANY OTHER starred candidates in this group?
+                        // We iterate over ALL candidates to see how many are starred for this group ID.
+                        let totalGroupStarredCount = 0;
+                        if (typeof CANDIDATES !== 'undefined') {
+                            totalGroupStarredCount = CANDIDATES.filter(c => window.isCandidateStarred(realId, c.id)).length;
+                        }
+
+                        // Only ignore priority if this candidate is the ONLY one starred in the entire group
+                        if (totalGroupStarredCount === 1) {
+                            ignorePriority = true;
+                        }
                     }
                 } catch (e) {
                     console.error('Error parsing team role override:', e);
