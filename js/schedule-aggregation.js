@@ -242,94 +242,73 @@ function aggregateScheduleIntoGroups(scheduleData) {
 
                             // ... (Existing Candidate Logic) ...
                             if (typeof CANDIDATES !== 'undefined' && CANDIDATES) {
-                                // 1. Initial Filter: Capability (Static Roles) + Availability
-                                eligibleCandidates = CANDIDATES.filter(c =>
-                                    taskNamesInGroup.every(name => c.roles.includes(name)) &&
-                                    foundTasks.every(t => isCandidateAvailable(c, t.name, t.time, weekData.week, dayData.name))
-                                );
+                                // Iterate through instances (e.g. Leader, Follower)
+                                // Note: instanceCount is 1-based here, so we use (instanceCount - 1) for 0-based index
+                                const currentInstanceIndex = instanceCount - 1;
+
+                                let currentEligibleCandidates = CANDIDATES.filter(c => {
+                                    // Basic Availability Check
+                                    return taskNamesInGroup.every(name => c.roles.includes(name)) &&
+                                        foundTasks.every(t => isCandidateAvailable(c, t.name, t.time, weekData.week, dayData.name));
+                                });
 
                                 // Split Role Filtering (Strictly based on Split Badge)
-                                // Only apply strict roles for the first 2 instances. 3rd+ are "Any".
                                 if (group.isSplitRole && instanceCount <= 2) {
-                                    const requiredRole = instanceCount === 1 ? 'leader' : 'follower'; // instanceCount is 1-based here because we incremented it above
-                                    // Actually instanceCount was 0-based in previous code before increment?
-                                    // Previous code: `const requiredRole = instanceCount === 0 ? 'leader' : 'follower';` then `instanceCount++` at end.
-                                    // Here I incremented `instanceCount` BEFORE this block.
-                                    // So `instanceCount` is 1 for the first instance.
-                                    // Let's adjust: `const requiredRole = (instanceCount - 1) === 0 ? 'leader' : 'follower';`
+                                    const roleType = currentInstanceIndex === 0 ? 'leader' : 'follower';
 
-                                    const roleIndex = instanceCount - 1;
-                                    const roleType = roleIndex === 0 ? 'leader' : 'follower';
+                                    // 1. Identify Candidate Pools
+                                    // Pure Specific: Has Role AND NOT Both
+                                    const pureSpecificCandidates = currentEligibleCandidates.filter(c => hasDynamicRole(c, roleType) && !hasDynamicRole(c, 'both'));
+                                    const starredPureSpecific = pureSpecificCandidates.filter(c => window.isCandidateStarred(group.id, c.id));
 
-                                    // Refined Priority Logic:
-                                    // 1. Starred Leaders (Priority Specific)
-                                    // 2. Starred Both (Priority Both - only if no Priority Specific)
-                                    // 3. Unstarred Leaders (Specific - only if no Priority Both?) -> Actually, if we have Starred Both, they should win over Unstarred Leaders via the Priority Filter later.
-                                    // But if we have Starred Leaders, they should win over Starred Both.
+                                    // Both: Has Both Role
+                                    const allBothCandidates = currentEligibleCandidates.filter(c => hasDynamicRole(c, 'both'));
+                                    const starredBoth = allBothCandidates.filter(c => window.isCandidateStarred(group.id, c.id));
 
-                                    const pureSpecificCandidates = eligibleCandidates.filter(c => hasDynamicRole(c, roleType));
-                                    const starredSpecificCandidates = pureSpecificCandidates.filter(c => window.isCandidateStarred(group.id, c.id));
-                                    const starredBothCandidates = eligibleCandidates.filter(c => hasDynamicRole(c, 'both') && window.isCandidateStarred(group.id, c.id));
+                                    // 2. Calculate Total Available Starred for the Group (for Viability Check)
+                                    // We need to know if there are enough starred people GLOBALLY for this group to support "Both" usage.
+                                    const allGroupStarred = CANDIDATES.filter(c => window.isCandidateStarred(group.id, c.id));
+                                    const availableGroupStarred = allGroupStarred.filter(c =>
+                                        foundTasks.every(t => isCandidateAvailable(c, t.name, t.time, weekData.week, dayData.name))
+                                    );
+                                    const totalAvailableStarredCount = availableGroupStarred.length;
 
-                                    let selectedCandidates = [];
+                                    // 3. Selection Logic
+                                    let candidatesToUse = [];
 
-                                    if (starredSpecificCandidates.length > 0) {
-                                        // Hierarchy 1: Priority Leaders exist. Use ONLY them.
-                                        selectedCandidates = starredSpecificCandidates;
-                                    } else {
-                                        // Hierarchy 2 & 3: No Priority Leaders.
-                                        // Combine Unstarred Leaders and ALL Both candidates (Starred or Unstarred).
-                                        // The subsequent Priority Filter will ensure Starred Both win over Unstarred Leaders/Both.
-                                        // If no Starred Both, Unstarred Leaders and Unstarred Both compete.
-                                        const allBothCandidates = eligibleCandidates.filter(c => hasDynamicRole(c, 'both'));
-                                        selectedCandidates = [...pureSpecificCandidates, ...allBothCandidates];
-                                    }
-
-                                    if (selectedCandidates.length > 0) {
-                                        eligibleCandidates = selectedCandidates;
-                                    } else {
-                                        // Hierarchy 4: Fallback to all Both (Unstarred Both)
-                                        eligibleCandidates = eligibleCandidates.filter(c => hasDynamicRole(c, 'both'));
-                                    }
-                                }
-
-                                // Priority Filtering (Starring)
-                                if (group.id && window.isTaskStarred && window.isTaskStarred(group.id, true)) {
-                                    const starredCandidates = eligibleCandidates.filter(c => window.isCandidateStarred(group.id, c.id));
-
-                                    // "Both" Exception Logic for Split Roles
-                                    let ignorePriority = false;
-                                    if (group.isSplitRole && starredCandidates.length === 1) {
-                                        const candidate = starredCandidates[0];
-
-                                        // Use hasDynamicRole helper
-                                        const isBoth = hasDynamicRole(candidate, 'both');
-
-                                        if (isBoth) {
-                                            const roleIndex = instanceCount - 1;
-                                            const currentRole = roleIndex === 0 ? 'leader' : 'follower';
-                                            const otherRole = roleIndex === 0 ? 'follower' : 'leader';
-
-                                            // Find other starred candidates available for the OTHER role
-                                            const otherStarredAvailable = CANDIDATES.filter(c =>
-                                                c.id !== candidate.id && // Not Yulia
-                                                window.isCandidateStarred(group.id, c.id) && // Is Starred
-                                                (hasDynamicRole(c, otherRole) || hasDynamicRole(c, 'both')) && // Can do other role
-                                                // Check availability (using same time/day as current task)
-                                                foundTasks.every(t => isCandidateAvailable(c, t.name, t.time, weekData.week, dayData.name))
-                                            );
-
-                                            if (otherStarredAvailable.length === 0) {
-                                                ignorePriority = true;
-                                            }
+                                    // Hierarchy: Pure Specific > Both (Conditional)
+                                    if (starredPureSpecific.length > 0) {
+                                        // If we have Pure Specific Priority (e.g. Jan), use ONLY them.
+                                        // This prevents "Both" candidates (e.g. Yulia) from appearing in the Leader slot
+                                        // when a dedicated Leader is already assigned.
+                                        candidatesToUse = starredPureSpecific;
+                                    } else if (starredBoth.length > 0) {
+                                        // If no Pure Specific, check Both.
+                                        // Only use Both if the group has enough coverage (>= 2).
+                                        if (totalAvailableStarredCount >= 2) {
+                                            candidatesToUse = starredBoth;
                                         }
                                     }
 
-                                    if (starredCandidates.length > 0 && !ignorePriority) {
-                                        eligibleCandidates = starredCandidates;
+                                    // 4. Final Decision
+                                    if (candidatesToUse.length > 0) {
+                                        currentEligibleCandidates = candidatesToUse;
+                                    } else {
+                                        // Fallback: Combine Unstarred Pure Specific + All Both
+                                        currentEligibleCandidates = [...pureSpecificCandidates, ...allBothCandidates];
                                     }
                                 }
 
+                                // Priority Filtering (Starring) - General Case
+                                // This applies if the group is starred, and it's NOT a split role.
+                                // (For split roles, we handled it above).
+                                if (group.id && window.isTaskStarred && window.isTaskStarred(group.id, true) && !group.isSplitRole) {
+                                    const starredCandidates = currentEligibleCandidates.filter(c => window.isCandidateStarred(group.id, c.id));
+                                    if (starredCandidates.length > 0) {
+                                        currentEligibleCandidates = starredCandidates;
+                                    }
+                                }
+                                eligibleCandidates = currentEligibleCandidates;
                                 candidateCount = eligibleCandidates.length;
                             }
 

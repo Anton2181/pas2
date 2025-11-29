@@ -737,19 +737,62 @@ function renderDetailTaskCard(task, weekIndex, dayIndex, dayRow) {
                 // 3. Unstarred Leaders (Specific - only if no Priority Both?)
                 // But if we have Starred Leaders, they should win over Starred Both.
 
-                const pureSpecificCandidates = pool.filter(c => hasDynamicRole(c, requiredRole));
-                const starredSpecificCandidates = pureSpecificCandidates.filter(c => window.isCandidateStarred(realId, c.id));
-                const starredBothCandidates = pool.filter(c => hasDynamicRole(c, 'both') && window.isCandidateStarred(realId, c.id));
+                const otherRole = requiredRole === 'leader' ? 'follower' : 'leader';
 
+                // 1. Identify Candidate Pools
+                // Pure Specific: Has Role AND NOT Both AND NOT Other Role
+                // This enforces strict separation: A Pure Leader cannot be a Follower (unless Both).
+                const pureSpecificCandidates = pool.filter(c => {
+                    const isSpecific = hasDynamicRole(c, requiredRole);
+                    const isBoth = hasDynamicRole(c, 'both');
+                    const isOther = hasDynamicRole(c, otherRole);
+
+                    // Strict check: Must have the specific role, NOT be Both, and NOT have the other role.
+                    // This handles edge cases where someone might be L+F but not Both (invalid state).
+                    return isSpecific && !isBoth && !isOther;
+                });
+                const starredPureSpecific = pureSpecificCandidates.filter(c => window.isCandidateStarred(realId, c.id));
+
+                // Both: Has Both Role
+                const allBothCandidates = pool.filter(c => hasDynamicRole(c, 'both'));
+                const starredBoth = allBothCandidates.filter(c => window.isCandidateStarred(realId, c.id));
+
+                // 2. Calculate Total Available Starred for the Group (for Viability Check)
+                // We need to know if there are enough starred people GLOBALLY for this group to support "Both" usage.
+                // In Preview, we can approximate this by checking all starred candidates in the pool?
+                // No, the pool might be filtered by role already? No, 'pool' is 'suitableCandidates' which is the full list for this slot.
+                // But we need the full list for the GROUP (both slots).
+                // Luckily, we have 'CANDIDATES' global.
+                let totalAvailableStarredCount = 0;
+                if (typeof CANDIDATES !== 'undefined') {
+                    const allGroupStarred = CANDIDATES.filter(c => window.isCandidateStarred(realId, c.id));
+                    const availableGroupStarred = allGroupStarred.filter(c =>
+                        task.subTasks.every(subTask => isCandidateAvailable(c, subTask.name, subTask.time, week, day))
+                    );
+                    totalAvailableStarredCount = availableGroupStarred.length;
+                }
+
+                // 3. Selection Logic
+                let candidatesToUse = [];
+
+                // Hierarchy: Pure Specific > Both (Conditional)
+                if (starredPureSpecific.length > 0) {
+                    // If we have Pure Specific Priority (e.g. Jan), use ONLY them.
+                    candidatesToUse = starredPureSpecific;
+                } else if (starredBoth.length > 0) {
+                    // If no Pure Specific, check Both.
+                    // Only use Both if the group has enough coverage (>= 2).
+                    if (totalAvailableStarredCount >= 2) {
+                        candidatesToUse = starredBoth;
+                    }
+                }
+
+                // 4. Final Decision
                 let selectedCandidates = [];
-
-                if (starredSpecificCandidates.length > 0) {
-                    // Hierarchy 1: Priority Leaders exist. Use ONLY them.
-                    selectedCandidates = starredSpecificCandidates;
+                if (candidatesToUse.length > 0) {
+                    selectedCandidates = candidatesToUse;
                 } else {
-                    // Hierarchy 2 & 3: No Priority Leaders.
-                    // Combine Unstarred Leaders and ALL Both candidates (Starred or Unstarred).
-                    const allBothCandidates = pool.filter(c => hasDynamicRole(c, 'both'));
+                    // Fallback: Combine Unstarred Pure Specific + All Both
                     selectedCandidates = [...pureSpecificCandidates, ...allBothCandidates];
                 }
 
@@ -778,70 +821,106 @@ function renderDetailTaskCard(task, weekIndex, dayIndex, dayRow) {
         // Apply Star Restriction to the list
         // 1. Resolve Real ID
         let realId = null;
-        let isGroup = false;
+        if (task.isGroup) {
+            const parts = task.id.split('-');
+            if (parts[0] === 'grp') {
+                realId = parts[1];
+            }
+        } else {
+            const originalTask = typeof TASKS !== 'undefined' ? TASKS.find(t => t.name === task.name) : null;
+            if (originalTask) realId = originalTask.id;
+        }
 
-        if (task) {
-            if (task.isGroup) {
-                isGroup = true;
-                const parts = task.id.split('-');
-                if (parts.length >= 2) realId = parts[1];
-            } else {
-                const originalTask = typeof TASKS !== 'undefined' ? TASKS.find(t => t.name === task.name) : null;
-                if (originalTask) realId = originalTask.id;
+        if (realId && window.isTaskStarred && window.isTaskStarred(realId, task.isGroup)) {
+            // Priority Filtering (Starring)
+            // If it's a split role, we handle it specifically below.
+            // If it's NOT a split role, we apply standard filtering here.
+            if (!task.isGroup || !task.isSplitRole) {
+                const starredCandidates = suitableCandidates.filter(c => window.isCandidateStarred(realId, c.id));
+                if (starredCandidates.length > 0) {
+                    suitableCandidates = starredCandidates;
+                }
             }
         }
 
-        // 2. Filter if Starred
-        if (realId && window.isTaskStarred && window.isTaskStarred(realId, isGroup)) {
-            const starredCandidates = suitableCandidates.filter(c => window.isCandidateStarred(realId, c.id));
+        // Split Role Filtering (Strictly based on Split Badge)
+        // This logic replaces the standard filtering for split roles.
+        if (task.isGroup && task.isSplitRole) {
+            const requiredRole = task.splitRoleType; // 'leader' or 'follower'
 
-            if (starredCandidates.length > 0) {
-                suitableCandidates = starredCandidates;
-            }
-
-            // Edge Case: Single Priority Assignment with "Both" Role in a Split Role Group
-            // If there is exactly ONE starred candidate, and that candidate has the "Both" role,
-            // AND this is a split-role group (where we need 2 unique people),
-            // we ignore the priority status and show the full list.
-            let ignorePriority = false;
-
-            if (task.isGroup && task.isSplitRole && starredCandidates.length === 1) {
-                const candidate = starredCandidates[0];
-                const key = `team_role_${candidate.id}`;
-                const stored = localStorage.getItem(key);
-                if (stored) {
-                    try {
+            // Helper to check dynamic role state (inline)
+            const hasDynamicRole = (c, type) => {
+                const key = `team_role_${c.id}`;
+                try {
+                    const stored = localStorage.getItem(key);
+                    if (stored) {
                         const state = JSON.parse(stored);
-                        if (state.both) {
-                            // Check if there are ANY OTHER starred candidates in this group?
-                            // We iterate over ALL candidates to see how many are starred for this group ID.
-                            let totalGroupStarredCount = 0;
-                            if (typeof CANDIDATES !== 'undefined') {
-                                totalGroupStarredCount = CANDIDATES.filter(c => window.isCandidateStarred(realId, c.id)).length;
-                            }
-
-                            // Only ignore priority if this candidate is the ONLY one starred in the entire group
-                            if (totalGroupStarredCount === 1) {
-                                ignorePriority = true;
-                            }
+                        if (type === 'leader') return state.leader;
+                        if (type === 'follower') return state.follower;
+                        if (type === 'both') return state.both;
+                    } else {
+                        // Fallback to static roles if no local storage
+                        if (c.roles) {
+                            const roles = c.roles.map(r => r.toLowerCase());
+                            if (type === 'leader') return roles.includes('leader');
+                            if (type === 'follower') return roles.includes('follower');
+                            if (type === 'both') return roles.includes('both');
                         }
-                    } catch (e) {
-                        console.error('Error parsing team role override:', e);
+                    }
+                } catch (e) { }
+                return false;
+            };
+
+            // Determine if the group is "priority viable" based on starred candidates
+            // This check is now local to the split-role filtering.
+            let isGroupPriorityViable = false;
+            if (realId && window.isTaskStarred && window.isTaskStarred(realId, task.isGroup) && typeof CANDIDATES !== 'undefined') {
+                const allStarred = CANDIDATES.filter(c => window.isCandidateStarred(realId, c.id));
+                const availableStarred = allStarred.filter(c =>
+                    task.subTasks.every(subTask => isCandidateAvailable(c, subTask.name, subTask.time, week, day))
+                );
+
+                // 1. Minimum Count Check:
+                if (availableStarred.length >= 2) {
+                    // 2. Role Coverage Check:
+                    const canLead = availableStarred.some(c => hasDynamicRole(c, 'leader') || hasDynamicRole(c, 'both'));
+                    const canFollow = availableStarred.some(c => hasDynamicRole(c, 'follower') || hasDynamicRole(c, 'both'));
+                    const candidate = starredCandidates[0];
+                    const key = `team_role_${candidate.id}`;
+                    const stored = localStorage.getItem(key);
+                    if (stored) {
+                        try {
+                            const state = JSON.parse(stored);
+                            if (state.both) {
+                                // Check if there are ANY OTHER starred candidates in this group?
+                                // We iterate over ALL candidates to see how many are starred for this group ID.
+                                let totalGroupStarredCount = 0;
+                                if (typeof CANDIDATES !== 'undefined') {
+                                    totalGroupStarredCount = CANDIDATES.filter(c => window.isCandidateStarred(realId, c.id)).length;
+                                }
+
+                                // Only ignore priority if this candidate is the ONLY one starred in the entire group
+                                if (totalGroupStarredCount === 1) {
+                                    ignorePriority = true;
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Error parsing team role override:', e);
+                        }
                     }
                 }
-            }
 
-            if (ignorePriority) {
-                // Fallback to full list (re-calculate without star filter)
-                // We already have suitableCandidates as the full list before filtering
-                // But we need to make sure we didn't overwrite it.
-                // Ah, we filtered suitableCandidates in place? No, we created starredCandidates.
-                // But wait, if ignorePriority is true, we just DON'T set suitableCandidates = starredCandidates.
-                // So suitableCandidates remains the full list.
-            } else if (starredCandidates.length > 0) {
-                suitableCandidates = starredCandidates;
+                if (ignorePriority) {
+                    // Fallback to full list (re-calculate without star filter)
+                    // We already have suitableCandidates as the full list before filtering
+                    // But we need to make sure we didn't overwrite it.
+                    // Ah, we filtered suitableCandidates in place? No, we created starredCandidates.
+                    // But wait, if ignorePriority is true, we just DON'T set suitableCandidates = starredCandidates.
+                    // So suitableCandidates remains the full list.
+                } else if (starredCandidates.length > 0) {
+                    suitableCandidates = starredCandidates;
+                }
             }
-            // Else fallback to full list
         }
     } // End of (!task.candidates) block
 
