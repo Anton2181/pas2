@@ -7,6 +7,7 @@
 function aggregateScheduleIntoGroups(scheduleData) {
     let groups = [];
     let skippedTaskNames = new Set();
+    let splitTasks = new Set();
 
     try {
         const workspaceStr = localStorage.getItem('workspace_autosave');
@@ -21,8 +22,12 @@ function aggregateScheduleIntoGroups(scheduleData) {
                 skippedTaskNames.add(task.name);
             });
 
+            // Get split tasks (solo tasks marked as split)
+            splitTasks = new Set(workspace.state?.splitTasks || []);
+
             console.log('Loaded groups for aggregation:', groups.length);
             console.log('Skipped tasks:', skippedTaskNames.size);
+            console.log('Split tasks:', splitTasks.size);
 
             groups.forEach(group => {
                 group.taskNames = canvasTasks
@@ -38,6 +43,21 @@ function aggregateScheduleIntoGroups(scheduleData) {
         console.error('Error loading groups:', e);
         return scheduleData;
     }
+
+    // Helper to check dynamic role state (Scoped to aggregation function)
+    const hasDynamicRole = (c, type) => {
+        const key = `team_role_${c.id}`;
+        try {
+            const stored = localStorage.getItem(key);
+            if (stored) {
+                const state = JSON.parse(stored);
+                if (type === 'leader') return state.leader;
+                if (type === 'follower') return state.follower;
+                if (type === 'both') return state.both;
+            }
+        } catch (e) { }
+        return false;
+    };
 
     if (groups.length === 0) return scheduleData;
 
@@ -167,6 +187,8 @@ function aggregateScheduleIntoGroups(scheduleData) {
                             break; // Limit to 2 instances for split roles
                         }
 
+
+
                         if (typeof CANDIDATES !== 'undefined' && CANDIDATES) {
                             // 1. Initial Filter: Capability (Static Roles) + Availability
                             eligibleCandidates = CANDIDATES.filter(c =>
@@ -178,22 +200,6 @@ function aggregateScheduleIntoGroups(scheduleData) {
                             if (group.isSplitRole) {
                                 const requiredRole = instanceCount === 0 ? 'leader' : 'follower';
                                 console.log(`[DEBUG] Split Group: ${group.title} (${instanceCount}) - Required: ${requiredRole}`);
-
-                                // Helper to check dynamic role state
-                                const hasDynamicRole = (c, type) => {
-                                    const key = `team_role_${c.id}`;
-                                    try {
-                                        const stored = localStorage.getItem(key);
-                                        if (stored) {
-                                            const state = JSON.parse(stored);
-                                            // console.log(`[DEBUG] ${c.name} role state:`, state);
-                                            if (type === 'leader') return state.leader;
-                                            if (type === 'follower') return state.follower;
-                                            if (type === 'both') return state.both;
-                                        }
-                                    } catch (e) { }
-                                    return false;
-                                };
 
                                 // Try specific roles first (exclude Both)
                                 const specificCandidates = eligibleCandidates.filter(c => {
@@ -211,6 +217,50 @@ function aggregateScheduleIntoGroups(scheduleData) {
                                     // Fallback to Both
                                     eligibleCandidates = eligibleCandidates.filter(c => hasDynamicRole(c, 'both'));
                                     console.log(`[DEBUG] Both candidates: ${eligibleCandidates.length}`, eligibleCandidates.map(c => c.name));
+                                }
+                            }
+
+                            // Priority Filtering (Starring)
+                            if (group.id && window.isTaskStarred && window.isTaskStarred(group.id, true)) {
+                                const starredCandidates = eligibleCandidates.filter(c => window.isCandidateStarred(group.id, c.id));
+
+                                // "Both" Exception Logic for Split Roles
+                                let ignorePriority = false;
+                                if (group.isSplitRole && starredCandidates.length === 1) {
+                                    const candidate = starredCandidates[0];
+
+                                    // Use hasDynamicRole helper
+                                    if (hasDynamicRole(candidate, 'both')) {
+                                        // Check if this is the ONLY starred candidate available for BOTH slots.
+                                        // If there are other starred candidates available for the OTHER role, 
+                                        // we should NOT ignore priority (we should show Yulia for this slot).
+
+                                        const currentRole = instanceCount === 0 ? 'leader' : 'follower';
+                                        const otherRole = instanceCount === 0 ? 'follower' : 'leader';
+
+                                        // Find other starred candidates available for the OTHER role
+                                        const otherStarredAvailable = CANDIDATES.filter(c =>
+                                            c.id !== candidate.id && // Not Yulia
+                                            window.isCandidateStarred(group.id, c.id) && // Is Starred
+                                            (hasDynamicRole(c, otherRole) || hasDynamicRole(c, 'both')) && // Can do other role
+                                            // Check availability (using same time/day as current task)
+                                            foundTasks.every(t => isCandidateAvailable(c, t.name, t.time, weekData.week, dayData.name))
+                                        );
+
+                                        console.log(`[AGG-DEBUG] Checking Other Slot (${otherRole}) for ${candidate.name}. Found: ${otherStarredAvailable.length}`);
+
+                                        if (otherStarredAvailable.length === 0) {
+                                            // No one else can do the other slot. Yulia is needed for both.
+                                            // Ignore priority to show options.
+                                            ignorePriority = true;
+                                            console.log(`[AGG-PRIO] Ignoring priority for ${candidate.name} (Needed for both slots)`);
+                                        }
+                                    }
+                                }
+
+                                if (starredCandidates.length > 0 && !ignorePriority) {
+                                    eligibleCandidates = starredCandidates;
+                                    console.log(`[AGG-PRIO] Filtered ${group.title} to ${eligibleCandidates.length} starred candidates`);
                                 }
                             }
 
@@ -256,6 +306,67 @@ function aggregateScheduleIntoGroups(scheduleData) {
                         // console.log('Skipping leftover group task:', task.name);
                         return;
                     }
+
+                    // Calculate Candidates & Priority for Individual Task
+                    if (typeof CANDIDATES !== 'undefined') {
+                        // Find Real ID
+                        let realId = null;
+                        if (typeof TASKS !== 'undefined') {
+                            const originalTask = TASKS.find(t => t.name === task.name);
+                            if (originalTask) realId = originalTask.id;
+                        }
+
+                        // Check if Split Task
+                        if (realId && splitTasks.has(realId)) {
+                            // Create Leader and Follower instances
+                            ['leader', 'follower'].forEach(role => {
+                                const splitTask = { ...task, isSplitRole: true, role: role, id: realId };
+
+                                // Filter Candidates for this role
+                                let eligible = CANDIDATES.filter(c =>
+                                    c.roles.includes(task.name) &&
+                                    isCandidateAvailable(c, task.name, task.time, weekData.week, dayData.name)
+                                );
+
+                                // Apply Role Filter
+                                eligible = eligible.filter(c => {
+                                    const match = hasDynamicRole(c, role);
+                                    if (match) return true;
+                                    if (hasDynamicRole(c, 'both')) return true;
+                                    return false;
+                                });
+
+                                // Priority Filtering
+                                if (window.isTaskStarred && window.isTaskStarred(realId)) {
+                                    const starred = eligible.filter(c => window.isCandidateStarred(realId, c.id));
+                                    if (starred.length > 0) {
+                                        eligible = starred;
+                                    }
+                                }
+
+                                splitTask.candidates = eligible;
+                                processedTasks.push(splitTask);
+                            });
+                            return; // Skip adding the original task
+                        }
+
+                        // 1. Availability & Role
+                        let eligible = CANDIDATES.filter(c =>
+                            c.roles.includes(task.name) &&
+                            isCandidateAvailable(c, task.name, task.time, weekData.week, dayData.name)
+                        );
+
+                        // 2. Priority
+                        if (realId && window.isTaskStarred && window.isTaskStarred(realId)) {
+                            const starred = eligible.filter(c => window.isCandidateStarred(realId, c.id));
+                            if (starred.length > 0) {
+                                eligible = starred;
+                            }
+                        }
+
+                        task.candidates = eligible;
+                    }
+
                     processedTasks.push(task);
                 }
             });

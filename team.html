@@ -1270,12 +1270,27 @@
                     const starredCount = candidates.filter(c => isCandidateStarred(task.id, c.id)).length;
                     const tooltipText = starredCount === 1 ? '1 Priority Assignee' : `${starredCount} Priority Assignees`;
 
+                    // Check if split role
+                    const isSplit = workspaceState.splitTasks && workspaceState.splitTasks.includes(task.id);
+
                     let html = `
                         <div class="task-card-header">
                             <div class="task-name">${task.name}</div>
-                            <div class="task-star ${starred ? 'starred' : ''} ${starDisabled ? 'disabled' : ''}" 
-                                 onclick="event.stopPropagation(); toggleTaskStar('${task.id}', false, event)"
-                                 data-tooltip="${tooltipText}">★</div>
+                            <div class="header-controls">
+                                <div class="split-role-badge ${isSplit ? 'active' : ''}"
+                                     onclick="event.stopPropagation(); toggleSplitRole('${task.id}', event)"
+                                     data-tooltip="Leader/Follower Task">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="9" cy="7" r="4"></circle>
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                    </svg>
+                                </div>
+                                <div class="task-star ${starred ? 'starred' : ''} ${starDisabled ? 'disabled' : ''}" 
+                                     onclick="event.stopPropagation(); toggleTaskStar('${task.id}', false, event)"
+                                     data-tooltip="${tooltipText}">★</div>
+                            </div>
                         </div>
                     `;
 
@@ -1531,23 +1546,35 @@
                     }
                 };
 
-                window.toggleSplitRole = function (groupId, event) {
+                window.toggleSplitRole = function (id, event) {
                     if (event) event.stopPropagation();
 
-                    // Find group in workspaceState
-                    const group = workspaceState.groups.find(g => g.id == groupId);
+                    // 1. Try to find group
+                    const group = workspaceState.groups.find(g => g.id == id);
                     if (group) {
                         group.isSplitRole = !group.isSplitRole;
-
-                        // Save to localStorage
-                        localStorage.setItem('workspace_autosave', JSON.stringify({ state: workspaceState }));
-
-                        // Re-run aggregation to update schedule preview (and re-render list)
-                        if (window.refreshScheduleAggregation) {
-                            window.refreshScheduleAggregation();
-                        } else {
-                            renderAvailableTasks();
+                    } else {
+                        // 2. It's a solo task
+                        if (!workspaceState.splitTasks) {
+                            workspaceState.splitTasks = [];
                         }
+
+                        const index = workspaceState.splitTasks.indexOf(id);
+                        if (index === -1) {
+                            workspaceState.splitTasks.push(id);
+                        } else {
+                            workspaceState.splitTasks.splice(index, 1);
+                        }
+                    }
+
+                    // Save to localStorage
+                    localStorage.setItem('workspace_autosave', JSON.stringify({ state: workspaceState }));
+
+                    // Re-run aggregation to update schedule preview (and re-render list)
+                    if (window.refreshScheduleAggregation) {
+                        window.refreshScheduleAggregation();
+                    } else {
+                        renderAvailableTasks();
                     }
                 };
 

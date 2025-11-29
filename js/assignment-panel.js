@@ -429,113 +429,14 @@ class AssignmentPanel {
         }, 100);
     }
 
-    applyPriorityFilter(candidates, task) {
-        if (!candidates || candidates.length === 0) return [];
-
-        console.log(`[PRIO-TRACE] applyPriorityFilter called for ${task ? task.name : 'unknown'} (ID: ${task ? task.id : 'N/A'})`);
-
-        // 1. Resolve Real ID for Star Checking
-        let realId = null;
-        let isGroup = false;
-
-        if (task) {
-            if (task.isGroup) {
-                isGroup = true;
-                // Extract group ID from "g-{id}-..."
-                // console.log(`[PRIO-DEBUG] Checking Group ID: ${task.id}`);
-                const parts = task.id.toString().split('-');
-                if (parts.length >= 2) {
-                    realId = parts[1];
-                } else {
-                    // Fallback: assume the ID itself is the real ID if no hyphen
-                    realId = task.id;
-                }
-            } else {
-                // Find task in TASKS by name to get its persistent ID (t1, t2...)
-                // Note: task.name might have " - DayName" appended. We should try exact match first, then startsWith.
-                let originalTask = typeof TASKS !== 'undefined' ? TASKS.find(t => t.name === task.name) : null;
-
-                if (!originalTask && typeof TASKS !== 'undefined') {
-                    // Try matching by base name (e.g. "Master of Cerimony" vs "Master of Cerimony - Tuesday")
-                    // We assume the suffix starts with " - "
-                    const baseName = task.name.split(' - ')[0];
-                    originalTask = TASKS.find(t => t.name === baseName);
-                }
-
-                if (originalTask) realId = originalTask.id;
-            }
-        }
-
-        // 2. Check Star Restriction
-        if (realId) {
-            // 2. Check for Starred Candidates
-            // If the task itself is NOT starred, we check if any candidates are starred for this task.
-            const starredCandidates = candidates.filter(c => {
-                const isStarred = window.isCandidateStarred(realId, c.id);
-                console.log(`[PRIO-CHECK] Task: ${task.name} (RealID: ${realId}), Candidate: ${c.name} (ID: ${c.id}), Starred: ${isStarred}`);
-                return isStarred;
-            });
-
-            if (starredCandidates.length > 0) {
-                console.log(`[PRIO-DEBUG] Found ${starredCandidates.length} starred candidates for ${task.name} (RealID: ${realId})`);
-
-                // Special Case: "Both" Role in Split Groups
-                // If we have a split group (Leader/Follower), and a candidate is "Both",
-                // they might be starred for the GROUP, but we only want to prioritize them 
-                // if they are the ONLY starred candidate, OR if they are explicitly needed.
-                let ignorePriority = false;
-
-                if (task && task.isGroup && task.isSplitRole && starredCandidates.length === 1) {
-                    const candidate = starredCandidates[0];
-                    const key = `team_role_${candidate.id}`;
-                    const stored = localStorage.getItem(key);
-                    if (stored) {
-                        try {
-                            const state = JSON.parse(stored);
-                            if (state.both) {
-                                // Check if there are ANY OTHER starred candidates in this group?
-                                // We iterate over ALL candidates to see how many are starred for this group ID.
-                                let totalGroupStarredCount = 0;
-                                if (typeof CANDIDATES !== 'undefined') {
-                                    totalGroupStarredCount = CANDIDATES.filter(c => window.isCandidateStarred(realId, c.id)).length;
-                                }
-
-                                console.log(`[PRIO-DEBUG] "Both" Exception Check. Candidate: ${candidate.name}, Total Starred in Group: ${totalGroupStarredCount}`);
-
-                                // Only ignore priority if this candidate is the ONLY one starred in the entire group
-                                if (totalGroupStarredCount === 1) {
-                                    ignorePriority = true;
-                                    console.log(`[PRIO-DEBUG] Ignoring Priority (Single "Both" Candidate)`);
-                                }
-                            }
-                        } catch (e) {
-                            console.error('Error parsing team role override:', e);
-                        }
-                    }
-                }
-
-                if (starredCandidates.length > 0 && !ignorePriority) {
-                    return starredCandidates;
-                }
-            }
-        }
-
-        return candidates;
-    }
-
     getCommonCandidates(subTasks, week, day, groupTask) {
         // Use pre-calculated candidates if available (Source of Truth)
         const hasPrecalc = groupTask && groupTask.candidates && groupTask.candidates.length > 0;
-        let candidates = hasPrecalc ? groupTask.candidates : (typeof CANDIDATES !== 'undefined' ? CANDIDATES : []);
-
-        // Apply Priority Filter (Starring)
-        candidates = this.applyPriorityFilter(candidates, groupTask);
-
-        // If we used pre-calculated candidates, trust them and return (matching schedule-preview.js)
         if (hasPrecalc) {
-            // console.log(`[COMMON] Using precalc for ${groupTask.name}: ${candidates.length}`);
-            return candidates;
+            return groupTask.candidates;
         }
+
+        let candidates = typeof CANDIDATES !== 'undefined' ? CANDIDATES : [];
 
         return candidates.filter(c => {
             // Must be available for ALL subtasks
@@ -558,15 +459,11 @@ class AssignmentPanel {
     getCandidatesForTask(task, week, day) {
         // Use pre-calculated candidates if available (Source of Truth)
         const hasPrecalc = task && task.candidates && task.candidates.length > 0;
-        let candidates = hasPrecalc ? task.candidates : (typeof CANDIDATES !== 'undefined' ? CANDIDATES : []);
-
-        // Apply Priority Filter (Starring)
-        candidates = this.applyPriorityFilter(candidates, task);
-
-        // If we used pre-calculated candidates, trust them and return
         if (hasPrecalc) {
-            return candidates;
+            return task.candidates;
         }
+
+        let candidates = typeof CANDIDATES !== 'undefined' ? CANDIDATES : [];
 
         return candidates.filter(c => {
             // Check Role
