@@ -232,6 +232,21 @@
                         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
                     }
 
+                    .task-c.agg-counter {
+                        display: flex;
+                        align-items: center;
+                        background: rgba(255, 255, 255, 0.9);
+                        border-radius: 4px;
+                        padding: 2px;
+                        margin-right: 8px;
+                        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+                        pointer-events: auto;
+                        /* Ensure clickable */
+                        z-index: 10;
+                        /* Sit above other elements */
+                        position: relative;
+                    }
+
                     .task-card.group-card {
                         background: linear-gradient(135deg, rgba(100, 160, 220, 0.3), rgba(80, 140, 200, 0.4));
                         border: 1px solid rgba(80, 140, 200, 0.5);
@@ -641,6 +656,62 @@
                         color: #aaa;
                         box-shadow: none !important;
                     }
+
+                    /* Aggregation Counter Controls */
+                    .agg-counter {
+                        display: flex;
+                        align-items: center;
+                        gap: 4px;
+                        background: rgba(255, 255, 255, 0.9);
+                        /* Increased opacity */
+                        border-radius: 12px;
+                        padding: 2px;
+                        border: 1px solid rgba(0, 0, 0, 0.1);
+                        font-size: 11px;
+                        font-weight: 500;
+                        color: var(--text-primary);
+                        height: 20px;
+                        pointer-events: auto !important;
+                        /* Force clickable */
+                        z-index: 100 !important;
+                        /* Force on top */
+                        position: relative;
+                    }
+
+                    .agg-btn {
+                        width: 16px;
+                        height: 16px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 50%;
+                        border: none;
+                        background: rgba(0, 0, 0, 0.05);
+                        cursor: pointer;
+                        font-size: 10px;
+                        color: var(--text-primary);
+                        padding: 0;
+                        transition: background 0.2s;
+                        pointer-events: auto !important;
+                        /* Force clickable */
+                        z-index: 101 !important;
+                        /* Force on top */
+                        position: relative;
+                    }
+
+                    .agg-btn:hover:not(:disabled) {
+                        background: rgba(0, 0, 0, 0.1);
+                    }
+
+                    .agg-btn:disabled {
+                        opacity: 0.3;
+                        cursor: not-allowed;
+                    }
+
+                    .agg-count {
+                        min-width: 12px;
+                        text-align: center;
+                    }
                 </style>
             </head>
 
@@ -729,6 +800,18 @@
             <script src="js/assignment-panel.js"></script>
             <script src="js/schedule-hover.js"></script>
             <script>
+                // Initialize workspaceState globally immediately
+                console.log("Team page script initializing...");
+                window.workspaceState = window.workspaceState || {};
+                try {
+                    const stored = localStorage.getItem('workspace_autosave');
+                    if (stored) {
+                        const parsed = JSON.parse(stored);
+                        if (parsed.state) window.workspaceState = parsed.state;
+                    }
+                } catch (e) {
+                    console.error("Error loading workspaceState", e);
+                }
                 // Shared Date Logic
                 function setupDateEditable() {
                     const dateEl = document.getElementById('project-date');
@@ -1036,8 +1119,10 @@
                         grid.parentElement.scrollTop = scrollTop;
                     }
 
-                    // Update Schedule Preview Heatmap
-                    if (window.renderSchedulePreview) {
+                    // Update Schedule Preview Heatmap (Trigger Aggregation to apply priority filters)
+                    if (window.refreshScheduleAggregation) {
+                        window.refreshScheduleAggregation();
+                    } else if (window.renderSchedulePreview) {
                         window.renderSchedulePreview();
                     }
                 }
@@ -1141,8 +1226,10 @@
                         grid.parentElement.scrollTop = scrollTop;
                     }
 
-                    // Update Schedule Preview Heatmap
-                    if (window.renderSchedulePreview) {
+                    // Update Schedule Preview Heatmap (Trigger Aggregation to apply priority filters)
+                    if (window.refreshScheduleAggregation) {
+                        window.refreshScheduleAggregation();
+                    } else if (window.renderSchedulePreview) {
                         window.renderSchedulePreview();
                     }
                 }
@@ -1242,6 +1329,7 @@
                         setTimeout(window.attachScheduleHoverListeners, 100);
                     }
                 }
+                window.renderAvailableTasks = renderAvailableTasks;
 
                 // Create task card element
                 function createTaskCard(task) {
@@ -1273,10 +1361,31 @@
                     // Check if split role
                     const isSplit = workspaceState.splitTasks && workspaceState.splitTasks.includes(task.id);
 
+                    // Aggregation Counter Logic
+                    let counterHtml = '';
+                    if (window.AGGREGATION_COUNTS && window.AGGREGATION_COUNTS.tasks[task.id]) {
+                        const counts = window.AGGREGATION_COUNTS.tasks[task.id];
+                        const current = counts.current;
+                        const max = counts.max;
+
+                        // Determine if buttons should be disabled
+                        const minusDisabled = current <= 0;
+                        const plusDisabled = current >= max;
+
+                        counterHtml = `
+                            <div class="agg-counter">
+                                <button class="agg-btn minus-btn" data-action="update-limit" data-id="${task.id}" data-delta="-1" ${minusDisabled ? 'disabled' : ''}>-</button>
+                                <span class="agg-count" title="Assigned / Max Weekly Available">${current}</span>
+                                <button class="agg-btn plus-btn" data-action="update-limit" data-id="${task.id}" data-delta="1" ${plusDisabled ? 'disabled' : ''}>+</button>
+                            </div>
+                        `;
+                    }
+
                     let html = `
                         <div class="task-card-header">
                             <div class="task-name">${task.name}</div>
                             <div class="header-controls">
+                                ${counterHtml}
                                 <div class="split-role-badge ${isSplit ? 'active' : ''}"
                                      onclick="event.stopPropagation(); toggleSplitRole('${task.id}', event)"
                                      data-tooltip="Leader/Follower Task">
@@ -1435,6 +1544,26 @@
                     const starredCount = candidates.filter(c => isCandidateStarred(group.id, c.id)).length;
                     const tooltipText = starredCount === 1 ? '1 Priority Assignee' : `${starredCount} Priority Assignees`;
 
+                    // Aggregation Counter Logic
+                    let counterHtml = '';
+                    if (window.AGGREGATION_COUNTS && window.AGGREGATION_COUNTS.groups[group.id]) {
+                        const counts = window.AGGREGATION_COUNTS.groups[group.id];
+                        const current = counts.current;
+                        const max = counts.max;
+
+                        // Determine if buttons should be disabled
+                        const minusDisabled = current <= 0;
+                        const plusDisabled = current >= max;
+
+                        counterHtml = `
+                            <div class="agg-counter">
+                                <button class="agg-btn minus-btn" data-action="update-limit" data-id="${group.id}" data-delta="-1" ${minusDisabled ? 'disabled' : ''}>-</button>
+                                <span class="agg-count" title="Assigned / Max Weekly Available">${current}</span>
+                                <button class="agg-btn plus-btn" data-action="update-limit" data-id="${group.id}" data-delta="1" ${plusDisabled ? 'disabled' : ''}>+</button>
+                            </div>
+                        `;
+                    }
+
                     let html = `
                         <div class="task-card-header">
                             <div class="task-name">
@@ -1442,6 +1571,7 @@
                                 <span class="group-badge">GROUP</span>
                             </div>
                             <div class="header-controls">
+                                ${counterHtml}
                                 <div class="split-role-badge ${group.isSplitRole ? 'active' : ''}"
                                      onclick="event.stopPropagation(); toggleSplitRole('${group.id}', event)"
                                      data-tooltip="Leader/Follower Task">
@@ -1577,6 +1707,95 @@
                         renderAvailableTasks();
                     }
                 };
+
+                // Define updateLimit globally
+                window.updateLimit = function (id, delta) {
+                    console.log(`updateLimit called for ${id} with delta ${delta}`);
+
+                    // 1. Load fresh state
+                    let currentState = {};
+                    try {
+                        const stored = localStorage.getItem('workspace_autosave');
+                        if (stored) {
+                            currentState = JSON.parse(stored).state || {};
+                        }
+                    } catch (e) {
+                        console.error('Failed to load state', e);
+                    }
+
+                    // 2. Initialize limits
+                    if (!currentState.limits) currentState.limits = {};
+
+                    // Get current counts to determine current limit or max
+                    const counts = window.AGGREGATION_COUNTS ? (window.AGGREGATION_COUNTS.groups[id] || window.AGGREGATION_COUNTS.tasks[id]) : null;
+                    if (!counts) {
+                        console.error('No counts found for', id);
+                        return;
+                    }
+
+                    // Determine current limit value
+                    let currentLimit = currentState.limits[id];
+
+                    if (currentLimit === undefined) {
+                        // If no limit is set, we assume the limit is effectively the MAX potential
+                        // So if we want to decrease, we start from MAX.
+                        currentLimit = counts.max;
+                    }
+
+                    let newLimit = currentLimit + delta;
+
+                    // Bounds check
+                    if (newLimit < 0) newLimit = 0;
+                    if (newLimit > counts.max) newLimit = counts.max;
+
+                    console.log(`Updating limit for ${id}: ${currentLimit} -> ${newLimit} (Max: ${counts.max})`);
+
+                    // 3. Update state
+                    currentState.limits[id] = newLimit;
+
+                    // 4. Save
+                    localStorage.setItem('workspace_autosave', JSON.stringify({ state: currentState }));
+
+                    // 5. Update global cache
+                    window.workspaceState = currentState;
+
+                    // 6. Refresh aggregation
+                    if (window.refreshScheduleAggregation) {
+                        console.log('Triggering refreshScheduleAggregation');
+                        window.refreshScheduleAggregation();
+                    } else {
+                        console.error('refreshScheduleAggregation not found, falling back to renderAvailableTasks');
+                        if (typeof renderAvailableTasks === 'function') {
+                            renderAvailableTasks();
+                        }
+                    }
+                };
+
+                // Global Event Delegation for Aggregation Buttons
+                // Use capture phase (true) to intercept before drag logic
+                document.addEventListener('mousedown', function (e) {
+                    const btn = e.target.closest('.agg-btn[data-action="update-limit"]');
+                    if (!btn) {
+                        // Also check for the container to stop propagation if clicking empty space in counter
+                        const counter = e.target.closest('.agg-counter');
+                        if (counter) {
+                            e.stopPropagation();
+                        }
+                        return;
+                    }
+
+                    // Stop propagation immediately to prevent drag
+                    e.stopPropagation();
+                    e.preventDefault();
+
+                    if (btn.disabled) return;
+
+                    const id = btn.dataset.id;
+                    const delta = parseInt(btn.dataset.delta);
+
+                    console.log('Global delegation triggered:', id, delta);
+                    updateLimit(id, delta);
+                }, true);
 
                 initTeamPage();
                 initGlobalStorage();

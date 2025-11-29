@@ -731,13 +731,32 @@ function renderDetailTaskCard(task, weekIndex, dayIndex, dayRow) {
                 );
 
                 // Role-based filtering
-                // 1. Try specific roles (exclude Both)
-                let specificCandidates = pool.filter(c => hasDynamicRole(c, requiredRole));
+                // Refined Priority Logic:
+                // 1. Starred Leaders (Priority Specific)
+                // 2. Starred Both (Priority Both - only if no Priority Specific)
+                // 3. Unstarred Leaders (Specific - only if no Priority Both?)
+                // But if we have Starred Leaders, they should win over Starred Both.
 
-                if (specificCandidates.length > 0) {
-                    suitableCandidates = specificCandidates;
+                const pureSpecificCandidates = pool.filter(c => hasDynamicRole(c, requiredRole));
+                const starredSpecificCandidates = pureSpecificCandidates.filter(c => window.isCandidateStarred(realId, c.id));
+                const starredBothCandidates = pool.filter(c => hasDynamicRole(c, 'both') && window.isCandidateStarred(realId, c.id));
+
+                let selectedCandidates = [];
+
+                if (starredSpecificCandidates.length > 0) {
+                    // Hierarchy 1: Priority Leaders exist. Use ONLY them.
+                    selectedCandidates = starredSpecificCandidates;
                 } else {
-                    // 2. Fallback: No specific role candidates, show Both candidates
+                    // Hierarchy 2 & 3: No Priority Leaders.
+                    // Combine Unstarred Leaders and ALL Both candidates (Starred or Unstarred).
+                    const allBothCandidates = pool.filter(c => hasDynamicRole(c, 'both'));
+                    selectedCandidates = [...pureSpecificCandidates, ...allBothCandidates];
+                }
+
+                if (selectedCandidates.length > 0) {
+                    suitableCandidates = selectedCandidates;
+                } else {
+                    // Hierarchy 4: Fallback to all Both (Unstarred Both)
                     suitableCandidates = pool.filter(c => hasDynamicRole(c, 'both'));
                 }
             } else {
@@ -776,6 +795,10 @@ function renderDetailTaskCard(task, weekIndex, dayIndex, dayRow) {
         if (realId && window.isTaskStarred && window.isTaskStarred(realId, isGroup)) {
             const starredCandidates = suitableCandidates.filter(c => window.isCandidateStarred(realId, c.id));
 
+            if (starredCandidates.length > 0) {
+                suitableCandidates = starredCandidates;
+            }
+
             // Edge Case: Single Priority Assignment with "Both" Role in a Split Role Group
             // If there is exactly ONE starred candidate, and that candidate has the "Both" role,
             // AND this is a split-role group (where we need 2 unique people),
@@ -808,7 +831,14 @@ function renderDetailTaskCard(task, weekIndex, dayIndex, dayRow) {
                 }
             }
 
-            if (starredCandidates.length > 0 && !ignorePriority) {
+            if (ignorePriority) {
+                // Fallback to full list (re-calculate without star filter)
+                // We already have suitableCandidates as the full list before filtering
+                // But we need to make sure we didn't overwrite it.
+                // Ah, we filtered suitableCandidates in place? No, we created starredCandidates.
+                // But wait, if ignorePriority is true, we just DON'T set suitableCandidates = starredCandidates.
+                // So suitableCandidates remains the full list.
+            } else if (starredCandidates.length > 0) {
                 suitableCandidates = starredCandidates;
             }
             // Else fallback to full list

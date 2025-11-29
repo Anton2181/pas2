@@ -124,7 +124,10 @@ function makeDraggable(el, instance, isGroup = false) {
             e.target.closest('.candidates-toggle') ||
             e.target.closest('.group-delete-btn') ||
             e.target.closest('.group-candidates-toggle') ||
+            e.target.closest('.group-candidates-toggle') ||
             e.target.closest('.resize-handle') ||
+            e.target.closest('.agg-btn') ||
+            e.target.closest('.agg-counter') ||
             e.target.closest('.icon-btn') || // Skip/Restore buttons
             (e.target.tagName === 'INPUT')) return;
 

@@ -62,26 +62,52 @@ function aggregateScheduleIntoGroups(scheduleData) {
     if (groups.length === 0) return scheduleData;
 
     groups.sort((a, b) => {
-        // 1. Sort by Variant (Priority) Ascending (1 matches before 2)
-        // The user explicitly requested "1. priority" groups to be created before "2. priority" ones.
-        if (a.variant !== b.variant) return a.variant - b.variant;
+        // 0. Starred Groups come first!
+        const aStarred = window.isTaskStarred && window.isTaskStarred(a.id, true);
+        const bStarred = window.isTaskStarred && window.isTaskStarred(b.id, true);
+        if (aStarred !== bStarred) return aStarred ? -1 : 1;
 
-        // 2. Groups without repeats come first (Specific > Generic)
-        if (a.hasRepeats !== b.hasRepeats) return a.hasRepeats ? 1 : -1;
-
-        // 3. Groups with fewer tasks come first (More constrained > Less constrained)
-        if (a.taskNames.length !== b.taskNames.length) return a.taskNames.length - b.taskNames.length;
-
-        // 4. Tiebreaker: ID (older first)
-        if (typeof a.id === 'string' && typeof b.id === 'string') {
-            return a.id.localeCompare(b.id);
+        // 1. Creation Order (ID) - Ascending
+        // User rule: "higher order gets to aggregate first" -> First placed (Lower ID) is "Order 1".
+        // So we sort Ascending.
+        if (a.id !== b.id) {
+            // Handle string/number IDs
+            if (typeof a.id === 'string' && typeof b.id === 'string') {
+                return a.id.localeCompare(b.id, undefined, { numeric: true });
+            }
+            return a.id - b.id;
         }
-        return a.id - b.id;
+
+        return 0;
     });
 
-    const aggregated = scheduleData.map(weekData => ({
-        week: weekData.week,
-        days: weekData.days.map(dayData => {
+    // Log final order
+    console.log('Final Group Aggregation Order:', groups.map(g => `${g.title} (ID: ${g.id})`));
+
+    // Initialize global aggregation counts
+    window.AGGREGATION_COUNTS = {
+        groups: {}, // { groupId: { current: 0, max: 0 } }
+        tasks: {}   // { taskName: { current: 0, max: 0 } }
+    };
+
+    // Load limits from workspace state
+    let limits = {};
+    try {
+        const workspaceStr = localStorage.getItem('workspace_autosave');
+        if (workspaceStr) {
+            const workspace = JSON.parse(workspaceStr);
+            limits = workspace.state?.limits || {};
+        }
+    } catch (e) { }
+
+    const aggregated = scheduleData.map(weekData => {
+        // Track counts for the current week
+        const weeklyCounts = {
+            groups: {}, // { groupId: { potential: 0, actual: 0 } }
+            tasks: {}   // { taskId: { potential: 0, actual: 0 } }
+        };
+
+        const processedDays = weekData.days.map(dayData => {
             const processedTasks = [];
             const usedIndices = new Set();
 
@@ -89,7 +115,19 @@ function aggregateScheduleIntoGroups(scheduleData) {
             groups.forEach(group => {
                 if (!group.taskNames || group.taskNames.length === 0) return;
 
-                let instanceCount = 0;
+                // Initialize count for this group in this week if not exists
+                if (!weeklyCounts.groups[group.id]) {
+                    weeklyCounts.groups[group.id] = { potential: 0, actual: 0 };
+                }
+                const groupWeekCounts = weeklyCounts.groups[group.id];
+
+                // Initialize global count if not exists
+                if (!window.AGGREGATION_COUNTS.groups[group.id]) {
+                    window.AGGREGATION_COUNTS.groups[group.id] = { current: 0, max: 0 };
+                }
+
+                let instanceCount = 0; // Instance count for the DAY (used for split logic)
+
                 while (true) {
                     const groupTaskCounts = {};
                     group.taskNames.forEach(name => {
@@ -125,7 +163,8 @@ function aggregateScheduleIntoGroups(scheduleData) {
                         const idx = dayData.tasks.findIndex((t, i) =>
                             t.name === requiredName &&
                             !usedIndices.has(i) &&
-                            !currentIndices.includes(i)
+                            !currentIndices.includes(i) &&
+                            (!group.skippedByLimitIndices || !group.skippedByLimitIndices.has(i))
                         );
 
                         if (idx !== -1) {
@@ -139,157 +178,186 @@ function aggregateScheduleIntoGroups(scheduleData) {
 
                     if (!matchFailed) {
                         // Found a complete group match!
-                        currentIndices.forEach(i => usedIndices.add(i));
 
-                        // Calculate aggregated metrics
-                        let totalEffort = 0, timeSlots = [], hasAll = false;
-                        foundTasks.forEach(task => {
-                            totalEffort += task.effort || 0;
-                            if (task.time) {
-                                if (task.time.toLowerCase() === 'all') hasAll = true;
-                                else timeSlots.push(task.time);
-                            }
-                        });
+                        // Increment WEEKLY POTENTIAL count
+                        groupWeekCounts.potential++;
 
-                        let displayTime = '';
-                        if (hasAll) {
-                            displayTime = 'All';
-                        } else if (timeSlots.length > 0) {
-                            const parsed = timeSlots.map(slot => {
-                                const parts = slot.split('-');
-                                if (parts.length === 2) {
-                                    let start = parseInt(parts[0]), end = parseInt(parts[1]);
-                                    if (end === 0) end = 24;
-                                    if (start === 0) start = 24;
-                                    return { start, end };
+                        // Check WEEKLY LIMIT
+                        const limit = limits[group.id];
+                        const limitReached = limit !== undefined && groupWeekCounts.actual >= limit;
+
+                        if (limitReached) {
+                            // Over limit: Skip this instance
+                            if (!group.skippedByLimitIndices) group.skippedByLimitIndices = new Set();
+                            currentIndices.forEach(i => group.skippedByLimitIndices.add(i));
+                        } else {
+                            // Under limit: Process this instance
+                            groupWeekCounts.actual++;
+                            instanceCount++; // Increment day instance count
+
+                            // Mark as used globally
+                            currentIndices.forEach(i => usedIndices.add(i));
+
+                            // Calculate aggregated metrics
+                            let totalEffort = 0, timeSlots = [], hasAll = false;
+                            foundTasks.forEach(task => {
+                                totalEffort += task.effort || 0;
+                                if (task.time) {
+                                    if (task.time.toLowerCase() === 'all') hasAll = true;
+                                    else timeSlots.push(task.time);
                                 }
-                                return null;
-                            }).filter(s => s);
+                            });
 
-                            if (parsed.length > 0) {
-                                const earliest = Math.min(...parsed.map(s => s.start));
-                                let latest = Math.max(...parsed.map(s => s.end));
-                                if (earliest === 20 && latest === 24) { // Special case for 8pm-12am
-                                    displayTime = 'All';
+                            let displayTime = '';
+                            if (hasAll) {
+                                displayTime = 'All';
+                            } else if (timeSlots.length > 0) {
+                                const parsed = timeSlots.map(slot => {
+                                    const parts = slot.split('-');
+                                    if (parts.length === 2) {
+                                        let start = parseInt(parts[0]), end = parseInt(parts[1]);
+                                        if (end === 0) end = 24;
+                                        if (start === 0) start = 24;
+                                        return { start, end };
+                                    }
+                                    return null;
+                                }).filter(s => s);
+
+                                if (parsed.length > 0) {
+                                    const earliest = Math.min(...parsed.map(s => s.start));
+                                    let latest = Math.max(...parsed.map(s => s.end));
+                                    if (earliest === 20 && latest === 24) { // Special case for 8pm-12am
+                                        displayTime = 'All';
+                                    } else {
+                                        displayTime = `${earliest === 24 ? '00' : earliest}-${latest === 24 ? '00' : latest}`;
+                                    }
                                 } else {
-                                    displayTime = `${earliest === 24 ? '00' : earliest}-${latest === 24 ? '00' : latest}`;
-                                }
-                            } else {
-                                displayTime = timeSlots.join(', ');
-                            }
-                        }
-
-                        const taskNamesInGroup = foundTasks.map(task => task.name);
-                        let candidateCount = 0;
-                        let eligibleCandidates = [];
-
-                        if (group.isSplitRole && instanceCount >= 2) {
-                            break; // Limit to 2 instances for split roles
-                        }
-
-
-
-                        if (typeof CANDIDATES !== 'undefined' && CANDIDATES) {
-                            // 1. Initial Filter: Capability (Static Roles) + Availability
-                            eligibleCandidates = CANDIDATES.filter(c =>
-                                taskNamesInGroup.every(name => c.roles.includes(name)) &&
-                                foundTasks.every(t => isCandidateAvailable(c, t.name, t.time, weekData.week, dayData.name))
-                            );
-
-                            // Split Role Filtering (Strictly based on Split Badge)
-                            if (group.isSplitRole) {
-                                const requiredRole = instanceCount === 0 ? 'leader' : 'follower';
-                                console.log(`[DEBUG] Split Group: ${group.title} (${instanceCount}) - Required: ${requiredRole}`);
-
-                                // Try specific roles first (exclude Both)
-                                const specificCandidates = eligibleCandidates.filter(c => {
-                                    const match = hasDynamicRole(c, requiredRole);
-                                    // console.log(`[DEBUG] ${c.name} match specific (${requiredRole})? ${match}`);
-                                    return match;
-                                });
-
-                                console.log(`[DEBUG] Specific candidates found: ${specificCandidates.length}`, specificCandidates.map(c => c.name));
-
-                                if (specificCandidates.length > 0) {
-                                    eligibleCandidates = specificCandidates;
-                                } else {
-                                    console.log(`[DEBUG] No specific candidates. Fallback to Both.`);
-                                    // Fallback to Both
-                                    eligibleCandidates = eligibleCandidates.filter(c => hasDynamicRole(c, 'both'));
-                                    console.log(`[DEBUG] Both candidates: ${eligibleCandidates.length}`, eligibleCandidates.map(c => c.name));
+                                    displayTime = timeSlots.join(', ');
                                 }
                             }
 
-                            // Priority Filtering (Starring)
-                            if (group.id && window.isTaskStarred && window.isTaskStarred(group.id, true)) {
-                                const starredCandidates = eligibleCandidates.filter(c => window.isCandidateStarred(group.id, c.id));
+                            const taskNamesInGroup = foundTasks.map(task => task.name);
+                            let candidateCount = 0;
+                            let eligibleCandidates = [];
 
-                                // "Both" Exception Logic for Split Roles
-                                let ignorePriority = false;
-                                if (group.isSplitRole && starredCandidates.length === 1) {
-                                    const candidate = starredCandidates[0];
+                            // ... (Existing Candidate Logic) ...
+                            if (typeof CANDIDATES !== 'undefined' && CANDIDATES) {
+                                // 1. Initial Filter: Capability (Static Roles) + Availability
+                                eligibleCandidates = CANDIDATES.filter(c =>
+                                    taskNamesInGroup.every(name => c.roles.includes(name)) &&
+                                    foundTasks.every(t => isCandidateAvailable(c, t.name, t.time, weekData.week, dayData.name))
+                                );
 
-                                    // Use hasDynamicRole helper
-                                    if (hasDynamicRole(candidate, 'both')) {
-                                        // Check if this is the ONLY starred candidate available for BOTH slots.
-                                        // If there are other starred candidates available for the OTHER role, 
-                                        // we should NOT ignore priority (we should show Yulia for this slot).
+                                // Split Role Filtering (Strictly based on Split Badge)
+                                // Only apply strict roles for the first 2 instances. 3rd+ are "Any".
+                                if (group.isSplitRole && instanceCount <= 2) {
+                                    const requiredRole = instanceCount === 1 ? 'leader' : 'follower'; // instanceCount is 1-based here because we incremented it above
+                                    // Actually instanceCount was 0-based in previous code before increment?
+                                    // Previous code: `const requiredRole = instanceCount === 0 ? 'leader' : 'follower';` then `instanceCount++` at end.
+                                    // Here I incremented `instanceCount` BEFORE this block.
+                                    // So `instanceCount` is 1 for the first instance.
+                                    // Let's adjust: `const requiredRole = (instanceCount - 1) === 0 ? 'leader' : 'follower';`
 
-                                        const currentRole = instanceCount === 0 ? 'leader' : 'follower';
-                                        const otherRole = instanceCount === 0 ? 'follower' : 'leader';
+                                    const roleIndex = instanceCount - 1;
+                                    const roleType = roleIndex === 0 ? 'leader' : 'follower';
 
-                                        // Find other starred candidates available for the OTHER role
-                                        const otherStarredAvailable = CANDIDATES.filter(c =>
-                                            c.id !== candidate.id && // Not Yulia
-                                            window.isCandidateStarred(group.id, c.id) && // Is Starred
-                                            (hasDynamicRole(c, otherRole) || hasDynamicRole(c, 'both')) && // Can do other role
-                                            // Check availability (using same time/day as current task)
-                                            foundTasks.every(t => isCandidateAvailable(c, t.name, t.time, weekData.week, dayData.name))
-                                        );
+                                    // Refined Priority Logic:
+                                    // 1. Starred Leaders (Priority Specific)
+                                    // 2. Starred Both (Priority Both - only if no Priority Specific)
+                                    // 3. Unstarred Leaders (Specific - only if no Priority Both?) -> Actually, if we have Starred Both, they should win over Unstarred Leaders via the Priority Filter later.
+                                    // But if we have Starred Leaders, they should win over Starred Both.
 
-                                        console.log(`[AGG-DEBUG] Checking Other Slot (${otherRole}) for ${candidate.name}. Found: ${otherStarredAvailable.length}`);
+                                    const pureSpecificCandidates = eligibleCandidates.filter(c => hasDynamicRole(c, roleType));
+                                    const starredSpecificCandidates = pureSpecificCandidates.filter(c => window.isCandidateStarred(group.id, c.id));
+                                    const starredBothCandidates = eligibleCandidates.filter(c => hasDynamicRole(c, 'both') && window.isCandidateStarred(group.id, c.id));
 
-                                        if (otherStarredAvailable.length === 0) {
-                                            // No one else can do the other slot. Yulia is needed for both.
-                                            // Ignore priority to show options.
-                                            ignorePriority = true;
-                                            console.log(`[AGG-PRIO] Ignoring priority for ${candidate.name} (Needed for both slots)`);
-                                        }
+                                    let selectedCandidates = [];
+
+                                    if (starredSpecificCandidates.length > 0) {
+                                        // Hierarchy 1: Priority Leaders exist. Use ONLY them.
+                                        selectedCandidates = starredSpecificCandidates;
+                                    } else {
+                                        // Hierarchy 2 & 3: No Priority Leaders.
+                                        // Combine Unstarred Leaders and ALL Both candidates (Starred or Unstarred).
+                                        // The subsequent Priority Filter will ensure Starred Both win over Unstarred Leaders/Both.
+                                        // If no Starred Both, Unstarred Leaders and Unstarred Both compete.
+                                        const allBothCandidates = eligibleCandidates.filter(c => hasDynamicRole(c, 'both'));
+                                        selectedCandidates = [...pureSpecificCandidates, ...allBothCandidates];
+                                    }
+
+                                    if (selectedCandidates.length > 0) {
+                                        eligibleCandidates = selectedCandidates;
+                                    } else {
+                                        // Hierarchy 4: Fallback to all Both (Unstarred Both)
+                                        eligibleCandidates = eligibleCandidates.filter(c => hasDynamicRole(c, 'both'));
                                     }
                                 }
 
-                                if (starredCandidates.length > 0 && !ignorePriority) {
-                                    eligibleCandidates = starredCandidates;
-                                    console.log(`[AGG-PRIO] Filtered ${group.title} to ${eligibleCandidates.length} starred candidates`);
+                                // Priority Filtering (Starring)
+                                if (group.id && window.isTaskStarred && window.isTaskStarred(group.id, true)) {
+                                    const starredCandidates = eligibleCandidates.filter(c => window.isCandidateStarred(group.id, c.id));
+
+                                    // "Both" Exception Logic for Split Roles
+                                    let ignorePriority = false;
+                                    if (group.isSplitRole && starredCandidates.length === 1) {
+                                        const candidate = starredCandidates[0];
+
+                                        // Use hasDynamicRole helper
+                                        const isBoth = hasDynamicRole(candidate, 'both');
+
+                                        if (isBoth) {
+                                            const roleIndex = instanceCount - 1;
+                                            const currentRole = roleIndex === 0 ? 'leader' : 'follower';
+                                            const otherRole = roleIndex === 0 ? 'follower' : 'leader';
+
+                                            // Find other starred candidates available for the OTHER role
+                                            const otherStarredAvailable = CANDIDATES.filter(c =>
+                                                c.id !== candidate.id && // Not Yulia
+                                                window.isCandidateStarred(group.id, c.id) && // Is Starred
+                                                (hasDynamicRole(c, otherRole) || hasDynamicRole(c, 'both')) && // Can do other role
+                                                // Check availability (using same time/day as current task)
+                                                foundTasks.every(t => isCandidateAvailable(c, t.name, t.time, weekData.week, dayData.name))
+                                            );
+
+                                            if (otherStarredAvailable.length === 0) {
+                                                ignorePriority = true;
+                                            }
+                                        }
+                                    }
+
+                                    if (starredCandidates.length > 0 && !ignorePriority) {
+                                        eligibleCandidates = starredCandidates;
+                                    }
                                 }
+
+                                candidateCount = eligibleCandidates.length;
                             }
 
-                            candidateCount = eligibleCandidates.length;
+                            // Create group task
+                            const groupTask = {
+                                id: `grp-${group.id}-${dayData.name}-${instanceCount}`,
+                                name: group.title,
+                                color: getGroupColor(group.variant),
+                                variant: group.variant, // Pass variant for styling
+                                time: displayTime,
+                                effort: totalEffort,
+                                isGroup: true,
+                                isSplitRole: group.isSplitRole, // Pass flag to task
+                                splitRoleType: group.isSplitRole ? (instanceCount === 1 ? 'leader' : (instanceCount === 2 ? 'follower' : null)) : null,
+                                candidateCount,
+                                candidates: eligibleCandidates, // Store the list!
+                                taskNames: taskNamesInGroup, // Store original task names for filtering
+                                subTasks: foundTasks // Store full sub-task objects for availability checking
+                            };
+
+                            processedTasks.push(groupTask);
                         }
 
-                        // Create group task
-                        const groupTask = {
-                            id: `grp-${group.id}-${dayData.name}-${instanceCount}`,
-                            name: group.title,
-                            color: getGroupColor(group.variant),
-                            variant: group.variant, // Pass variant for styling
-                            time: displayTime,
-                            effort: totalEffort,
-                            isGroup: true,
-                            isSplitRole: group.isSplitRole, // Pass flag to task
-                            splitRoleType: group.isSplitRole ? (instanceCount === 0 ? 'leader' : 'follower') : null,
-                            candidateCount,
-                            candidates: eligibleCandidates, // Store the list!
-                            taskNames: taskNamesInGroup, // Store original task names for filtering
-                            subTasks: foundTasks // Store full sub-task objects for availability checking
-                        };
-
-                        processedTasks.push(groupTask);
-                        instanceCount++;
                     } else {
                         break; // No more matches for this group
                     }
                 }
+                if (group.skippedByLimitIndices) group.skippedByLimitIndices.clear();
             });
 
             // Create a set of all task names that belong to ANY group
@@ -298,12 +366,21 @@ function aggregateScheduleIntoGroups(scheduleData) {
                 g.taskNames.forEach(name => allGroupTaskNames.add(name));
             });
 
+            // Pre-calculate counts for remaining tasks
+            const remainingTaskCounts = {};
+            dayData.tasks.forEach((task, idx) => {
+                if (!usedIndices.has(idx) && !skippedTaskNames.has(task.name) && !allGroupTaskNames.has(task.name)) {
+                    remainingTaskCounts[task.name] = (remainingTaskCounts[task.name] || 0) + 1;
+                }
+            });
+
+            const processedSoloTaskCounts = {};
+
             // Add remaining ungrouped tasks (excluding skipped AND excluding leftovers from groups)
             dayData.tasks.forEach((task, idx) => {
                 if (!usedIndices.has(idx) && !skippedTaskNames.has(task.name)) {
                     // If this task is part of a group definition but wasn't aggregated, it's a "leftover" -> SKIP IT
                     if (allGroupTaskNames.has(task.name)) {
-                        // console.log('Skipping leftover group task:', task.name);
                         return;
                     }
 
@@ -316,38 +393,98 @@ function aggregateScheduleIntoGroups(scheduleData) {
                             if (originalTask) realId = originalTask.id;
                         }
 
+                        // Initialize task counts
+                        if (realId) {
+                            if (!weeklyCounts.tasks[realId]) {
+                                weeklyCounts.tasks[realId] = { potential: 0, actual: 0 };
+                            }
+                            if (!window.AGGREGATION_COUNTS.tasks[realId]) {
+                                window.AGGREGATION_COUNTS.tasks[realId] = { current: 0, max: 0 };
+                            }
+
+                            // Increment WEEKLY POTENTIAL
+                            weeklyCounts.tasks[realId].potential++;
+
+                            // Check WEEKLY LIMIT
+                            const limit = limits[realId];
+                            const taskWeekCounts = weeklyCounts.tasks[realId];
+                            if (limit !== undefined && taskWeekCounts.actual >= limit) {
+                                return; // Skip this task due to limit
+                            }
+                            taskWeekCounts.actual++;
+                        }
+
                         // Check if Split Task
                         if (realId && splitTasks.has(realId)) {
-                            // Create Leader and Follower instances
-                            ['leader', 'follower'].forEach(role => {
-                                const splitTask = { ...task, isSplitRole: true, role: role, id: realId };
+                            const total = remainingTaskCounts[task.name] || 1;
+                            const currentIdx = processedSoloTaskCounts[task.name] || 0;
+                            processedSoloTaskCounts[task.name] = currentIdx + 1;
 
-                                // Filter Candidates for this role
-                                let eligible = CANDIDATES.filter(c =>
-                                    c.roles.includes(task.name) &&
-                                    isCandidateAvailable(c, task.name, task.time, weekData.week, dayData.name)
-                                );
+                            if (total >= 2) {
+                                // Multiple instances: Assign roles sequentially (Leader, then Follower)
+                                if (currentIdx === 0 || currentIdx === 1) {
+                                    const role = currentIdx === 0 ? 'leader' : 'follower';
+                                    const splitTask = { ...task, isSplitRole: true, role: role, id: realId };
 
-                                // Apply Role Filter
-                                eligible = eligible.filter(c => {
-                                    const match = hasDynamicRole(c, role);
-                                    if (match) return true;
-                                    if (hasDynamicRole(c, 'both')) return true;
-                                    return false;
-                                });
+                                    // Filter Candidates for this role
+                                    let eligible = CANDIDATES.filter(c =>
+                                        c.roles.includes(task.name) &&
+                                        isCandidateAvailable(c, task.name, task.time, weekData.week, dayData.name)
+                                    );
 
-                                // Priority Filtering
-                                if (window.isTaskStarred && window.isTaskStarred(realId)) {
-                                    const starred = eligible.filter(c => window.isCandidateStarred(realId, c.id));
-                                    if (starred.length > 0) {
-                                        eligible = starred;
+                                    // Apply Role Filter
+                                    eligible = eligible.filter(c => {
+                                        const match = hasDynamicRole(c, role);
+                                        if (match) return true;
+                                        if (hasDynamicRole(c, 'both')) return true;
+                                        return false;
+                                    });
+
+                                    // Priority Filtering
+                                    if (window.isTaskStarred && window.isTaskStarred(realId)) {
+                                        const starred = eligible.filter(c => window.isCandidateStarred(realId, c.id));
+                                        if (starred.length > 0) {
+                                            eligible = starred;
+                                        }
                                     }
-                                }
 
-                                splitTask.candidates = eligible;
-                                processedTasks.push(splitTask);
-                            });
-                            return; // Skip adding the original task
+                                    splitTask.candidates = eligible;
+                                    processedTasks.push(splitTask);
+                                }
+                                // If > 2 instances, skip the rest (limit to 2 for split roles)
+                                return;
+                            } else {
+                                // Single instance: Split into Leader and Follower
+                                ['leader', 'follower'].forEach(role => {
+                                    const splitTask = { ...task, isSplitRole: true, role: role, id: realId };
+
+                                    // Filter Candidates for this role
+                                    let eligible = CANDIDATES.filter(c =>
+                                        c.roles.includes(task.name) &&
+                                        isCandidateAvailable(c, task.name, task.time, weekData.week, dayData.name)
+                                    );
+
+                                    // Apply Role Filter
+                                    eligible = eligible.filter(c => {
+                                        const match = hasDynamicRole(c, role);
+                                        if (match) return true;
+                                        if (hasDynamicRole(c, 'both')) return true;
+                                        return false;
+                                    });
+
+                                    // Priority Filtering
+                                    if (window.isTaskStarred && window.isTaskStarred(realId)) {
+                                        const starred = eligible.filter(c => window.isCandidateStarred(realId, c.id));
+                                        if (starred.length > 0) {
+                                            eligible = starred;
+                                        }
+                                    }
+
+                                    splitTask.candidates = eligible;
+                                    processedTasks.push(splitTask);
+                                });
+                                return; // Skip adding the original task
+                            }
                         }
 
                         // 1. Availability & Role
@@ -412,8 +549,28 @@ function aggregateScheduleIntoGroups(scheduleData) {
             });
 
             return { name: dayData.name, type: dayData.type, tasks: processedTasks };
-        })
-    }));
+        });
+
+        // Update Global Aggregation Counts with Max Weekly Values
+        Object.keys(weeklyCounts.groups).forEach(groupId => {
+            const counts = weeklyCounts.groups[groupId];
+            const globalCounts = window.AGGREGATION_COUNTS.groups[groupId];
+            globalCounts.max = Math.max(globalCounts.max, counts.potential);
+            globalCounts.current = Math.max(globalCounts.current, counts.actual);
+        });
+
+        Object.keys(weeklyCounts.tasks).forEach(taskId => {
+            const counts = weeklyCounts.tasks[taskId];
+            const globalCounts = window.AGGREGATION_COUNTS.tasks[taskId];
+            globalCounts.max = Math.max(globalCounts.max, counts.potential);
+            globalCounts.current = Math.max(globalCounts.current, counts.actual);
+        });
+
+        return {
+            week: weekData.week,
+            days: processedDays
+        };
+    });
 
     return aggregated;
 }
