@@ -291,3 +291,12 @@
     color: #999;
     font-style: italic;
 }
+
+/* Blocked Candidate Link */
+.candidate-link.blocked {
+    color: #ccc !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+    text-decoration: none !important;
+    opacity: 0.6;
+}

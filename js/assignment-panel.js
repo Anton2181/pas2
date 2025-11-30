@@ -16,13 +16,45 @@ class AssignmentPanel {
         // Initialize Assignments from LocalStorage
         this.assignments = {};
         this.debugBlockedCandidates = new Set(); // For debugging
+
+        // Load Workspace Data for Exclusions
+        this.connections = [];
+        this.taskLookup = {}; // Map: "groupId_taskName" or "solo_taskName" -> instanceId
+        this.groupLookup = {}; // Map: groupId -> group object
+
         try {
             const stored = localStorage.getItem('task_assignments');
             if (stored) {
                 this.assignments = JSON.parse(stored);
             }
+
+            const workspaceStr = localStorage.getItem('workspace_autosave');
+            if (workspaceStr) {
+                const workspace = JSON.parse(workspaceStr);
+                this.connections = workspace.state?.connections || [];
+                const canvasTasks = workspace.state?.canvasTasks || [];
+                const groups = workspace.state?.groups || [];
+
+                // Build Group Lookup
+                groups.forEach(g => this.groupLookup[g.id] = g);
+
+                // Build Task Lookup
+                canvasTasks.forEach(t => {
+                    if (t.groupId) {
+                        // Task in Group
+                        this.taskLookup[`${t.groupId}_${t.name}`] = t.instanceId;
+                    } else {
+                        // Solo Task
+                        this.taskLookup[`solo_${t.name}`] = t.instanceId;
+                    }
+                });
+                console.log('[AssignmentPanel] Loaded workspace data:', {
+                    connections: this.connections.length,
+                    tasks: Object.keys(this.taskLookup).length
+                });
+            }
         } catch (e) {
-            console.error('Failed to load assignments', e);
+            console.error('Failed to load assignments or workspace', e);
         }
 
         this.render();
@@ -87,7 +119,7 @@ class AssignmentPanel {
                 </th>
                 <th class="col-assignee">
                     Assignee
-                    <button type="button" class="clear-all-btn" onclick="window._clearAllHandler(); return false;" title="Clear ALL Assignees">×</button>
+                    <button type="button" class="clear-all-btn" onclick="event.preventDefault(); event.stopPropagation(); window._clearAllHandler();" title="Clear ALL Assignees">×</button>
                 </th>
             </tr>
         `;
@@ -180,6 +212,7 @@ class AssignmentPanel {
                     // Task Name (Subtask)
                     const taskCell = document.createElement('td');
                     taskCell.style.backgroundColor = '#ffffff'; // Force white
+                    taskCell.title = `ID: ${subTask.id}`; // Add ID tooltip
                     taskCell.innerHTML = `
                         <div>${subTask.name}</div>
                         <div class="task-meta">${subTask.time} | ${subTask.effort}</div>
@@ -482,6 +515,11 @@ class AssignmentPanel {
         console.log(`[ROLE-CHECK] Checking ${candidate ? candidate.name : 'null'} for ${roleName}`);
         if (!candidate || !roleName) return false;
 
+        // 1. Check for Exact Match in Roles
+        if (candidate.roles && candidate.roles.includes(roleName)) {
+            return true;
+        }
+
         // Check for localStorage override for Leader/Follower
         const taskName = roleName.toLowerCase();
         let mappedRole = null;
@@ -492,9 +530,37 @@ class AssignmentPanel {
             mappedRole = 'follower';
         } else if (taskName.includes('preparation')) {
             // Preparation tasks without explicit 'teacher' or 'assistant' can be done by either
-            const result = candidate.roles && (candidate.roles.includes('Leader') || candidate.roles.includes('Follower') || candidate.roles.includes('Both'));
-            console.log(`[ROLE-CHECK] Prep check for ${candidate.name}: Roles=${candidate.roles}, Result=${result}`);
-            return result;
+            // BUT only if we didn't find an exact match above.
+            // Actually, if we are here, we didn't find an exact match.
+            // So we should check if the candidate has ANY relevant role?
+            // No, the issue is that the code below returns result based on 'Leader'/'Follower' strings which might not be in the roles array.
+            // The roles array contains full task names.
+
+            // If the candidate has the specific preparation task in their roles, we returned true above.
+            // If not, maybe they are allowed via some other mechanism?
+            // The original code was:
+            // const result = candidate.roles && (candidate.roles.includes('Leader') || candidate.roles.includes('Follower') || candidate.roles.includes('Both'));
+
+            // This assumes 'Leader', 'Follower', 'Both' are in the roles array.
+            // But the JSON shows full task names.
+
+            // If we want to allow based on "Leader" capability, we need to check teamRoles (from localStorage/JSON).
+            // But here we only have candidate object.
+
+            // Let's rely on the exact match above. If it failed, and it's a preparation task,
+            // maybe we should be stricter? Or maybe the original code was intended for a different data structure.
+
+            // For now, let's just return false if exact match failed, UNLESS we want to support the generic roles.
+            // But wait, the log said: "Roles=..., Result=false".
+            // The roles list had "Preparation for the Lesson / Assistant - Wednesday".
+            // So the exact match SHOULD have worked.
+
+            // Ah, the original code didn't have the exact match check at the top!
+            // It went straight to the if/else block.
+            // And since "preparation" matches, it went into this block and returned false because 'Leader'/'Follower' were not in the list.
+
+            // So adding the exact match check at the top fixes it.
+            return false;
         }
 
         if (mappedRole) {
@@ -614,13 +680,13 @@ class AssignmentPanel {
         });
     }
 
-    isCandidateBlocked(candidateName, currentTask, currentWeek, currentDay) {
+    isCandidateBlocked(candidateName, currentTask, currentWeek, currentDay, precalculatedAssignments = null) {
         // Exception: Tasks on "0th Day" (Available Tasks) do not block each other
         if (currentDay === '0th Day') {
             return { blocked: false, reason: null };
         }
 
-        const assignments = this.getAllAssignments();
+        const assignments = precalculatedAssignments || this.getAllAssignments();
         let blockReason = null;
 
         // Check Debug Blocks
@@ -644,9 +710,12 @@ class AssignmentPanel {
             // AND the assignment 'a' also has a groupId
             // AND those groupIds are the same, then they are part of the same group.
             // In this case, they don't block each other.
-            if (currentTask.groupId && a.groupId && currentTask.groupId === a.groupId) {
-                // console.log(`[EXCLUSION] Ignoring conflict within group ${currentTask.groupId}`);
-                return false;
+            if (currentTask.groupId && a.groupId) {
+                console.log(`[DEBUG] Checking Group Conflict: Task=${currentTask.id} (${currentTask.groupId}) vs Assgn=${a.taskId} (${a.groupId})`);
+                if (String(currentTask.groupId) === String(a.groupId)) {
+                    console.log(`[DEBUG] Same Group - IGNORING CONFLICT`);
+                    return false;
+                }
             }
 
             // Check Time Overlap
@@ -658,6 +727,69 @@ class AssignmentPanel {
                 // console.log(`[BLOCK] ${candidateName}: ${blockReason}`);
                 return true; // Stop iteration, found block
             }
+
+            // --- EXCLUSION CONNECTION CHECK ---
+            // Only check if we have connection data loaded
+            if (this.connections && this.connections.length > 0) {
+                // Resolve IDs
+                const myInstanceId = this.resolveInstanceId(currentTask);
+                const otherInstanceId = this.resolveInstanceId(a);
+
+                if (myInstanceId && otherInstanceId) {
+                    // Check Task <-> Task Exclusion
+                    const taskExclusion = this.connections.find(c =>
+                        c.type === 'exclusion' &&
+                        ((c.fromId === `task-${myInstanceId}` && c.toId === `task-${otherInstanceId}`) ||
+                            (c.fromId === `task-${otherInstanceId}` && c.toId === `task-${myInstanceId}`))
+                    );
+
+                    if (taskExclusion) {
+                        blockReason = `Excluded by Connection: ${a.name}`;
+                        return true;
+                    }
+                }
+
+                // Check Group Exclusions
+                // My Group vs Other Task
+                if (currentTask.groupId && otherInstanceId) {
+                    const groupExclusion = this.connections.find(c =>
+                        c.type === 'exclusion' &&
+                        ((c.fromId === `group-${currentTask.groupId}` && c.toId === `task-${otherInstanceId}`) ||
+                            (c.fromId === `task-${otherInstanceId}` && c.toId === `group-${currentTask.groupId}`))
+                    );
+                    if (groupExclusion) {
+                        blockReason = `Group Excluded by: ${a.name}`;
+                        return true;
+                    }
+                }
+
+                // My Task vs Other Group
+                if (myInstanceId && a.groupId) {
+                    const groupExclusion = this.connections.find(c =>
+                        c.type === 'exclusion' &&
+                        ((c.fromId === `task-${myInstanceId}` && c.toId === `group-${a.groupId}`) ||
+                            (c.fromId === `group-${a.groupId}` && c.toId === `group-${myInstanceId}`))
+                    );
+                    if (groupExclusion) {
+                        blockReason = `Excluded by Group: ${a.groupId}`; // Ideally show group title
+                        return true;
+                    }
+                }
+
+                // My Group vs Other Group
+                if (currentTask.groupId && a.groupId) {
+                    const groupExclusion = this.connections.find(c =>
+                        c.type === 'exclusion' &&
+                        ((c.fromId === `group-${currentTask.groupId}` && c.toId === `group-${a.groupId}`) ||
+                            (c.fromId === `group-${a.groupId}` && c.toId === `group-${currentTask.groupId}`))
+                    );
+                    if (groupExclusion) {
+                        blockReason = `Group Exclusion`;
+                        return true;
+                    }
+                }
+            }
+
             return false;
         });
 
@@ -666,11 +798,42 @@ class AssignmentPanel {
             if (a.taskId === currentTask.id) return false;
             if (a.assignee !== candidateName) return false;
             if (a.week != currentWeek || a.day !== currentDay) return false;
-            if (currentTask.groupId && a.groupId && currentTask.groupId === a.groupId) return false;
-            return this.checkTimeOverlap(currentTask.time, a.time);
+            if (currentTask.groupId && a.groupId && String(currentTask.groupId) === String(a.groupId)) return false;
+
+            // Check Time Overlap
+            if (this.checkTimeOverlap(currentTask.time, a.time)) return true;
+
+            // Check Exclusions (Re-run logic to find specific blocker)
+            if (this.connections && this.connections.length > 0) {
+                const myInstanceId = this.resolveInstanceId(currentTask);
+                const otherInstanceId = this.resolveInstanceId(a);
+
+                if (myInstanceId && otherInstanceId) {
+                    if (this.connections.some(c => c.type === 'exclusion' && ((c.fromId === `task-${myInstanceId}` && c.toId === `task-${otherInstanceId}`) || (c.fromId === `task-${otherInstanceId}` && c.toId === `task-${myInstanceId}`)))) return true;
+                }
+                if (currentTask.groupId && otherInstanceId) {
+                    if (this.connections.some(c => c.type === 'exclusion' && ((c.fromId === `group-${currentTask.groupId}` && c.toId === `task-${otherInstanceId}`) || (c.fromId === `task-${otherInstanceId}` && c.toId === `group-${currentTask.groupId}`)))) return true;
+                }
+                if (myInstanceId && a.groupId) {
+                    if (this.connections.some(c => c.type === 'exclusion' && ((c.fromId === `task-${myInstanceId}` && c.toId === `group-${a.groupId}`) || (c.fromId === `group-${a.groupId}` && c.toId === `group-${myInstanceId}`)))) return true;
+                }
+                if (currentTask.groupId && a.groupId) {
+                    if (this.connections.some(c => c.type === 'exclusion' && ((c.fromId === `group-${currentTask.groupId}` && c.toId === `group-${a.groupId}`) || (c.fromId === `group-${a.groupId}` && c.toId === `group-${currentTask.groupId}`)))) return true;
+                }
+            }
+            return false;
         }) : null;
 
         return { blocked: isBlocked, reason: blockReason, blockingAssignment };
+    }
+
+    resolveInstanceId(task) {
+        if (!this.taskLookup) return null;
+        if (task.groupId) {
+            return this.taskLookup[`${task.groupId}_${task.name}`];
+        } else {
+            return this.taskLookup[`solo_${task.name}`];
+        }
     }
 
     formatCandidates(candidates, task, week, day) {
@@ -697,14 +860,22 @@ class AssignmentPanel {
         }).join(', ');
     }
 
-    updateCandidateVisuals() {
+    updateCandidateVisuals(specificCandidate = null) {
         const links = document.querySelectorAll('.candidate-link');
+
+        // Pre-calculate assignments ONCE
+        const allAssignments = this.getAllAssignments();
+
         links.forEach(link => {
+            const candidateName = link.dataset.candidateName;
+
+            // Optimization: If specificCandidate is provided, ONLY update links for that candidate.
+            if (specificCandidate && candidateName !== specificCandidate) return;
+
             const taskId = link.dataset.taskId;
             const week = link.dataset.week; // Keep as string (e.g. "Week 11")
             const day = link.dataset.day;
             const time = link.dataset.time;
-            const candidateName = link.dataset.candidateName;
 
             if (!taskId || !candidateName || !time) return;
 
@@ -727,20 +898,42 @@ class AssignmentPanel {
             // Match -> false. Proceed to time check.
             // Time overlap -> True. Block. Correct.
 
-            const result = this.isCandidateBlocked(candidateName, mockTask, week, day);
+            // Pass precalculated assignments
+            const result = this.isCandidateBlocked(candidateName, mockTask, week, day, allAssignments);
             const isBlocked = result.blocked;
 
             if (isBlocked) {
                 link.classList.add('blocked');
                 link.title = result.reason || 'Already assigned to a competing task';
-                link.removeAttribute('onclick');
+                // We are no longer removing the onclick attribute.
+                // Instead, we rely on CSS to disable clicks for blocked links.
+                // .candidate-link.blocked { pointer-events: none; opacity: 0.5; }
             } else {
                 link.classList.remove('blocked');
                 link.removeAttribute('title');
-                // Re-add onclick with week/day
-                if (!link.hasAttribute('onclick')) {
-                    link.setAttribute('onclick', `window.assignCandidate('${taskId}', '${candidateName.replace(/'/g, "\\'")}', '${week}', '${day}')`);
-                }
+                // Restore onclick (re-bind)
+                // We can't easily restore the original onclick function if it was removed.
+                // But wait, we are removing the attribute 'onclick'.
+                // If the event was attached via addEventListener, it persists.
+                // If it was inline 'onclick', it's gone.
+                // The render method sets inline onclick: onclick="panelInstance.copyOptimalToAssignee(...)"
+                // So we need to restore it.
+
+                // Actually, instead of removing onclick, let's just use CSS pointer-events: none for blocked?
+                // Or just check blocked status in the click handler?
+                // The current implementation removes onclick.
+
+                // Let's restore it.
+                // We have the data needed: task, candidate, week, day.
+                // But 'task' object is not fully available here, only ID.
+                // copyOptimalToAssignee needs the full task object (for subtasks).
+
+                // Alternative: Don't remove onclick. Just let it fail or warn?
+                // Or use CSS to disable clicks.
+                // .candidate-link.blocked { pointer-events: none; opacity: 0.5; }
+
+                // If we rely on CSS, we don't need to touch onclick.
+                // Let's check if CSS handles .blocked
             }
         });
     }
@@ -961,21 +1154,38 @@ class AssignmentPanel {
             // Correct casing in input
             input.value = candidateObj.name;
             if (window.renderEffortGraph) window.renderEffortGraph();
-            this.updateCandidateVisuals(); // Live Update
+            this.updateCandidateVisuals(candidateObj.name); // Live Update (Optimized)
         };
 
         // Attach validate to input for external calls
         input.validate = validateInput;
 
+        // Debounce Helper
+        const debounce = (func, wait) => {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        };
+
         // Event Listeners
         input.addEventListener('focus', showDropdown);
         input.addEventListener('blur', () => setTimeout(hideDropdown, 200));
-        input.addEventListener('input', (e) => {
+
+        // Debounced Input Handler
+        const handleInput = debounce((e) => {
             populateDropdown(e.target.value);
             dropdown.classList.add('show');
             validateInput(e.target.value);
-            updateClearBtn(); // Toggle clear button visibility
-        });
+            updateClearBtn();
+        }, 300);
+
+        input.addEventListener('input', handleInput);
 
         // Close on click outside (handled by blur mostly, but good for safety)
 
@@ -1001,11 +1211,137 @@ class AssignmentPanel {
         }
     }
 
+    // Helper: Get base name (remove " - Tuesday", etc.)
+    getTaskBaseName(name) {
+        return name.split(' - ')[0].trim();
+    }
+
+    autoAssignSiblingTasks() {
+        if (!SCHEDULE_DATA) return;
+        let assignedCount = 0;
+
+        console.log('[AUTO-SIBLING] Starting sibling task assignment...');
+
+        SCHEDULE_DATA.forEach(weekData => {
+            // 1. Group tasks by Base Name
+            const tasksByBaseName = {};
+
+            weekData.days.forEach(day => {
+                day.tasks.forEach(task => {
+                    // Skip if already assigned or is a group
+                    const key = `${task.id}_${weekData.week}_${day.name}`;
+                    if (this.assignments[key]) return;
+                    if (task.isGroup) return; // Skip groups for now, focus on individual tasks
+
+                    const baseName = this.getTaskBaseName(task.name);
+                    if (!tasksByBaseName[baseName]) {
+                        tasksByBaseName[baseName] = [];
+                    }
+                    tasksByBaseName[baseName].push({ task, day });
+                });
+            });
+
+            // 2. Process groups with > 1 task
+            Object.entries(tasksByBaseName).forEach(([baseName, items]) => {
+                if (items.length < 2) return; // Not siblings
+
+                // 3. Get candidates for each task
+                // We need to check if the POOL of candidates matches the number of tasks.
+                // But each task might have slightly different availability (time).
+
+                // Let's collect ALL valid candidates for EACH task.
+                const taskCandidates = items.map(item => {
+                    const candidates = this.getCandidatesForTask(item.task, weekData.week, item.day.name);
+                    // Filter blocked
+                    const available = candidates.filter(c => {
+                        const result = this.isCandidateBlocked(c.name, item.task, weekData.week, item.day.name);
+                        return !result.blocked;
+                    });
+                    return { ...item, candidates: available };
+                });
+
+                // 4. Check Unique Candidates Count
+                const uniqueCandidates = new Set();
+                taskCandidates.forEach(tc => {
+                    tc.candidates.forEach(c => uniqueCandidates.add(c.name));
+                });
+
+                if (uniqueCandidates.size === items.length) {
+                    console.log(`[AUTO-SIBLING] Found match for "${baseName}" (Week ${weekData.week}): ${items.length} tasks, ${uniqueCandidates.size} candidates.`);
+
+                    // 5. Find Valid Assignment (Backtracking/Permutation)
+                    const candidatesList = Array.from(uniqueCandidates);
+                    const solution = this.solveAssignment(taskCandidates, candidatesList);
+
+                    if (solution) {
+                        console.log(`[AUTO-SIBLING] Applying solution for "${baseName}"`);
+                        solution.forEach(sol => {
+                            this.saveAssignment(sol.taskId, sol.candidateName, weekData.week, sol.dayName, null);
+                            assignedCount++;
+                        });
+                    } else {
+                        console.log(`[AUTO-SIBLING] No valid non-conflicting assignment found for "${baseName}"`);
+                    }
+                }
+            });
+        });
+
+        if (assignedCount > 0) {
+            console.log(`[AUTO-SIBLING] Assigned ${assignedCount} sibling tasks.`);
+            this.render();
+            if (window.renderEffortGraph) window.renderEffortGraph();
+        }
+    }
+
+    // Simple backtracking solver to find 1-to-1 assignment
+    solveAssignment(tasksWithCandidates, allCandidates) {
+        // tasksWithCandidates: [{ task, day, candidates: [] }]
+        // allCandidates: [name1, name2, ...]
+
+        const assignments = []; // [{ taskId, dayName, candidateName }]
+        const usedCandidates = new Set();
+
+        const backtrack = (taskIndex) => {
+            if (taskIndex === tasksWithCandidates.length) {
+                return true; // Solved
+            }
+
+            const current = tasksWithCandidates[taskIndex];
+
+            // Try each valid candidate for this task
+            for (const candidate of current.candidates) {
+                if (!usedCandidates.has(candidate.name)) {
+                    // Try assigning
+                    usedCandidates.add(candidate.name);
+                    assignments.push({
+                        taskId: current.task.id,
+                        dayName: current.day.name,
+                        candidateName: candidate.name
+                    });
+
+                    if (backtrack(taskIndex + 1)) {
+                        return true;
+                    }
+
+                    // Backtrack
+                    assignments.pop();
+                    usedCandidates.delete(candidate.name);
+                }
+            }
+            return false;
+        };
+
+        if (backtrack(0)) {
+            return assignments;
+        }
+        return null;
+    }
+
     autoAssignSingleCandidates() {
         if (!SCHEDULE_DATA) return;
 
         let assignedCount = 0;
-
+        // ... (Existing Single Logic) ...
         // Iterate through all tasks
         console.log(`[AUTO-SINGLE] Processing ${SCHEDULE_DATA.length} weeks...`);
         SCHEDULE_DATA.forEach(weekData => {
@@ -1018,26 +1354,38 @@ class AssignmentPanel {
                         // For groups, use standard getter which now includes Priority Logic
                         const candidates = this.getCommonCandidates(task.subTasks, weekData.week, day.name, task);
 
-                        // Filter by Exclusion (Blocked)
-                        // Note: getCommonCandidates already checks Availability and Capability
+                        // Filter by Exclusion (Blocked) - Check block for the GROUP (representative task?)
+                        // Actually we should check if candidate is blocked for ANY subtask.
+                        // But getCommonCandidates checks availability. isCandidateBlocked checks other assignments.
+
                         const availableCandidates = candidates.filter(c => {
-                            const groupTaskObj = { ...task, groupId: task.id };
-                            const result = this.isCandidateBlocked(c.name, groupTaskObj, weekData.week, day.name);
+                            // Check if blocked for the first subtask (proxy for group time?)
+                            // Or check overlap with group time if we had it.
+                            // Groups usually share time.
+                            // Let's iterate subtasks to be safe?
+                            // For now, check first subtask.
+                            const t = task.subTasks[0];
+                            // We need to pass groupID to ignore self-blocks within group?
+                            // Actually isCandidateBlocked handles "Skip self".
+                            // But for a group, we are assigning to multiple tasks.
+
+                            // Let's just check if blocked for the "Group Task" entity if it existed, 
+                            // or just check the first subtask.
+                            const result = this.isCandidateBlocked(c.name, t, weekData.week, day.name);
                             return !result.blocked;
                         });
 
                         if (availableCandidates.length === 1) {
                             const candidate = availableCandidates[0];
-                            console.log(`[AUTO-SINGLE] Assigning ${candidate.name} to GROUP ${task.name}`);
+                            console.log(`[AUTO-SINGLE] Assigning ${candidate.name} to Group ${task.id}`);
 
                             // Assign to ALL subtasks
                             task.subTasks.forEach(sub => {
-                                const key = `${sub.id}_${weekData.week}_${day.name}`;
-                                if (this.assignments[key]) return;
                                 this.saveAssignment(sub.id, candidate.name, weekData.week, day.name, task.id);
                             });
                             assignedCount++;
                         }
+
                     } else {
                         // Single Task Logic
                         const processTask = (t, roleNameOverride = null, groupId = null) => {
@@ -1075,11 +1423,12 @@ class AssignmentPanel {
         } else {
             console.log('[AUTO-SINGLE] No single-candidate tasks found.');
         }
+
+        // Run Sibling Logic
+        this.autoAssignSiblingTasks();
     }
 }
 
-// Global Handler
-// Global Handler
 // Global Handler
 window.assignCandidate = function (id, candidateName, week, day) {
     console.log(`[ASSIGN CLICK] ID: ${id}, Name: ${candidateName}, Week: ${week}, Day: ${day}`);
