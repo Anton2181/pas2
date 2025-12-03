@@ -1013,7 +1013,7 @@ class AssignmentPanel {
                 item.addEventListener('mousedown', (e) => {
                     e.preventDefault(); // Prevent blur
                     input.value = c.name;
-                    task.assignee = c.name; // Update Data
+                    // task.assignee = c.name; // REMOVED: Let validateInput handle data update to preserve previous state
                     validateInput(c.name);
                     hideDropdown();
                     if (window.renderEffortGraph) window.renderEffortGraph();
@@ -1035,12 +1035,18 @@ class AssignmentPanel {
         const validateInput = (val) => {
             updateClearBtn();
 
+            // Capture previous assignee BEFORE updating data
+            const previousAssignee = task.assignee;
+
             if (!val || !val.trim()) {
                 input.classList.remove('valid', 'input-warning', 'input-error');
                 task.assignee = null; // Clear assignment
                 this.saveAssignment(task.id, null, week, day, groupId); // Save with groupId
                 if (window.renderEffortGraph) window.renderEffortGraph();
-                this.updateCandidateVisuals(); // Live Update
+
+                // Update visuals for previous assignee (to unblock them)
+                if (previousAssignee) this.updateCandidateVisuals(previousAssignee);
+
                 return;
             }
 
@@ -1053,7 +1059,10 @@ class AssignmentPanel {
                 input.classList.remove('valid', 'input-warning');
                 task.assignee = val;
                 this.saveAssignment(task.id, val, week, day, groupId);
-                this.updateCandidateVisuals(); // Live Update (even if invalid, might clear previous valid)
+
+                // Update visuals for previous assignee
+                if (previousAssignee && previousAssignee !== val) this.updateCandidateVisuals(previousAssignee);
+
                 return;
             }
 
@@ -1154,7 +1163,14 @@ class AssignmentPanel {
             // Correct casing in input
             input.value = candidateObj.name;
             if (window.renderEffortGraph) window.renderEffortGraph();
-            this.updateCandidateVisuals(candidateObj.name); // Live Update (Optimized)
+
+            // Update visuals for new candidate
+            this.updateCandidateVisuals(candidateObj.name);
+
+            // Update visuals for previous assignee if different
+            if (previousAssignee && previousAssignee !== candidateObj.name) {
+                this.updateCandidateVisuals(previousAssignee);
+            }
         };
 
         // Attach validate to input for external calls
